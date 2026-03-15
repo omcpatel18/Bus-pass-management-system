@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/v1/buses/',        include('apps.buses.urls')),
     path('api/v1/ai/',           include('apps.ai_engine.urls')),
     path('api/v1/notifications/',include('apps.notifications.urls')),
+    path('api/v1/taxis/',        include('apps.taxis.urls')),
 
     # API Docs
     path('api/schema/',  SpectacularAPIView.as_view(), name='schema'),

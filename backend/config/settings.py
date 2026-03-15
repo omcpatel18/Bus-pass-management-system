@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'apps.buses',
     'apps.ai_engine',
     'apps.notifications',
+    'apps.taxis',
 ]
 
 MIDDLEWARE = [
