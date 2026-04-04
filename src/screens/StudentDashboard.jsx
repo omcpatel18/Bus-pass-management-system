@@ -54,7 +54,7 @@ const CSS = `
   --green:#1E6641; --green-on-ink:#52B788;
   --red:#B02020; --cream-on-ink:#F6F0E4; --muted-on-ink:#B09878;
   --success-bg:#EBF7F0; --error-bg:#FDEAEA;
-  --warn-bg:#FEF7E6; --info-bg:#EDF4FD;
+  --warn-bg:#FEF7E6; --info-bg:#EDE4CC;
   --font-display:'Bebas Neue',sans-serif;
   --font-serif:'DM Serif Display',serif;
   --font-mono:'JetBrains Mono',monospace;

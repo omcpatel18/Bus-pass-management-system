@@ -140,7 +140,8 @@ function QRTicket({ ticket, onClose, showClose = true }) {
   return (
     <div style={{ width:"100%", maxWidth:540, margin:"0 auto",
       background:"var(--cream)", border:"2px solid var(--ink)",
-      boxShadow:"8px 8px 0 var(--ink)", animation:"qrReveal .4s var(--ease-spring)",
+      boxShadow:"0 20px 60px rgba(26,18,8,0.18), 0 4px 12px rgba(26,18,8,0.1)",
+      animation:"qrReveal .4s var(--ease-spring)",
       position:"relative", overflow:"hidden" }}>
 
       {/* ── Colour band ── */}
@@ -189,6 +190,7 @@ function QRTicket({ ticket, onClose, showClose = true }) {
         {/* Route banner — dark ink block */}
         <div style={{ background:"var(--ink)", margin:"0 -22px",
           padding:"16px 22px",
+          borderLeft:`6px solid ${bus.lineColor}`,
           display:"grid", gridTemplateColumns:"1fr 32px 1fr",
           alignItems:"center", gap:8 }}>
           <div>
@@ -246,16 +248,17 @@ function QRTicket({ ticket, onClose, showClose = true }) {
       {/* ── Perforated divider ── */}
       <div style={{ position:"relative", height:28, display:"flex", alignItems:"center",
         overflow:"hidden" }}>
-        <div style={{ position:"absolute", left:-12, width:24, height:24, borderRadius:"50%",
+        <div style={{ position:"absolute", left:-14, width:28, height:28, borderRadius:"50%",
           background:"var(--cream)", border:"2px solid var(--ink)", zIndex:2 }}/>
         <div style={{ flex:1, height:0, margin:"0 12px",
-          borderTop:"2px dashed var(--rule)" }}/>
-        <div style={{ position:"absolute", right:-12, width:24, height:24, borderRadius:"50%",
+          borderTop:"2px dashed rgba(26,18,8,0.25)" }}/>
+        <div style={{ position:"absolute", right:-14, width:28, height:28, borderRadius:"50%",
           background:"var(--cream)", border:"2px solid var(--ink)", zIndex:2 }}/>
       </div>
 
       {/* ── QR section ── */}
-      <div style={{ padding:"16px 22px 22px", display:"flex", gap:20, alignItems:"flex-start" }}>
+      <div style={{ padding:"16px 22px 22px", display:"flex", gap:20, alignItems:"flex-start",
+        background:"var(--parchment)" }}>
 
         {/* QR code */}
         <div style={{ flexShrink:0, textAlign:"center" }}>
@@ -318,20 +321,20 @@ function QRTicket({ ticket, onClose, showClose = true }) {
         <div style={{ position:"absolute", top:90, right:18,
           border:"3px solid var(--green)", padding:"4px 14px",
           transform:"rotate(8deg)",
-          animation:"stampDrop .5s var(--ease-spring) .3s both",
+          animation:"stampDrop .7s var(--ease-spring) .3s both",
           pointerEvents:"none" }}>
-          <div style={{ fontFamily:"var(--font-display)", fontSize:18,
-            letterSpacing:4, color:"var(--green)", opacity:.5 }}>VALID</div>
+          <div style={{ fontFamily:"var(--font-display)", fontSize:22,
+            letterSpacing:4, color:"var(--green)", opacity:.65 }}>VALID</div>
         </div>
       )}
       {isCancelled&&(
         <div style={{ position:"absolute", top:90, right:18,
           border:"3px solid var(--red)", padding:"4px 14px",
           transform:"rotate(8deg)",
-          animation:"stampDrop .5s var(--ease-spring) .3s both",
+          animation:"stampDrop .7s var(--ease-spring) .3s both",
           pointerEvents:"none" }}>
-          <div style={{ fontFamily:"var(--font-display)", fontSize:18,
-            letterSpacing:4, color:"var(--red)", opacity:.5 }}>VOID</div>
+          <div style={{ fontFamily:"var(--font-display)", fontSize:22,
+            letterSpacing:4, color:"var(--red)", opacity:.65 }}>VOID</div>
         </div>
       )}
     </div>
@@ -508,7 +511,7 @@ function useToast() {
 // ══════════════════════════════════════════════════════════════════════
 //  STOP SEARCH TYPEAHEAD
 // ══════════════════════════════════════════════════════════════════════
-function StopSearch({ value, onChange, placeholder, exclude=[], label, labelColor="var(--muted)" }) {
+function StopSearch({ value, onChange, placeholder, exclude=[], label, labelColor="var(--muted)", dotColor="var(--muted)" }) {
   const [query,  setQuery]  = useState(value||"");
   const [open,   setOpen]   = useState(false);
   const [cursor, setCursor] = useState(-1);
@@ -549,9 +552,9 @@ function StopSearch({ value, onChange, placeholder, exclude=[], label, labelColo
       <div style={{ display:"flex",alignItems:"center",gap:8,
         border:`1.5px solid ${open?"var(--amber)":"var(--rule)"}`,
         background:open?"var(--surface)":"var(--cream)",
-        padding:"10px 14px",transition:"border-color .18s,background .18s",
+        padding:"11px 14px",transition:"border-color .18s,background .18s",
         borderRadius:"var(--r-sm)",boxShadow:open?"0 0 0 3px rgba(200,131,42,.08)":"none" }}>
-        <span style={{ fontSize:11,flexShrink:0,color:"var(--muted)" }}>◉</span>
+        <span style={{ fontSize:11,flexShrink:0,color:dotColor }}>◉</span>
         <input ref={inputRef} value={query} placeholder={placeholder}
           onChange={e=>{ setQuery(e.target.value); setOpen(true); setCursor(-1); if(!e.target.value) onChange(""); }}
           onFocus={()=>setOpen(true)} onKeyDown={handleKey}
@@ -566,7 +569,7 @@ function StopSearch({ value, onChange, placeholder, exclude=[], label, labelColo
       </div>
       {open&&(
         <div style={{ position:"absolute",top:"calc(100% + 6px)",left:0,right:0,
-          background:"var(--surface)",border:"2px solid var(--ink)",borderRadius:"var(--r-lg)",zIndex:600,
+          background:"var(--surface)",border:"2px solid var(--ink)",borderRadius:"var(--r-sm)",zIndex:600,
           maxHeight:240,overflowY:"auto",animation:"slideDown .15s ease",overflow:"hidden",
           boxShadow:"0 10px 32px rgba(26,18,8,.14)" }}>
           <div style={{ padding:"7px 14px 5px",borderBottom:"1px solid var(--rule)",
@@ -715,7 +718,13 @@ export default function TicketBooking() {
                       color:active?"var(--ink)":"var(--muted)" }}>{l}</span>
                   </div>
                   {i<2&&<div style={{ flex:1, height:1,
-                    background:done?"var(--green)":"var(--rule)", margin:"0 12px" }}/>}
+                    background:"var(--rule)", margin:"0 12px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", inset:0,
+                      background:"var(--green)",
+                      transform:done?"scaleX(1)":"scaleX(0)",
+                      transformOrigin:"left",
+                      animation:done?"lineGrow .4s ease both":"none" }}/>
+                  </div>} 
                 </div>
               );
             })}
@@ -733,24 +742,26 @@ export default function TicketBooking() {
                   {/* From / Swap / To row */}
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 48px 1fr",
                     borderBottom:"1px solid var(--rule)" }}>
-                    <div style={{ padding:"18px 20px" }}>
+                    <div style={{ padding:"14px 16px" }}>
                       <StopSearch value={pickup} onChange={setPickup}
                         placeholder="From stop…" exclude={dest?[dest]:[]}
-                        label="◉ FROM" labelColor="var(--green)"/>
+                        label="◉ FROM" labelColor="var(--green)" dotColor="var(--green)"/>
                     </div>
                     <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
                       borderLeft:"1px solid var(--rule)", borderRight:"1px solid var(--rule)" }}>
                       <button onClick={()=>{const t=pickup;setPickup(dest);setDest(t);}}
+                        onMouseEnter={e=>{ e.currentTarget.style.transform="rotate(180deg)"; }}
+                        onMouseLeave={e=>{ e.currentTarget.style.transform="rotate(0deg)"; }}
                         style={{ width:32, height:32, borderRadius:"50%",
                           background:"var(--ink)", border:"none",
                           color:"var(--amber-on-ink)", fontSize:14,
                           display:"flex", alignItems:"center", justifyContent:"center",
-                          cursor:"pointer" }}>⇄</button>
+                          cursor:"pointer", transition:"transform .3s ease" }}>⇄</button>
                     </div>
-                    <div style={{ padding:"18px 20px" }}>
+                    <div style={{ padding:"14px 16px" }}>
                       <StopSearch value={dest} onChange={setDest}
                         placeholder="Where to?" exclude={pickup?[pickup]:[]}
-                        label="◎ TO" labelColor="var(--red)"/>
+                        label="◎ TO" labelColor="var(--red)" dotColor="var(--red)"/>
                     </div>
                   </div>
 
@@ -762,6 +773,7 @@ export default function TicketBooking() {
                         style={{ padding:"11px 16px",
                           background:sched===id?"var(--parchment)":"transparent",
                           border:"none",borderRight:id==="now"?"1px solid var(--rule)":"none",
+                          borderBottom:sched===id?"2px solid var(--amber)":"2px solid transparent",
                           fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2,
                           color:sched===id?"var(--ink)":"var(--muted)",cursor:"pointer",
                           transition:"all .18s" }}>{lbl}</button>
@@ -787,7 +799,7 @@ export default function TicketBooking() {
 
                 {/* Fare preview */}
                 {pickup&&dest&&(
-                  <div style={{ border:"1.5px solid var(--amber)", borderRadius:"var(--r-lg)", background:"var(--warn-bg)",
+                  <div style={{ border:"1.5px solid var(--amber)", borderRadius:"var(--r-sm)", background:"var(--warn-bg)",
                     padding:"14px 20px", marginBottom:14,
                     display:"flex", justifyContent:"space-between", alignItems:"center",
                     animation:"fadeUp .3s ease" }}>
@@ -806,9 +818,26 @@ export default function TicketBooking() {
                   </div>
                 )}
 
-                <Btn variant="primary" full size="lg" onClick={handleSearch} disabled={loading}>
-                  {loading?<><Spinner size={16} color="var(--amber-on-ink)"/> SEARCHING…</>:"SEARCH BUSES →"}
-                </Btn>
+                <button onClick={handleSearch} disabled={loading}
+                  onMouseEnter={e=>{
+                    const arrow = e.currentTarget.querySelector("[data-search-arrow]");
+                    if (arrow) arrow.style.transform = "translateX(4px)";
+                  }}
+                  onMouseLeave={e=>{
+                    const arrow = e.currentTarget.querySelector("[data-search-arrow]");
+                    if (arrow) arrow.style.transform = "translateX(0)";
+                  }}
+                  style={{ width:"100%", padding:"14px 36px",
+                    background:loading?"#2C1E0A":"var(--ink)", color:"var(--amber-on-ink)",
+                    border:"none", fontFamily:"var(--font-display)", fontSize:16, letterSpacing:2,
+                    cursor:loading?"not-allowed":"pointer", opacity:loading?0.45:1,
+                    display:"inline-flex", alignItems:"center", justifyContent:"center", gap:8,
+                    borderRadius:"var(--r-sm)", transition:"background .18s, transform .1s" }}>
+                  {loading
+                    ? <><Spinner size={16} color="var(--amber-on-ink)"/> SEARCHING…</>
+                    : <>SEARCH BUSES <span data-search-arrow style={{ display:"inline-block", transition:"transform .25s" }}>→</span></>
+                  }
+                </button>
               </div>
 
               {/* Bus type cards */}
@@ -819,8 +848,9 @@ export default function TicketBooking() {
                     <div key={bt.id} onClick={()=>setBusType(bt.id)}
                       style={{ border:`2px solid ${busType===bt.id?"var(--ink)":"var(--rule)"}`,
                         background:busType===bt.id?bt.bg:"var(--surface)",
+                        borderLeft:busType===bt.id?`4px solid ${bt.color}`:"4px solid transparent",
                         padding:"14px 16px", cursor:"pointer",
-                        transform:busType===bt.id?"translateX(4px)":"none",
+                        transform:busType===bt.id?"translateX(6px)":"none",
                         transition:"all .18s",
                         animation:`fadeUp .3s ease ${i*.07}s both` }}>
                       <div style={{ display:"flex",justifyContent:"space-between",
@@ -989,17 +1019,17 @@ export default function TicketBooking() {
             <div style={{ animation:"fadeUp .4s ease" }}>
               {/* Success bar */}
               <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",
-                marginBottom:24,padding:"14px 18px",
+                marginBottom:24,padding:"10px 18px",
                 background:"var(--success-bg)",border:"1.5px solid var(--green)",borderRadius:"var(--r-md)" }}>
                 <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-                  <div style={{ width:36,height:36,borderRadius:"50%",
+                  <div style={{ width:28,height:28,borderRadius:"50%",
                     background:"var(--green)",display:"flex",alignItems:"center",
                     justifyContent:"center",fontFamily:"var(--font-display)",
-                    fontSize:18,color:"white" }}>✓</div>
+                    fontSize:14,color:"white" }}>✓</div>
                   <div>
                     <div style={{ fontFamily:"var(--font-display)",fontSize:18,
                       letterSpacing:2,color:"var(--green)" }}>TICKET ISSUED SUCCESSFULLY</div>
-                    <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2,
+                    <div style={{ fontFamily:"var(--font-serif)",fontStyle:"italic",fontSize:12,
                       color:"var(--muted)",marginTop:2 }}>
                       Show the QR code below to the conductor before boarding.
                     </div>
@@ -1021,8 +1051,8 @@ export default function TicketBooking() {
 
                 {/* Actions panel */}
                 <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
-                  <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",
-                    padding:"16px" }}>
+                  <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",
+                    padding:"16px", borderTop:"3px solid var(--ink)" }}>
                     <Tag>QUICK ACTIONS</Tag>
                     <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
                       <Btn variant="primary" full size="sm"
@@ -1032,6 +1062,29 @@ export default function TicketBooking() {
                       <Btn variant="secondary" full size="sm" onClick={()=>window.print()}>
                         🖨 PRINT TICKET
                       </Btn>
+                      <button
+                        onClick={()=>{
+                          window.location.hash = "#renew";
+                          toast.info("Opening renewal flow.");
+                        }}
+                        onMouseEnter={e=>{
+                          const arrow = e.currentTarget.querySelector("[data-renew-arrow]");
+                          if (arrow) arrow.style.transform = "translateX(4px)";
+                        }}
+                        onMouseLeave={e=>{
+                          const arrow = e.currentTarget.querySelector("[data-renew-arrow]");
+                          if (arrow) arrow.style.transform = "translateX(0)";
+                        }}
+                        style={{
+                          width:"100%", padding:"7px 16px",
+                          background:"var(--ink)", color:"var(--amber-on-ink)", border:"none",
+                          fontFamily:"var(--font-display)", fontSize:11, letterSpacing:2,
+                          display:"inline-flex", alignItems:"center", justifyContent:"center", gap:8,
+                          borderRadius:"var(--r-sm)", cursor:"pointer",
+                          transition:"background .18s, transform .1s"
+                        }}>
+                        ♻ RENEW PASS <span data-renew-arrow style={{ display:"inline-block", transition:"transform .25s" }}>→</span>
+                      </button>
                       <Btn variant="ghost" full size="sm"
                         onClick={()=>{ toast.info("Ticket ID: "+ticket.id); }}>
                         ↗ SHARE / COPY TICKET ID
@@ -1039,7 +1092,7 @@ export default function TicketBooking() {
                     </div>
                   </div>
 
-                  <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",
+                  <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",
                     padding:"16px" }}>
                     <Tag>JOURNEY DETAILS</Tag>
                     {[
@@ -1059,8 +1112,9 @@ export default function TicketBooking() {
                     ))}
                   </div>
 
-                  <div style={{ padding:"12px 14px",borderRadius:"var(--r-md)",background:"var(--warn-bg)",
-                    border:"1.5px solid var(--amber-text)" }}>
+                  <div style={{ padding:"12px 14px",borderRadius:"var(--r-md)",
+                    background:"repeating-linear-gradient(45deg, var(--warn-bg), var(--warn-bg) 8px, rgba(200,131,42,0.05) 8px, rgba(200,131,42,0.05) 9px)",
+                    border:"2px solid var(--amber-text)" }}>
                     <div style={{ fontFamily:"var(--font-sans)",fontSize:11,
                       color:"var(--amber-text)",lineHeight:1.6 }}>
                       ⚠ One trip only. Non-transferable. Non-refundable after boarding.

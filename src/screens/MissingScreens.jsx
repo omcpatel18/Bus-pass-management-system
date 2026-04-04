@@ -47,7 +47,7 @@ const G = `
   --amber-light:#F5D49A; --muted:#6B5535; --rule:#D4C4A0;
   --green:#1E6641; --green-on-ink:#52B788;
   --red:#B02020;   --cream-on-ink:#F6F0E4; --muted-on-ink:#B09878;
-  --success-bg:#EBF7F0; --error-bg:#FDEAEA; --warn-bg:#FEF7E6; --info-bg:#EDF4FD;
+  --success-bg:#EBF7F0; --error-bg:#FDEAEA; --warn-bg:#FEF7E6; --info-bg:#EDE4CC;
   --font-display:'Bebas Neue',sans-serif;
   --font-serif:'DM Serif Display',serif;
   --font-mono:'JetBrains Mono',monospace;
@@ -70,6 +70,7 @@ const G = `
 @keyframes lineGrow  { from{transform:scaleX(0)} to{transform:scaleX(1)} }
 @keyframes inkReveal { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
 @keyframes scanLine  { 0%{top:0} 50%{top:calc(100% - 3px)} 100%{top:0} }
+@keyframes barGrow   { from{transform:scaleY(0);transform-origin:bottom} to{transform:scaleY(1);transform-origin:bottom} }
 `;
 
 // ── Route line colours ────────────────────────────────────────────────
@@ -98,6 +99,32 @@ const LineBadge = ({ name, small }) => {
       fontFamily:"var(--font-mono)", fontSize:small?7:9, fontWeight:700, letterSpacing:2,
       padding:small?"2px 7px":"3px 10px" }}>{code}</span>
   );
+};
+
+const AnimatedCount = ({ target, suffix="" }) => {
+  const [count,setCount] = useState(0);
+  const isNum = !isNaN(parseInt(target,10));
+  const num = parseInt(target,10) || 0;
+
+  useEffect(() => {
+    if (!isNum) return;
+    let start = 0;
+    const steps = 36;
+    const inc = num / steps;
+    const t = setInterval(() => {
+      start += inc;
+      if (start >= num) {
+        setCount(num);
+        clearInterval(t);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 24);
+    return () => clearInterval(t);
+  }, [num, isNum]);
+
+  if (!isNum) return <>{target}</>;
+  return <>{count.toLocaleString()}{suffix}</>;
 };
 
 const Pill = ({ s }) => {
@@ -264,7 +291,6 @@ export function RegisterScreen({ onDone, onBackToLogin }) {
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
 
   const PASSENGER_TYPES=[
-    {id:"general",label:"GENERAL",sub:"Standard full fare",disc:0,icon:"👤"},
     {id:"student",label:"STUDENT",sub:"30% off — student ID req.",disc:30,icon:"🎓"},
     {id:"senior",label:"SENIOR CITIZEN",sub:"50% off — age 60+",disc:50,icon:"🪴"},
     {id:"differently_abled",label:"DIFFERENTLY ABLED",sub:"75% off — cert. req.",disc:75,icon:"♿"},
@@ -546,7 +572,7 @@ export function ForgotPasswordScreen({ onDone, onBackToLogin }) {
       <style>{G}</style>
       <div style={{ minHeight:"100vh",background:"var(--cream)",display:"flex",alignItems:"center",justifyContent:"center" }}>
         <div style={{ width:"100%",maxWidth:420,padding:"44px 40px",
-          border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",
+          border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",
           animation:"fadeUp .4s ease",
           boxShadow:"0 20px 60px rgba(26,18,8,.08)" }}>
           <Tag>Password Recovery</Tag>
@@ -634,7 +660,7 @@ export function NotificationsScreen() {
   const TYPE_STYLE={
     success:{border:"var(--green)",  bg:"var(--success-bg)",icon:"✓",color:"var(--green)"},
     warn:   {border:"var(--amber-text)",bg:"var(--warn-bg)", icon:"⚠",color:"var(--amber-text)"},
-    info:   {border:"var(--ink)",    bg:"var(--info-bg)",   icon:"◆",color:"var(--ink)"},
+    info:   {border:"var(--ink)",    bg:"var(--surface)",   icon:"◆",color:"var(--ink)"},
   };
 
   const visible=filter==="ALL"?notifs:
@@ -747,7 +773,15 @@ export function RouteManager() {
   const [editRoute,setEditRoute]= useState(null); // null | "new" | route obj
   const [form,     setForm]    = useState({ name:"",code:"",color:"#B02020",src:"",dst:"",fare:"",km:"",stops:"" });
   const [saving,   setSaving]  = useState(false);
+  const [compactActions,setCompactActions] = useState(typeof window !== "undefined" ? window.innerWidth < 980 : false);
+  const [deleteHover,setDeleteHover] = useState({});
   const toast = useToast();
+
+  useEffect(() => {
+    const onResize = () => setCompactActions(window.innerWidth < 980);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const visible = filter==="ALL" ? routes
     : filter==="ACTIVE"   ? routes.filter(r=>r.active)
@@ -807,9 +841,14 @@ export function RouteManager() {
             <div key={l} style={{ padding:"18px 22px",textAlign:"center",
               borderRight:i<3?"1px solid var(--rule)":"none" }}>
               <div style={{ fontFamily:"var(--font-display)",fontSize:36,letterSpacing:1,
-                color:c,lineHeight:1 }}>{n}</div>
+                color:c,lineHeight:1 }}><AnimatedCount target={n}/></div>
               <div style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:3,
                 color:"var(--muted)",marginTop:6 }}>ROUTES — {l}</div>
+              {l==="TOTAL BUSES"&&(
+                <div style={{ marginTop:8,fontSize:14,letterSpacing:2 }}>
+                  {"🚌".repeat(counts.BUSES||0)}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -839,25 +878,62 @@ export function RouteManager() {
         </div>
 
         {/* ── Route rows ── */}
-        {visible.map((r,i)=>(
-          <div key={r.id} style={{ display:"grid",
+        {visible.length===0&&(
+          <div style={{ padding:"48px 24px",textAlign:"center",background:"var(--surface)",
+            border:"1.5px solid var(--rule)",borderTop:"none" }}>
+            <div style={{ fontSize:42, marginBottom:8 }}>🚌</div>
+            <div style={{ fontFamily:"var(--font-serif)",fontSize:22,color:"var(--ink)",marginBottom:6 }}>
+              No routes yet.
+            </div>
+            <button onClick={openNew} style={{ background:"none",border:"none",
+              fontFamily:"var(--font-display)",fontSize:18,letterSpacing:1,
+              color:"var(--amber-text)",cursor:"pointer",textDecoration:"underline",
+              textUnderlineOffset:4 }}>
+              Add your first route →
+            </button>
+          </div>
+        )}
+
+        {visible.map((r,i)=>{
+          const glow = r.color==="#B02020" ? "rgba(176,32,32,0.4)"
+            : r.color==="#1A4A8A" ? "rgba(26,74,138,0.4)"
+            : r.color==="#1E6641" ? "rgba(30,102,65,0.4)"
+            : "rgba(26,18,8,0.25)";
+          return (
+          <div key={r.id}
+            onMouseEnter={e=>{
+              e.currentTarget.style.background = "var(--parchment)";
+              e.currentTarget.style.transform = "translateX(2px)";
+              e.currentTarget.style.paddingLeft = "18px";
+            }}
+            onMouseLeave={e=>{
+              e.currentTarget.style.background = i%2===0?"var(--surface)":"var(--cream)";
+              e.currentTarget.style.transform = "translateX(0)";
+              e.currentTarget.style.paddingLeft = "16px";
+            }}
+            style={{ display:"grid",
             gridTemplateColumns:"56px 36px 1fr 140px 80px 60px 60px 160px",
-            gap:12,padding:"14px 16px",borderBottom:"1px solid var(--rule)",
+            gap:12,padding:"14px 16px",paddingLeft:16,borderBottom:"1px solid var(--rule)",
             alignItems:"center",
+            borderLeft:`4px solid ${r.color}`,
             background:i%2===0?"var(--surface)":"var(--cream)",
-            opacity:r.active?1:.65,
+            backgroundImage:!r.active
+              ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(26,18,8,.04) 8px, rgba(26,18,8,.04) 9px)"
+              : "none",
+            transition:"background .22s ease, padding-left .22s ease, transform .22s ease",
             animation:`fadeUp .3s ease ${i*.06}s both` }}>
 
             {/* Line colour badge */}
             <div style={{ background:r.color,padding:"6px 8px",
-              display:"flex",flexDirection:"column",alignItems:"center",gap:2 }}>
+              display:"flex",flexDirection:"column",alignItems:"center",gap:2,
+              boxShadow:`0 0 8px ${glow}` }}>
               <div style={{ fontFamily:"var(--font-display)",fontSize:14,letterSpacing:1,
                 color:"white",lineHeight:1 }}>{r.code}</div>
             </div>
 
             {/* Status dot */}
             <div style={{ display:"flex",alignItems:"center",justifyContent:"center" }}>
-              <div style={{ width:10,height:10,
+              <div style={{ width:10,height:10,borderRadius:"50%",
                 background:r.active?"var(--green)":"var(--muted)",
                 animation:r.active?"pulse 2s ease-in-out infinite":"none" }}/>
             </div>
@@ -905,21 +981,39 @@ export function RouteManager() {
             <div style={{ display:"flex",gap:5,flexWrap:"wrap" }}>
               <button onClick={()=>openEdit(r)} style={{ padding:"4px 10px",background:"none",
                 border:"1px solid var(--rule)",fontFamily:"var(--font-mono)",fontSize:7,
-                letterSpacing:1,color:"var(--muted)",cursor:"pointer" }}>EDIT</button>
+                letterSpacing:1,color:"var(--muted)",cursor:"pointer" }}>
+                {compactActions?"✎":"EDIT"}
+              </button>
               <button onClick={()=>toggle(r.id)}
                 style={{ padding:"4px 10px",
                   background:r.active?"none":"var(--green)",
                   border:`1px solid ${r.active?"var(--amber-text)":"var(--green)"}`,
                   fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,
                   color:r.active?"var(--amber-text)":"white",cursor:"pointer" }}>
-                {r.active?"DISABLE":"ENABLE"}
+                {compactActions?(r.active?"⏻":"▶"):(r.active?"DISABLE":"ENABLE")}
               </button>
-              <button onClick={()=>del(r.id)} style={{ padding:"4px 10px",background:"none",
+              <button onClick={()=>del(r.id)}
+                onMouseEnter={()=>setDeleteHover(h=>({...h,[r.id]:true}))}
+                onMouseLeave={()=>setDeleteHover(h=>({...h,[r.id]:false}))}
+                style={{ padding:"4px 10px",background:deleteHover[r.id]?"var(--red)":"none",
                 border:"1px solid var(--red)",fontFamily:"var(--font-mono)",fontSize:7,
-                letterSpacing:1,color:"var(--red)",cursor:"pointer" }}>DEL</button>
+                letterSpacing:1,color:deleteHover[r.id]?"var(--cream-on-ink)":"var(--red)",
+                cursor:"pointer",transition:"background .18s, color .18s" }}>
+                {deleteHover[r.id]?"DELETE?":(compactActions?"🗑":"DEL")}
+              </button>
             </div>
           </div>
-        ))}
+        );})}
+
+        {visible.length < 4 && (
+          <div style={{ position:"sticky", bottom:16, marginTop:18, padding:"14px 18px", background:"var(--ink)", color:"var(--cream-on-ink)", border:"1.5px solid var(--ink)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:16 }}>
+            <div>
+              <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:3, color:"var(--muted-on-ink)", marginBottom:4 }}>SPARSE ROUTE VIEW</div>
+              <div style={{ fontFamily:"var(--font-display)", fontSize:18, letterSpacing:2, color:"var(--amber-on-ink)" }}>ADD ONE MORE ROUTE OR OPEN THE EDITOR</div>
+            </div>
+            <Btn variant="ghost" size="sm" onClick={openNew}>+ ADD ROUTE</Btn>
+          </div>
+        )}
 
         {/* ── Add / Edit side panel ── */}
         {editRoute&&(
@@ -1167,14 +1261,30 @@ export function UserManager() {
 //  6. ANALYTICS DASHBOARD
 // ══════════════════════════════════════════════════════════════════════
 function MiniBar({ data, maxVal, color="var(--amber)", height=90 }) {
+  const [hoverIdx,setHoverIdx] = useState(null);
+
   return (
-    <div style={{ display:"flex",alignItems:"flex-end",gap:4,height }}>
+    <div style={{ position:"relative",display:"flex",alignItems:"flex-end",gap:4,height,paddingTop:8 }}>
+      {[25,50,75,100].map((pct, idx) => (
+        <div key={idx} style={{ position:"absolute",left:0,right:0,bottom:`${pct}%`,
+          borderTop:"1px solid rgba(26,18,8,0.06)",pointerEvents:"none" }}/>
+      ))}
       {data.map((d,i)=>(
-        <div key={i} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4 }}>
-          <div style={{ fontFamily:"var(--font-display)",fontSize:10,letterSpacing:1,
+        <div key={i} onMouseEnter={()=>setHoverIdx(i)} onMouseLeave={()=>setHoverIdx(null)}
+          style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4,position:"relative" }}>
+          {hoverIdx===i && (
+            <div style={{ position:"absolute",top:-6,left:"50%",transform:"translate(-50%,-100%)",
+              background:"var(--ink)",color:"var(--amber-on-ink)",padding:"4px 8px",
+              fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,whiteSpace:"nowrap",
+              border:"1px solid var(--amber-text)",zIndex:3 }}>
+              {d.h}: {d.v}
+            </div>
+          )}
+          <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:1,
             color:"var(--amber-text)" }}>{d.v}</div>
           <div style={{ width:"100%",background:color,
-            height:`${(d.v/maxVal)*(height-20)}px`,minHeight:2,transition:"height .5s ease" }}/>
+            height:`${(d.v/maxVal)*(height-20)}px`,minHeight:2,
+            animation:`barGrow 0.6s var(--ease-spring) ${i*0.06}s both` }}/>
           <div style={{ fontFamily:"var(--font-mono)",fontSize:6,letterSpacing:1,
             color:"var(--muted)" }}>{d.h}</div>
         </div>
@@ -1243,14 +1353,21 @@ export function AnalyticsDashboard() {
               animation:`fadeUp .4s ease ${i*.08}s both` }}>
               <div style={{ fontFamily:"var(--font-display)",fontSize:44,letterSpacing:1,
                 color:s.c,lineHeight:1,animation:"inkReveal .7s ease both",
-                animationDelay:`${i*.1+.2}s` }}>{s.num}</div>
+                animationDelay:`${i*.1+.2}s` }}>
+                {s.lbl==="ACTIVE PASSES"
+                  ? <AnimatedCount target={243} delay={80}/>
+                  : s.lbl==="WEEKLY SCANS"
+                    ? <AnimatedCount target={4820} delay={100}/>
+                    : s.num}
+              </div>
               <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2,
                 color:"var(--muted)",margin:"8px 0 10px",fontWeight:700 }}>{s.lbl}</div>
               <div style={{ fontFamily:"var(--font-sans)",fontSize:11,
                 color:s.up?"var(--green)":"var(--red)",
                 display:"inline-flex",alignItems:"center",gap:4,
                 background:s.up?"var(--success-bg)":"var(--error-bg)",
-                padding:"3px 8px" }}>
+                padding:"3px 8px",opacity:0,
+                animation:`slideDown .28s ease ${0.55 + i*0.08}s both` }}>
                 <span>{s.up?"↑":"↓"}</span><span>{s.delta}</span>
               </div>
             </div>
@@ -1261,21 +1378,21 @@ export function AnalyticsDashboard() {
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 300px",gap:20,marginBottom:24 }}>
 
           {/* Ridership bar chart */}
-          <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",padding:"20px" }}>
+          <div style={{ border:"1.5px solid var(--rule)",borderRadius:0,background:"var(--surface)",padding:"20px" }}>
             <Tag>Daily Ridership</Tag>
             <div style={{ fontFamily:"var(--font-serif)",fontSize:20,color:"var(--ink)",marginBottom:20 }}>Passenger Trips</div>
             <MiniBar data={DEMAND} maxVal={250} color="var(--amber)" height={120}/>
           </div>
 
           {/* Revenue bar chart */}
-          <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",padding:"20px" }}>
+          <div style={{ border:"1.5px solid var(--rule)",borderRadius:0,background:"var(--surface)",padding:"20px" }}>
             <Tag>Financials</Tag>
             <div style={{ fontFamily:"var(--font-serif)",fontSize:20,color:"var(--ink)",marginBottom:20 }}>Revenue (₹K)</div>
             <MiniBar data={REVENUE} maxVal={65} color="var(--green)" height={120}/>
           </div>
 
           {/* Route distribution */}
-          <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",padding:"20px" }}>
+          <div style={{ border:"1.5px solid var(--rule)",borderRadius:0,background:"var(--surface)",padding:"20px" }}>
             <Tag>Distribution</Tag>
             <div style={{ fontFamily:"var(--font-serif)",fontSize:20,color:"var(--ink)",marginBottom:20 }}>By Route</div>
             {ROUTE_SPLIT.map((r,i)=>(
@@ -1299,7 +1416,8 @@ export function AnalyticsDashboard() {
               </div>
             ))}
             <Rule my={16}/>
-            <Tag>By Pass Duration</Tag>
+            <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:3,
+              color:"var(--muted)",marginBottom:10,textTransform:"uppercase" }}>BY PASS DURATION</div>
             <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8 }}>
               {[["ANNUAL",38,"var(--ink)"],["QUARTERLY",45,"var(--amber-text)"],["MONTHLY",17,"var(--muted)"]].map(([t,p,c])=>(
                 <div key={t} style={{ background:"var(--parchment)",padding:"10px 8px",
@@ -1315,7 +1433,7 @@ export function AnalyticsDashboard() {
         </div>
 
         {/* ── Recent applications log ── */}
-        <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)" }}>
+        <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)" }}>
           <div style={{ padding:"16px 24px",borderBottom:"2px solid var(--ink)",
             display:"flex",justifyContent:"space-between",alignItems:"center",
             background:"var(--parchment)" }}>
@@ -1345,9 +1463,10 @@ export function AnalyticsDashboard() {
             <div key={i} style={{ display:"grid",
               gridTemplateColumns:"110px 1.5fr 1fr 100px 80px",
               gap:16,padding:"14px 24px",alignItems:"center",
+              borderLeft:`4px solid ${LINE_COLORS[route]||"var(--rule)"}`,
               borderBottom:i<4?"1px solid var(--rule)":"none",
               background:i%2===0?"transparent":"var(--cream)",
-              transition:"background .15s",cursor:"pointer" }}
+              transition:"background .18s",cursor:"pointer" }}
               onMouseEnter={e=>e.currentTarget.style.background="var(--parchment)"}
               onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"transparent":"var(--cream)"}>
               <span style={{ fontFamily:"var(--font-mono)",fontSize:9,color:"var(--muted)" }}>{date}</span>
@@ -1405,7 +1524,7 @@ export function AnnouncementSender() {
         <div style={{ display:"grid",gridTemplateColumns:"1fr 360px",gap:28,alignItems:"start" }}>
 
           {/* Compose */}
-          <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)" }}>
+          <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)" }}>
             <div style={{ background:"var(--ink)",padding:"14px 22px" }}>
               <Tag color="var(--muted-on-ink)">Compose</Tag>
               <div style={{ fontFamily:"var(--font-display)",fontSize:20,letterSpacing:2,
@@ -1468,7 +1587,7 @@ export function AnnouncementSender() {
                 fontStyle:"italic",padding:"20px 0" }}>No announcements sent yet.</div>
             )}
             {sent.map((a,i)=>(
-              <div key={a.id} style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",
+              <div key={a.id} style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",
                 background:"var(--surface)",padding:"14px 18px",marginBottom:10,
                 animation:"slideDown .3s ease" }}>
                 <div style={{ display:"flex",justifyContent:"space-between",marginBottom:4 }}>
@@ -1594,7 +1713,7 @@ export function RenewalFlow({ currentPass, onDone }) {
         </div>
 
         {/* Payment summary */}
-        <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",
+        <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",
           padding:"20px 24px",marginBottom:20 }}>
           <Tag>PAYMENT SUMMARY</Tag>
           {[["Route",PASS.route],["Duration",`${sel.label} (${sel.desc})`],
@@ -1674,7 +1793,7 @@ export function BusRouteMap() {
         <div style={{ display:"grid",gridTemplateColumns:"1fr 280px",gap:28,alignItems:"start" }}>
 
           {/* Route visualization */}
-          <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",padding:"24px" }}>
+          <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",padding:"24px" }}>
             <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:24 }}>
               <div style={{ width:4,height:32,background:route.color }}/>
               <div>
@@ -1733,7 +1852,7 @@ export function BusRouteMap() {
           {/* Right info panel */}
           <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
             {/* Route stats */}
-            <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",padding:"18px" }}>
+            <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",padding:"18px" }}>
               <Tag>Route Info</Tag>
               {[["STOPS",route.stops.length],
                 ["FIRST BUS",route.time[0]],
@@ -1773,7 +1892,7 @@ export function BusRouteMap() {
             </div>
 
             {/* My stop */}
-            <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-lg)",background:"var(--surface)",
+            <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",
               padding:"16px 18px" }}>
               <Tag>My Boarding Stop</Tag>
               <div style={{ fontFamily:"var(--font-serif)",fontSize:16,

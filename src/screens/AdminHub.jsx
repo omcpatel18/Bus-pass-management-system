@@ -31,7 +31,7 @@ const G = `
   --green:#1E6641;  --green-on-ink:#52B788;
   --red:#B02020;    --cream-on-ink:#F6F0E4; --muted-on-ink:#B09878;
   --success-bg:#EBF7F0; --error-bg:#FDEAEA;
-  --warn-bg:#FEF7E6;    --info-bg:#EDF4FD;
+  --warn-bg:#FEF7E6;    --info-bg:#EDE4CC;
   --font-display:'Bebas Neue',sans-serif;
   --font-serif:'DM Serif Display',serif;
   --font-mono:'JetBrains Mono',monospace;
@@ -69,6 +69,33 @@ const Tag = ({ children, color }) => (
 
 const Rule  = ({ my=20 }) => <div style={{ height:1, background:"var(--rule)", margin:`${my}px 0` }}/>;
 const DRule = ({ my=28 }) => <div style={{ borderTop:"3px double var(--ink)", margin:`${my}px 0` }}/>;
+
+const AnimatedCount = ({ target, prefix="", suffix="", decimals=0, delay=0 }) => {
+  const [count,setCount] = useState(0);
+  const numericTarget = Number(target) || 0;
+
+  useEffect(() => {
+    const startTimer = setTimeout(() => {
+      let cur = 0;
+      const steps = 40;
+      const inc = numericTarget / steps;
+      const t = setInterval(() => {
+        cur += inc;
+        if (cur >= numericTarget) {
+          setCount(numericTarget);
+          clearInterval(t);
+        } else {
+          setCount(cur);
+        }
+      }, 24);
+    }, delay);
+
+    return () => clearTimeout(startTimer);
+  }, [numericTarget, delay]);
+
+  const shown = decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString();
+  return <>{prefix}{shown}{suffix}</>;
+};
 
 const Pill = ({ s }) => {
   const m = {
@@ -230,17 +257,23 @@ function SectionOverview({ emailLog }) {
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)",
         borderTop:"3px solid var(--ink)", borderBottom:"1px solid var(--rule)", marginBottom:32 }}>
         {[
-          { n:STATS.todayPasses,   l:"PASSES TODAY",    c:"var(--amber-text)" },
-          { n:STATS.weekPasses,    l:"THIS WEEK",        c:"var(--ink)"        },
-          { n:STATS.monthPasses,   l:"THIS MONTH",       c:"var(--ink)"        },
-          { n:STATS.revenue,       l:"TOTAL REVENUE",    c:"var(--green)"      },
+          { n:STATS.todayPasses,   l:"PASSES TODAY",   fs:44, c:"var(--ink)",        top:"var(--amber)",      kind:"int"     },
+          { n:STATS.weekPasses,    l:"THIS WEEK",      fs:44, c:"var(--ink)",        top:"var(--ink)",        kind:"int"     },
+          { n:STATS.monthPasses,   l:"THIS MONTH",     fs:44, c:"var(--ink)",        top:"var(--ink)",        kind:"int"     },
+          { n:420000,              l:"TOTAL REVENUE",  fs:56, c:"var(--amber-text)", top:"var(--green)",      kind:"currency"},
         ].map((s,i) => (
           <div key={s.l} style={{ padding:"24px 28px", textAlign:"center",
             borderRight:i<3?"1px solid var(--rule)":"none",
+            borderTop:`3px solid ${s.top}`,
             animation:`fadeUp .4s ease ${i*.08}s both` }}>
-            <div style={{ fontFamily:"var(--font-display)", fontSize:44, letterSpacing:1,
+            <div style={{ fontFamily:"var(--font-display)", fontSize:s.fs, letterSpacing:1,
               color:s.c, lineHeight:1, animation:"inkReveal .7s ease both",
-              animationDelay:`${i*.1+.2}s` }}>{s.n}</div>
+              animationDelay:`${i*.1+.2}s` }}>
+              {s.kind==="currency"
+                ? <AnimatedCount target={s.n} prefix="₹" delay={i*100}/>
+                : <AnimatedCount target={s.n} delay={i*100}/>
+              }
+            </div>
             <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:4,
               color:"var(--muted)", marginTop:8 }}>{s.l}</div>
           </div>
@@ -251,13 +284,20 @@ function SectionOverview({ emailLog }) {
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:32 }}>
         {[
           { n:STATS.pendingApps,      l:"PENDING APPS",    bg:"var(--warn-bg)",    border:"var(--amber-text)", c:"var(--amber-text)" },
-          { n:STATS.activeStudents,   l:"ACTIVE STUDENTS", bg:"var(--success-bg)", border:"var(--green)",      c:"var(--green)"      },
-          { n:STATS.scanSuccessRate,  l:"SCAN SUCCESS",    bg:"var(--surface)",    border:"var(--ink)",        c:"var(--ink)"        },
+          { n:STATS.activeStudents,   l:"ACTIVE STUDENTS", bg:"var(--parchment)",  border:"var(--amber-text)", c:"var(--amber-text)" },
+          { n:STATS.scanSuccessRate,  l:"SCAN SUCCESS",    bg:"var(--success-bg)", border:"var(--green)",      c:"var(--green)"      },
           { n:STATS.avgOccupancy,     l:"AVG OCCUPANCY",   bg:"var(--surface)",    border:"var(--rule)",       c:"var(--muted)"      },
         ].map((s,i) => (
           <div key={s.l} style={{ padding:"18px 20px", background:s.bg,
             border:`1.5px solid ${s.border}`, animation:`fadeUp .4s ease ${i*.08+.3}s both` }}>
-            <div style={{ fontFamily:"var(--font-display)", fontSize:32, letterSpacing:1, color:s.c, lineHeight:1 }}>{s.n}</div>
+            <div style={{ fontFamily:"var(--font-display)", fontSize:32, letterSpacing:1, color:s.c, lineHeight:1 }}>
+              {typeof s.n === "number"
+                ? <AnimatedCount target={s.n} delay={i*80}/>
+                : s.n.includes("%")
+                  ? <AnimatedCount target={parseFloat(s.n)} suffix="%" decimals={1} delay={i*80}/>
+                  : s.n
+              }
+            </div>
             <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:3, color:"var(--muted)", marginTop:6 }}>{s.l}</div>
           </div>
         ))}
@@ -267,7 +307,7 @@ function SectionOverview({ emailLog }) {
       <div style={{ display:"grid", gridTemplateColumns:"1fr 360px", gap:24 }}>
 
         {/* Activity feed */}
-        <div style={{ border:"1.5px solid var(--rule)", background:"var(--surface)", borderRadius:"var(--r-lg)", overflow:"hidden" }}>
+        <div style={{ border:"1.5px solid var(--rule)", background:"var(--surface)", borderRadius:"var(--r-sm)", overflow:"hidden" }}>
           {/* Header */}
           <div style={{ background:"var(--ink)", padding:"14px 20px", display:"flex",
             justifyContent:"space-between", alignItems:"center" }}>
@@ -287,12 +327,12 @@ function SectionOverview({ emailLog }) {
               gap:"0 14px", padding:"13px 20px",
               borderBottom:i<ACTIVITY.length-1?"1px solid var(--rule)":"none",
               background:i%2===0?"transparent":"var(--cream)",
-              animation:`fadeUp .3s ease ${i*.05}s both` }}>
+              animation:`fadeUp .3s ease ${i*.06}s both` }}>
               {/* Time */}
               <div style={{ fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:1,
-                color:"var(--muted)", alignSelf:"flex-start", paddingTop:2 }}>{a.time}</div>
+                color:"var(--muted)", opacity:.72, alignSelf:"flex-start", paddingTop:2 }}>{a.time}</div>
               {/* Colour bar */}
-              <div style={{ background:DOT[a.type], alignSelf:"stretch", minHeight:36 }}/>
+              <div style={{ background:DOT[a.type], alignSelf:"stretch", minHeight:"100%" }}/>
               {/* Content */}
               <div>
                 <div style={{ fontFamily:"var(--font-sans)", fontSize:13, color:"var(--ink)", fontWeight:500 }}>{a.action}</div>
@@ -303,7 +343,7 @@ function SectionOverview({ emailLog }) {
         </div>
 
         {/* Email dispatch log */}
-        <div style={{ border:"1.5px solid var(--rule)", background:"var(--surface)", borderRadius:"var(--r-lg)", overflow:"hidden", display:"flex", flexDirection:"column" }}>
+        <div style={{ border:"1.5px solid var(--rule)", background:"var(--surface)", borderRadius:"var(--r-sm)", overflow:"hidden", display:"flex", flexDirection:"column" }}>
           <div style={{ background:"var(--parchment)", padding:"14px 20px", borderBottom:"2px solid var(--ink)" }}>
             <Tag>Dispatch Office</Tag>
             <div style={{ fontFamily:"var(--font-display)", fontSize:18, letterSpacing:2, color:"var(--ink)" }}>EMAIL LOG</div>
@@ -311,6 +351,12 @@ function SectionOverview({ emailLog }) {
           <div style={{ flex:1, overflowY:"auto", maxHeight:340 }}>
             {emailLog.length === 0 ? (
               <div style={{ padding:"40px 20px", textAlign:"center" }}>
+                <div style={{ width:56, height:40, margin:"0 auto 10px", position:"relative" }}>
+                  <div style={{ position:"absolute", inset:0, border:"2px solid var(--rule)", borderRadius:4, background:"var(--parchment)" }}/>
+                  <div style={{ position:"absolute", left:2, right:2, top:2, height:0,
+                    borderLeft:"24px solid transparent", borderRight:"24px solid transparent",
+                    borderTop:"16px solid rgba(139,82,10,.2)" }}/>
+                </div>
                 <div style={{ fontFamily:"var(--font-serif)", fontSize:15, color:"var(--muted)", fontStyle:"italic" }}>No dispatches yet.</div>
               </div>
             ) : emailLog.map((e,i) => (
@@ -374,7 +420,7 @@ function SectionEmails({ emailLog, setEmailLog, toast }) {
         {/* Left — compose */}
         <div>
           {/* Stats notification */}
-          <div style={{ border:"1.5px solid var(--rule)", background:"var(--surface)", borderRadius:"var(--r-lg)", overflow:"hidden", marginBottom:20 }}>
+          <div style={{ border:"1.5px solid var(--rule)", background:"var(--surface)", borderRadius:"var(--r-sm)", overflow:"hidden", marginBottom:20 }}>
             {/* Section label */}
             <div style={{ background:"var(--ink)", padding:"12px 20px" }}>
               <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:4, color:"var(--muted-on-ink)" }}>TYPE A</div>
@@ -396,7 +442,7 @@ function SectionEmails({ emailLog, setEmailLog, toast }) {
               </div>
 
               {/* Preview card — looks like a printed report snippet */}
-              <div style={{ border:"2px solid var(--ink)", background:"var(--cream)", borderRadius:"var(--r-lg)", marginBottom:20, overflow:"hidden" }}>
+              <div style={{ border:"2px solid var(--ink)", background:"var(--cream)", borderRadius:"var(--r-sm)", marginBottom:20, overflow:"hidden" }}>
                 <div style={{ background:"var(--amber)", padding:"8px 16px" }}>
                   <div style={{ fontFamily:"var(--font-display)", fontSize:13, letterSpacing:3, color:"var(--ink)" }}>
                     EMAIL PREVIEW — {preview.title}
@@ -434,7 +480,7 @@ function SectionEmails({ emailLog, setEmailLog, toast }) {
           </div>
 
           {/* Pass cancellation emails */}
-          <div style={{ border:"1.5px solid var(--rule)", background:"var(--surface)", borderRadius:"var(--r-lg)", overflow:"hidden" }}>
+          <div style={{ border:"1.5px solid var(--rule)", background:"var(--surface)", borderRadius:"var(--r-sm)", overflow:"hidden" }}>
             <div style={{ background:"var(--red)", padding:"12px 20px" }}>
               <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:4, color:"rgba(255,255,255,.6)" }}>TYPE B</div>
               <div style={{ fontFamily:"var(--font-display)", fontSize:18, letterSpacing:2, color:"white" }}>CANCELLATION NOTICES</div>
@@ -469,7 +515,7 @@ function SectionEmails({ emailLog, setEmailLog, toast }) {
         </div>
 
         {/* Right — dispatch ledger */}
-        <div style={{ border:"1.5px solid var(--ink)", borderRadius:"var(--r-lg)", background:"var(--surface)", position:"sticky", top:80, overflow:"hidden" }}>
+        <div style={{ border:"1.5px solid var(--ink)", borderRadius:"var(--r-sm)", background:"var(--surface)", position:"sticky", top:80, overflow:"hidden" }}>
           {/* Ledger header */}
           <div style={{ padding:"14px 18px", borderBottom:"3px double var(--ink)", background:"var(--parchment)" }}>
             <Tag>Post Office</Tag>
@@ -626,7 +672,7 @@ function SectionDiscounts({ toast }) {
         </div>
 
         {/* Create form */}
-        <div style={{ border:"1.5px solid var(--ink)", borderRadius:"var(--r-lg)", position:"sticky", top:80, overflow:"hidden" }}>
+        <div style={{ border:"1.5px solid var(--ink)", borderRadius:"var(--r-sm)", position:"sticky", top:80, overflow:"hidden" }}>
           <div style={{ background:"var(--amber)", padding:"14px 20px" }}>
             <Tag color="var(--ink)">New Voucher</Tag>
             <div style={{ fontFamily:"var(--font-display)", fontSize:22, letterSpacing:2, color:"var(--ink)" }}>CREATE DISCOUNT</div>
@@ -767,7 +813,7 @@ function SectionSupport({ toast }) {
         </div>
 
         {/* Response composer */}
-        <div style={{ position:"sticky", top:80, border:"1.5px solid var(--ink)", borderRadius:"var(--r-lg)", overflow:"hidden", background:"var(--surface)" }}>
+        <div style={{ position:"sticky", top:80, border:"1.5px solid var(--ink)", borderRadius:"var(--r-sm)", overflow:"hidden", background:"var(--surface)" }}>
           {!sel ? (
             <div style={{ padding:"48px 24px", textAlign:"center" }}>
               <div style={{ fontFamily:"var(--font-display)", fontSize:28, letterSpacing:2,
@@ -959,7 +1005,7 @@ function SectionReports({ toast }) {
         {/* Right: data table + top routes */}
         <div>
           {/* Full data table */}
-          <div style={{ border:"1.5px solid var(--ink)", borderRadius:"var(--r-lg)", marginBottom:16 }}>
+          <div style={{ border:"1.5px solid var(--ink)", borderRadius:"var(--r-sm)", marginBottom:16 }}>
             <div style={{ background:"var(--ink)", padding:"12px 16px" }}>
               <div style={{ fontFamily:"var(--font-display)", fontSize:16, letterSpacing:2, color:"var(--amber-on-ink)" }}>
                 DATA TABLE
@@ -1023,9 +1069,35 @@ const SECTIONS = [
 export default function AdminHub() {
   const [section,   setSection]  = useState("overview");
   const [emailLog,  setEmailLog] = useState([]);
+  const [uptimeMins,setUptimeMins] = useState(2*60+14);
+  const [animatedNums,setAnimatedNums] = useState(SECTIONS.map(() => 0));
   const toast = useToast();
 
+  useEffect(() => {
+    const uptimeTimer = setInterval(() => setUptimeMins(m => m + 1), 60000);
+    return () => clearInterval(uptimeTimer);
+  }, []);
+
+  useEffect(() => {
+    const timers = SECTIONS.map((s, idx) => setTimeout(() => {
+      let cur = 0;
+      const target = Number(s.num);
+      const t = setInterval(() => {
+        cur += 1;
+        setAnimatedNums(prev => {
+          const next = [...prev];
+          next[idx] = cur > target ? target : cur;
+          return next;
+        });
+        if (cur >= target) clearInterval(t);
+      }, 40);
+    }, idx * 100));
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
   const sel = SECTIONS.find(s=>s.id===section);
+  const uptimeH = Math.floor(uptimeMins / 60);
+  const uptimeM = uptimeMins % 60;
 
   return (
     <>
@@ -1051,15 +1123,18 @@ export default function AdminHub() {
           <div style={{ flex:1, padding:"16px 0" }}>
             {SECTIONS.map(s=>{
               const active = section===s.id;
+              const idx = SECTIONS.findIndex(x => x.id===s.id);
               return(
                 <button key={s.id} onClick={()=>setSection(s.id)}
                   style={{ width:"100%", padding:"14px 24px",
-                    border:"none", borderLeft:`3px solid ${active?"var(--amber-on-ink)":"transparent"}`,
+                    border:"none", borderLeft:`3px solid ${active?"var(--amber)":"transparent"}`,
                     textAlign:"left", cursor:"pointer", transition:"all .18s",
-                    background:active?"rgba(240,168,48,.07)":"transparent" }}>
+                    background:active?"rgba(200,131,42,0.08)":"transparent" }}>
                   <div style={{ display:"flex", alignItems:"baseline", gap:10 }}>
                     <span style={{ fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:2,
-                      color:active?"var(--amber-on-ink)":"rgba(240,168,48,.3)" }}>{s.num}</span>
+                      color:active?"var(--amber-on-ink)":"rgba(240,168,48,.3)" }}>
+                      {String(animatedNums[idx]).padStart(2,"0")}
+                    </span>
                     <div>
                       <div style={{ fontFamily:"var(--font-display)", fontSize:15, letterSpacing:2,
                         color:active?"var(--cream-on-ink)":"var(--muted-on-ink)",
@@ -1076,7 +1151,7 @@ export default function AdminHub() {
           {/* Rail footer */}
           <div style={{ padding:"20px 24px", borderTop:"1px solid rgba(255,255,255,.08)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-              <div style={{ width:8, height:8, borderRadius:"50%",
+              <div style={{ width:10, height:10, borderRadius:"50%",
                 background:"var(--green-on-ink)", animation:"pulse 2s ease-in-out infinite" }}/>
               <span style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:3,
                 color:"var(--green-on-ink)" }}>SYSTEM ONLINE</span>
@@ -1084,6 +1159,10 @@ export default function AdminHub() {
             <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:2,
               color:"rgba(176,152,120,.5)" }}>
               {emailLog.length} EMAIL{emailLog.length!==1?"S":""} DISPATCHED
+            </div>
+            <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:2,
+              color:"rgba(176,152,120,.7)", marginTop:4 }}>
+              UPTIME {uptimeH}h {String(uptimeM).padStart(2,"0")}m
             </div>
           </div>
         </nav>

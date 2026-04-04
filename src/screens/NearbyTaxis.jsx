@@ -529,7 +529,7 @@ function SearchPhase({ onConfirm }) {
 
         {/* Schedule indicator */}
         {schedMode === "later" && schedTime && (
-          <div style={{ padding: "10px 14px", background: "var(--info-bg)", border: "1.5px solid var(--ink)", marginBottom: 14, fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--ink)" }}>
+          <div style={{ padding: "10px 14px", background: "var(--parchment)", border: "1.5px solid var(--ink)", marginBottom: 14, fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--ink)" }}>
             ◷ SCHEDULED FOR: {new Date(schedTime).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
           </div>
         )}

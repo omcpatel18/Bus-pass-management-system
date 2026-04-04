@@ -55,7 +55,7 @@ const CSS = `
   --green:#1E6641;  --green-on-ink:#52B788;
   --red:#B02020;    --cream-on-ink:#F6F0E4; --muted-on-ink:#B09878;
   --success-bg:#EBF7F0; --error-bg:#FDEAEA;
-  --warn-bg:#FEF7E6;    --info-bg:#EDF4FD;
+  --warn-bg:#FEF7E6;    --info-bg:#EDE4CC;
   --font-display:'Bebas Neue',sans-serif;
   --font-serif:'DM Serif Display',serif;
   --font-mono:'JetBrains Mono',monospace;
@@ -361,7 +361,7 @@ function NotificationBell({ notifs, setNotifs, onOpenNotifications }) {
         {unread>0&&<div style={{ position:"absolute",top:2,right:2,width:16,height:16,borderRadius:"50%",background:"var(--red)",border:"1.5px solid var(--cream)",fontFamily:"var(--font-mono)",fontSize:8,fontWeight:700,color:"white",display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1,animation:"badgePop .3s var(--ease-spring)" }}>{unread>9?"9+":unread}</div>}
       </button>
       {open&&(
-        <div style={{ position:"absolute",top:"calc(100% + 10px)",right:0,width:340,background:"var(--surface)",border:"2px solid var(--ink)",borderRadius:"var(--r-lg)",boxShadow:"0 12px 40px rgba(26,18,8,.16)",zIndex:500,animation:"slideDown .22s var(--ease-spring)",overflow:"hidden" }}>
+        <div style={{ position:"absolute",top:"calc(100% + 10px)",right:0,width:340,background:"var(--surface)",border:"2px solid var(--ink)",borderRadius:"var(--r-sm)",boxShadow:"0 12px 40px rgba(26,18,8,.16)",zIndex:500,animation:"slideDown .22s var(--ease-spring)",overflow:"hidden" }}>
           <div style={{ padding:"12px 16px",borderBottom:"2px solid var(--ink)",display:"flex",justifyContent:"space-between",alignItems:"center",background:"var(--parchment)" }}>
             <div style={{ fontFamily:"var(--font-display)",fontSize:14,letterSpacing:2,color:"var(--ink)" }}>NOTIFICATIONS {unread>0&&<span style={{ color:"var(--red)" }}>· {unread}</span>}</div>
             {unread>0&&<button onClick={()=>setNotifs(n=>n.map(x=>({...x,read:true})))} style={{ background:"none",border:"none",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:2,color:"var(--muted)",cursor:"pointer" }}>MARK ALL READ</button>}
@@ -1034,11 +1034,13 @@ function AdminApplications() {
   const [filter,setFilter]=useState("ALL");
   const [ptFilter,setPtFilter]=useState("ALL");
   const [detail,setDetail]=useState(null);
+  const [detailHoverId,setDetailHoverId]=useState(null);
   const toast=useToast();
   const approve=id=>{setApps(a=>a.map(x=>x.id===id?{...x,status:"APPROVED"}:x));toast.success("Pass request approved!");};
   const reject=id=>{setApps(a=>a.map(x=>x.id===id?{...x,status:"REJECTED"}:x));toast.warn("Request rejected.");};
   const visible=apps.filter(a=>filter==="ALL"||a.status===filter).filter(a=>ptFilter==="ALL"||a.ptype===ptFilter);
   const counts={ALL:apps.length,PENDING:apps.filter(a=>a.status==="PENDING").length,APPROVED:apps.filter(a=>a.status==="APPROVED").length,REJECTED:apps.filter(a=>a.status==="REJECTED").length};
+  const STATUS_BORDER={ PENDING:"var(--amber)", APPROVED:"var(--green)", REJECTED:"var(--red)" };
 
   return (
     <>
@@ -1061,11 +1063,14 @@ function AdminApplications() {
           ))}
         </div>
         <div style={{ display:"flex",gap:4,marginLeft:"auto",flexWrap:"wrap" }}>
-          {["ALL",...PASSENGER_TYPES.map(p=>p.id)].map(pt=>(
-            <button key={pt} onClick={()=>setPtFilter(pt)} style={{ padding:"5px 10px",background:ptFilter===pt?"var(--parchment)":"transparent",color:"var(--ink)",border:"1px solid var(--rule)",fontFamily:"var(--font-mono)",fontSize:6,letterSpacing:2,cursor:"pointer",transition:"all .15s" }}>
+          {["ALL",...PASSENGER_TYPES.map(p=>p.id)].map(pt=>{
+            const pMeta = PASSENGER_TYPES.find(p=>p.id===pt);
+            const activeBg = pt==="ALL" ? "var(--parchment)" : `${pMeta?.color || "#1A1208"}26`;
+            return (
+            <button key={pt} onClick={()=>setPtFilter(pt)} style={{ padding:"5px 10px",background:ptFilter===pt?activeBg:"transparent",color:"var(--ink)",border:"1px solid var(--rule)",fontFamily:"var(--font-mono)",fontSize:6,letterSpacing:2,cursor:"pointer",transition:"all .15s" }}>
               {pt==="ALL"?"ALL":PASSENGER_TYPES.find(p=>p.id===pt)?.icon+" "+pt.toUpperCase()}
             </button>
-          ))}
+          );})}
         </div>
       </div>
       {/* Table */}
@@ -1075,7 +1080,10 @@ function AdminApplications() {
         ))}
       </div>
       {visible.map((app,i)=>(
-        <div key={app.id} style={{ display:"grid",gridTemplateColumns:"70px 1fr 90px 120px 90px 80px 80px 160px",gap:10,padding:"13px 12px",borderBottom:"1px solid var(--rule)",alignItems:"center",background:i%2===0?"var(--surface)":"var(--cream)",animation:`fadeUp .3s ease ${i*.05}s both` }}>
+        <div key={app.id}
+          onMouseEnter={e=>{ e.currentTarget.style.background="var(--parchment)"; e.currentTarget.style.transform="translateX(2px)"; }}
+          onMouseLeave={e=>{ e.currentTarget.style.background=i%2===0?"var(--surface)":"var(--cream)"; e.currentTarget.style.transform="translateX(0)"; }}
+          style={{ display:"grid",gridTemplateColumns:"70px 1fr 90px 120px 90px 80px 80px 160px",gap:10,padding:"13px 12px",borderBottom:"1px solid var(--rule)",borderLeft:`4px solid ${STATUS_BORDER[app.status]||"var(--rule)"}`,alignItems:"center",background:i%2===0?"var(--surface)":"var(--cream)",animation:`fadeUp .3s ease ${i*.05}s both`,transition:"background .18s, transform .18s" }}>
           <button onClick={()=>setDetail(app)} style={{ background:"none",border:"none",fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:1,color:"var(--amber-text)",cursor:"pointer",textDecoration:"underline",textUnderlineOffset:3,textAlign:"left" }}>{app.id}</button>
           <div>
             <div style={{ fontFamily:"var(--font-sans)",fontSize:13,color:"var(--ink)",fontWeight:500 }}>{app.passenger}</div>
@@ -1085,9 +1093,22 @@ function AdminApplications() {
           <LineBadge name={app.route} small/>
           <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:1,color:"var(--muted)" }}>{app.type}</div>
           <div style={{ fontFamily:"var(--font-mono)",fontSize:9,color:"var(--muted)" }}>{app.date.slice(0,6)}</div>
-          <div style={{ fontFamily:"var(--font-display)",fontSize:16,color:"var(--ink)",letterSpacing:1 }}>₹{app.amt.toLocaleString()}</div>
+          <div style={{ fontFamily:"var(--font-display)",fontSize:app.amt>=1000?20:16,color:"var(--ink)",letterSpacing:1,fontWeight:app.amt>=1000?700:400 }}>₹{app.amt.toLocaleString()}</div>
           <div style={{ display:"flex",gap:4 }}>
-            <button onClick={()=>setDetail(app)} style={{ padding:"4px 8px",background:"none",border:"1px solid var(--rule)",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--muted)",cursor:"pointer" }}>DETAIL</button>
+            <div style={{ position:"relative" }}>
+              <button onClick={()=>setDetail(app)}
+                onMouseEnter={()=>setDetailHoverId(app.id)}
+                onMouseLeave={()=>setDetailHoverId(null)}
+                style={{ padding:"4px 8px",background:"none",border:"1px solid var(--rule)",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--muted)",cursor:"pointer" }}>DETAIL</button>
+              {detailHoverId===app.id&&(
+                <div style={{ position:"absolute",left:"calc(100% + 8px)",top:"50%",transform:"translateY(-50%)",
+                  background:"var(--ink)",color:"var(--amber-on-ink)",padding:"8px 10px",minWidth:190,
+                  border:"1px solid var(--amber-text)",zIndex:5,boxShadow:"0 6px 18px rgba(26,18,8,.2)" }}>
+                  <div style={{ fontFamily:"var(--font-sans)",fontSize:11,lineHeight:1.4 }}>{app.passenger}</div>
+                  <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:1,opacity:.9 }}>{app.route} · ₹{app.amt.toLocaleString()}</div>
+                </div>
+              )}
+            </div>
             {app.status==="PENDING"&&(<>
               <button onClick={()=>approve(app.id)} style={{ padding:"4px 8px",background:"var(--green)",border:"none",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--cream-on-ink)",cursor:"pointer" }}>✓</button>
               <button onClick={()=>reject(app.id)}  style={{ padding:"4px 8px",background:"none",border:"1px solid var(--red)",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--red)",cursor:"pointer" }}>✕</button>
@@ -1096,6 +1117,17 @@ function AdminApplications() {
           </div>
         </div>
       ))}
+
+      {visible.length < 4 && (
+        <div style={{ position:"sticky", bottom:16, marginTop:18, padding:"14px 18px", background:"var(--ink)", color:"var(--cream-on-ink)", border:"1.5px solid var(--ink)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:16 }}>
+          <div>
+            <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:3, color:"var(--muted-on-ink)", marginBottom:4 }}>SPARSE REQUEST VIEW</div>
+            <div style={{ fontFamily:"var(--font-display)", fontSize:18, letterSpacing:2, color:"var(--amber-on-ink)" }}>FILTER IS NARROW. SHOW ALL REQUESTS FOR THE FULL QUEUE.</div>
+          </div>
+          <button onClick={()=>setFilter("ALL")} style={{ padding:"8px 14px", background:"transparent", border:"1px solid var(--amber-text)", color:"var(--amber-on-ink)", fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:2, cursor:"pointer" }}>SHOW ALL</button>
+        </div>
+      )}
+
       <AppDetailModal app={detail} onClose={()=>setDetail(null)} onApprove={approve} onReject={reject}/>
       <toast.Toaster/>
     </>
