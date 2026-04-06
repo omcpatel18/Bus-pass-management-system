@@ -34,6 +34,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { User, GraduationCap, Leaf, Accessibility, Briefcase } from "lucide-react";
 
 // ══════════════════════════════════════════════════════════════════════
 //  DESIGN TOKENS  (identical to DesignSystem.jsx)
@@ -136,51 +137,53 @@ const Pill = ({ s }) => {
     USED:{bg:"#6B5535",c:"#F6F0E4"} };
   const p = m[(s||"").toUpperCase()]||{bg:"#6B5535",c:"#F6F0E4"};
   return <span style={{ background:p.bg, color:p.c, fontFamily:"var(--font-mono)",
-    fontSize:9, fontWeight:700, letterSpacing:2, padding:"3px 10px",
-    borderRadius:"var(--r-full)",
-    display:"inline-block", lineHeight:1.7 }}>{(s||"").toUpperCase()}</span>;
+    fontSize:9, fontWeight:700, letterSpacing:2, padding:"4px 12px",
+    borderRadius:"var(--r-full)", display:"inline-block", lineHeight:1.7,
+    boxShadow:"0 2px 8px rgba(0,0,0,0.06)", transition:"all .2s ease",
+    border:`1px solid ${p.bg}` }}>{(s||"").toUpperCase()}</span>;
 };
 
-const Btn = ({ children, onClick, variant="primary", full=false, size="md", disabled=false }) => {
+const Btn = ({ children, onClick, variant="primary", full=false, size="md", disabled=false, style={} }) => {
   const [h,setH]=useState(false);
-  const pad={sm:"7px 16px",md:"11px 26px",lg:"14px 36px"}[size]||"11px 26px";
-  const fs={sm:11,md:13,lg:16}[size]||13;
+  const pad={sm:"8px 18px",md:"12px 28px",lg:"16px 40px"}[size]||"12px 28px";
+  const fs={sm:12,md:14,lg:17}[size]||14;
   const s={
-    primary:  {bg:h&&!disabled?"#2C1E0A":"var(--ink)",          c:"var(--amber-on-ink)", b:"none"},
-    secondary:{bg:h&&!disabled?"var(--parchment)":"transparent", c:"var(--ink)",          b:"1.5px solid var(--ink)"},
-    danger:   {bg:h&&!disabled?"#8A1818":"var(--red)",           c:"var(--cream-on-ink)", b:"none"},
-    success:  {bg:h&&!disabled?"#155230":"var(--green)",         c:"var(--cream-on-ink)", b:"none"},
-    ghost:    {bg:h&&!disabled?"var(--parchment)":"transparent", c:"var(--amber-text)",   b:"1.5px solid var(--rule)"},
-    amber:    {bg:h&&!disabled?"#7A4206":"var(--amber-text)",    c:"var(--cream-on-ink)", b:"none"},
+    primary:  {bg:h&&!disabled?"#2C1E0A":"var(--ink)",          c:"var(--amber-on-ink)", b:"transparent", s:h?"0 6px 16px rgba(26,18,8,0.2)":"0 2px 6px rgba(26,18,8,0.15)"},
+    secondary:{bg:h&&!disabled?"var(--parchment)":"transparent", c:"var(--ink)",          b:"1.5px solid var(--ink)", s:"none"},
+    danger:   {bg:h&&!disabled?"#8A1818":"var(--red)",           c:"var(--cream-on-ink)", b:"transparent", s:h?"0 6px 16px rgba(176,32,32,0.25)":"0 2px 6px rgba(176,32,32,0.15)"},
+    success:  {bg:h&&!disabled?"#155230":"var(--green)",         c:"var(--cream-on-ink)", b:"transparent", s:h?"0 6px 16px rgba(30,102,65,0.25)":"0 2px 6px rgba(30,102,65,0.15)"},
+    ghost:    {bg:h&&!disabled?"var(--parchment)":"transparent", c:"var(--ink)",          b:"1.5px solid var(--rule)", s:"none"},
+    amber:    {bg:h&&!disabled?"#7A4206":"var(--amber-text)",    c:"var(--cream-on-ink)", b:"transparent", s:h?"0 6px 16px rgba(200,131,42,0.3)":"0 4px 10px rgba(200,131,42,0.2)"},
   }[variant]||{};
   return <button onClick={onClick} disabled={disabled}
     onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-    style={{ padding:pad, background:s.bg, color:s.c, border:s.b||"none",
+    style={{ ...style, padding:pad, background:s.bg, color:s.c, border:s.b||"none",
       fontFamily:"var(--font-display)", fontSize:fs, letterSpacing:2,
-      cursor:disabled?"not-allowed":"pointer", opacity:disabled?.45:1,
+      cursor:disabled?"not-allowed":"pointer", opacity:disabled?.5:1,
       width:full?"100%":"auto", display:"inline-flex", alignItems:"center",
-      justifyContent:"center", gap:8, borderRadius:"var(--r-sm)",
-      transition:"background .18s, transform .1s",
-      transform:h&&!disabled?"translateY(-1px)":"none" }}>{children}</button>;
+      justifyContent:"center", gap:8, borderRadius:"8px",
+      boxShadow: disabled?"none":s.s,
+      transition:"all .2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+      transform:h&&!disabled?"translateY(-2px) scale(1.01)":"none" }}>{children}</button>;
 };
 
-const Field = ({ label, type="text", value, onChange, placeholder, readOnly, error, hint, required, rows }) => {
+const Field = ({ label, type="text", value, onChange, placeholder, readOnly, error, hint, required, rows, style={} }) => {
   const [foc,setFoc]=useState(false);
   const inputStyle = {
-    width:"100%", padding:"11px 14px",
+    ...style, width:"100%", padding:"12px 16px",
     border:`1.5px solid ${error?"var(--red)":foc?"var(--amber)":"var(--rule)"}`,
     background:readOnly?"var(--parchment)":foc?"var(--surface)":"var(--cream)",
-    fontFamily:"var(--font-sans)", fontSize:14,
+    fontFamily:"var(--font-sans)", fontSize:15,
     color:readOnly?"var(--muted)":"var(--ink)", outline:"none",
-    transition:"border-color .18s, background .18s",
-    borderRadius:"var(--r-sm)",
-    boxShadow:foc&&!error?"0 0 0 3px rgba(200,131,42,.08)":"none",
+    transition:"all .2s ease",
+    borderRadius:"8px",
+    boxShadow:foc&&!error?"0 0 0 4px rgba(200,131,42,.12)":error?"0 0 0 4px rgba(176,32,32,.12)":"0 2px 4px rgba(26,18,8,.02)",
     resize:"vertical",
   };
   return (
-    <div style={{ marginBottom:16 }}>
-      {label&&<div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:3,
-        color:"var(--muted)",textTransform:"uppercase",marginBottom:7 }}>
+    <div style={{ marginBottom:18 }}>
+      {label&&<div style={{ fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:2,
+        color:"var(--ink-mid)",textTransform:"uppercase",marginBottom:8, fontWeight:700 }}>
         {label}{required&&<span style={{ color:"var(--red)",marginLeft:4 }}>*</span>}
       </div>}
       {rows
@@ -189,27 +192,33 @@ const Field = ({ label, type="text", value, onChange, placeholder, readOnly, err
         : <input type={type} value={value} onChange={onChange} placeholder={placeholder} readOnly={readOnly}
             onFocus={()=>setFoc(true)} onBlur={()=>setFoc(false)} style={inputStyle}/>
       }
-      {error&&<div style={{ fontFamily:"var(--font-sans)",fontSize:11,color:"var(--red)",marginTop:4 }}>{error}</div>}
-      {hint&&!error&&<div style={{ fontFamily:"var(--font-sans)",fontSize:11,color:"var(--muted)",marginTop:4 }}>{hint}</div>}
+      {error&&<div style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--red)",marginTop:6,display:"flex",alignItems:"center",gap:4 }}><span style={{fontSize:10}}>✕</span> {error}</div>}
+      {hint&&!error&&<div style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--muted)",marginTop:6 }}>{hint}</div>}
     </div>
   );
 };
 
-const Sel = ({ label, value, onChange, options }) => (
-  <div style={{ marginBottom:16 }}>
-    {label&&<div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:3,
-      color:"var(--muted)",textTransform:"uppercase",marginBottom:7 }}>{label}</div>}
+const Sel = ({ label, value, onChange, options, style={} }) => {
+  const [foc,setFoc]=useState(false);
+  return (
+  <div style={{ marginBottom:18 }}>
+    {label&&<div style={{ fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:2,
+      color:"var(--ink-mid)",textTransform:"uppercase",marginBottom:8, fontWeight:700 }}>{label}</div>}
     <select value={value} onChange={onChange}
-      style={{ width:"100%",padding:"11px 14px",border:"1.5px solid var(--rule)",
-        background:"var(--cream)",fontFamily:"var(--font-sans)",fontSize:14,
+      onFocus={()=>setFoc(true)} onBlur={()=>setFoc(false)}
+      style={{ ...style, width:"100%",padding:"12px 16px",
+        border:`1.5px solid ${foc?"var(--amber)":"var(--rule)"}`,
+        background:foc?"var(--surface)":"var(--cream)",
+        fontFamily:"var(--font-sans)",fontSize:15,
         color:"var(--ink)",outline:"none",appearance:"none",cursor:"pointer",
-        borderRadius:"var(--r-sm)",
+        borderRadius:"8px", transition:"all .2s ease",
+        boxShadow:foc?"0 0 0 4px rgba(200,131,42,.12)":"0 2px 4px rgba(26,18,8,.02)",
         backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231A1208' fill='none' stroke-width='1.5'/%3E%3C/svg%3E")`,
-        backgroundRepeat:"no-repeat",backgroundPosition:"right 14px center",paddingRight:36 }}>
+        backgroundRepeat:"no-repeat",backgroundPosition:"right 16px center",paddingRight:40 }}>
       {options.map(([v,l])=><option key={v} value={v}>{l}</option>)}
     </select>
   </div>
-);
+)};
 
 const Spinner = ({size=18,color="var(--amber)"}) => (
   <div style={{ width:size,height:size,border:`2px solid rgba(200,131,42,.25)`,
@@ -291,10 +300,11 @@ export function RegisterScreen({ onDone, onBackToLogin }) {
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
 
   const PASSENGER_TYPES=[
-    {id:"student",label:"STUDENT",sub:"30% off — student ID req.",disc:30,icon:"🎓"},
-    {id:"senior",label:"SENIOR CITIZEN",sub:"50% off — age 60+",disc:50,icon:"🪴"},
-    {id:"differently_abled",label:"DIFFERENTLY ABLED",sub:"75% off — cert. req.",disc:75,icon:"♿"},
-    {id:"corporate",label:"CORPORATE",sub:"15% off — employer code",disc:15,icon:"💼"},
+    {id:"general",label:"GENERAL",sub:"Standard full fare",disc:0,icon: <User size={20} color="#1A1208" />},
+    {id:"student",label:"STUDENT",sub:"30% off — student ID req.",disc:30,icon: <GraduationCap size={20} color="#1A1208" />},
+    {id:"senior",label:"SENIOR CITIZEN",sub:"50% off — age 60+",disc:50,icon: <Leaf size={20} color="#1A1208" />},
+    {id:"differently_abled",label:"DIFFERENTLY ABLED",sub:"75% off — cert. req.",disc:75,icon: <Accessibility size={20} color="#1A1208" />},
+    {id:"corporate",label:"CORPORATE",sub:"15% off — employer code",disc:15,icon: <Briefcase size={20} color="#1A1208" />},
   ];
   const STEPS=["PORTAL","PERSONAL","IDENTITY","SECURE"];
   const DEPTS=[["cs","Computer Science"],["it","Information Technology"],["ec","Electronics"],["me","Mechanical"],["ce","Civil"],["other","Other"]];
@@ -316,7 +326,7 @@ export function RegisterScreen({ onDone, onBackToLogin }) {
 
   if(done) return (
     <>
-      <style>{G}</style>
+      
       <div style={{ minHeight:"100vh",background:"var(--cream)",display:"flex",alignItems:"center",justifyContent:"center" }}>
         <div style={{ textAlign:"center",padding:48,animation:"fadeUp .5s ease" }}>
           <div style={{ width:72,height:72,background:"var(--success-bg)",border:"3px solid var(--green)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",animation:"stampIn .5s ease" }}>
@@ -332,7 +342,7 @@ export function RegisterScreen({ onDone, onBackToLogin }) {
 
   return (
     <>
-      <style>{G}</style>
+      
       <div style={{ minHeight:"100vh",background:"var(--cream)",display:"flex" }}>
         {/* Left dark panel */}
         <div style={{ width:"40%",background:"var(--ink)",position:"relative",
@@ -556,7 +566,7 @@ export function ForgotPasswordScreen({ onDone, onBackToLogin }) {
 
   if(step===4) return (
     <>
-      <style>{G}</style>
+      
       <div style={{ minHeight:"100vh",background:"var(--cream)",display:"flex",alignItems:"center",justifyContent:"center" }}>
         <div style={{ textAlign:"center",padding:48,animation:"fadeUp .5s ease" }}>
           <div style={{ fontFamily:"var(--font-display)",fontSize:54,color:"var(--ink)",letterSpacing:1,lineHeight:1,marginBottom:12 }}>PASSWORD RESET!</div>
@@ -569,7 +579,7 @@ export function ForgotPasswordScreen({ onDone, onBackToLogin }) {
 
   return (
     <>
-      <style>{G}</style>
+      
       <div style={{ minHeight:"100vh",background:"var(--cream)",display:"flex",alignItems:"center",justifyContent:"center" }}>
         <div style={{ width:"100%",maxWidth:420,padding:"44px 40px",
           border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",
@@ -669,7 +679,7 @@ export function NotificationsScreen() {
 
   return (
     <>
-      <style>{G}</style>
+      
       <Page>
         <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:28 }}>
           <div>
@@ -824,7 +834,7 @@ export function RouteManager() {
 
   return (
     <>
-      <style>{G}</style>
+      
       <Page>
         <PageHeader tag="Admin · Routes" title="ROUTE MANAGER"
           subtitle={`${routes.length} routes configured · ${counts.BUSES} buses deployed`}
@@ -870,17 +880,20 @@ export function RouteManager() {
         {/* ── Table header ── */}
         <div style={{ display:"grid",
           gridTemplateColumns:"56px 36px 1fr 140px 80px 60px 60px 160px",
-          gap:12,padding:"6px 16px",borderBottom:"2px solid var(--ink)" }}>
+          gap:12,padding:"10px 16px",marginBottom:8,
+          background:"var(--surface)", borderRadius:"8px",
+          border:"1px solid var(--rule)",
+          boxShadow:"0 2px 4px rgba(26,18,8,.02)" }}>
           {["LINE","CODE","ROUTE / STOPS","FARE","DIST","STOPS","BUSES","ACTION"].map(h=>(
-            <span key={h} style={{ fontFamily:"var(--font-mono)",fontSize:7,
-              letterSpacing:3,color:"var(--muted)" }}>{h}</span>
+            <span key={h} style={{ fontFamily:"var(--font-mono)",fontSize:10,
+              letterSpacing:3,color:"var(--ink-mid)", fontWeight:700 }}>{h}</span>
           ))}
         </div>
 
         {/* ── Route rows ── */}
         {visible.length===0&&(
           <div style={{ padding:"48px 24px",textAlign:"center",background:"var(--surface)",
-            border:"1.5px solid var(--rule)",borderTop:"none" }}>
+            border:"1.5px solid var(--rule)", borderRadius:"8px" }}>
             <div style={{ fontSize:42, marginBottom:8 }}>🚌</div>
             <div style={{ fontFamily:"var(--font-serif)",fontSize:22,color:"var(--ink)",marginBottom:6 }}>
               No routes yet.
@@ -902,32 +915,32 @@ export function RouteManager() {
           return (
           <div key={r.id}
             onMouseEnter={e=>{
-              e.currentTarget.style.background = "var(--parchment)";
-              e.currentTarget.style.transform = "translateX(2px)";
-              e.currentTarget.style.paddingLeft = "18px";
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 8px 24px rgba(26,18,8,0.06)";
             }}
             onMouseLeave={e=>{
-              e.currentTarget.style.background = i%2===0?"var(--surface)":"var(--cream)";
-              e.currentTarget.style.transform = "translateX(0)";
-              e.currentTarget.style.paddingLeft = "16px";
+              e.currentTarget.style.transform = "none";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(26,18,8,0.04)";
             }}
             style={{ display:"grid",
             gridTemplateColumns:"56px 36px 1fr 140px 80px 60px 60px 160px",
-            gap:12,padding:"14px 16px",paddingLeft:16,borderBottom:"1px solid var(--rule)",
-            alignItems:"center",
+            gap:12,padding:"14px 16px",
+            alignItems:"center", marginBottom:8,
+            borderRadius:"8px", border:"1px solid var(--rule)",
             borderLeft:`4px solid ${r.color}`,
-            background:i%2===0?"var(--surface)":"var(--cream)",
+            background:"var(--surface)",
+            boxShadow:"0 2px 8px rgba(26,18,8,0.04)",
             backgroundImage:!r.active
-              ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(26,18,8,.04) 8px, rgba(26,18,8,.04) 9px)"
+              ? "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(26,18,8,.02) 8px, rgba(26,18,8,.02) 9px)"
               : "none",
-            transition:"background .22s ease, padding-left .22s ease, transform .22s ease",
-            animation:`fadeUp .3s ease ${i*.06}s both` }}>
+            transition:"all .22s cubic-bezier(0.16, 1, 0.3, 1)",
+            animation:`fadeUp .4s cubic-bezier(0.16, 1, 0.3, 1) ${i*.06}s both` }}>
 
             {/* Line colour badge */}
-            <div style={{ background:r.color,padding:"6px 8px",
+            <div style={{ background:r.color,padding:"6px 8px", borderRadius:"6px",
               display:"flex",flexDirection:"column",alignItems:"center",gap:2,
               boxShadow:`0 0 8px ${glow}` }}>
-              <div style={{ fontFamily:"var(--font-display)",fontSize:14,letterSpacing:1,
+              <div style={{ fontFamily:"var(--font-display)",fontSize:15,letterSpacing:1,
                 color:"white",lineHeight:1 }}>{r.code}</div>
             </div>
 
@@ -1135,7 +1148,7 @@ export function UserManager() {
 
   return (
     <>
-      <style>{G}</style>
+      
       <div style={{ display:"flex",minHeight:"calc(100vh - 62px)",background:"var(--cream)" }}>
 
         {/* Left — list */}
@@ -1167,36 +1180,43 @@ export function UserManager() {
 
           {/* Table */}
           <div style={{ display:"grid",gridTemplateColumns:"90px 1fr 90px 80px",
-            gap:12,padding:"6px 12px",borderBottom:"2px solid var(--ink)" }}>
+            gap:12,padding:"10px 16px",marginBottom:8,
+            background:"var(--surface)", borderRadius:"8px",
+            border:"1px solid var(--rule)",
+            boxShadow:"0 2px 4px rgba(26,18,8,.02)" }}>
             {["ID","NAME / EMAIL","TYPE","PASS"].map(h=>(
-              <div key={h} style={{ fontFamily:"var(--font-mono)",fontSize:7,
-                letterSpacing:3,color:"var(--muted)" }}>{h}</div>
+              <div key={h} style={{ fontFamily:"var(--font-mono)",fontSize:10,
+                letterSpacing:3,color:"var(--ink-mid)", fontWeight:700 }}>{h}</div>
             ))}
           </div>
           {visible.map((u,i)=>(
             <div key={u.id} onClick={()=>setSelected(u)}
               style={{ display:"grid",gridTemplateColumns:"90px 1fr 90px 80px",
-                gap:12,padding:"12px",alignItems:"center",cursor:"pointer",
-                background:selected?.id===u.id?"var(--parchment)":
-                  i%2===0?"var(--surface)":"var(--cream)",
-                borderBottom:"1px solid var(--rule)",
-                borderLeft:`3px solid ${selected?.id===u.id?"var(--amber)":"transparent"}`,
-                transition:"all .15s",animation:`fadeUp .3s ease ${i*.05}s both` }}>
-              <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:1,
-                color:"var(--amber-text)" }}>{u.id}</div>
+                gap:12,padding:"14px 16px",alignItems:"center",cursor:"pointer",
+                background:selected?.id===u.id?"var(--parchment)":"var(--surface)",
+                marginBottom:8,
+                borderRadius:"8px", border:"1px solid var(--rule)",
+                borderLeft:`4px solid ${selected?.id===u.id?"var(--amber)":"transparent"}`,
+                boxShadow:"0 2px 8px rgba(26,18,8,0.04)",
+                transition:"all .2s ease",
+                onMouseEnter:e=>e.currentTarget.style.transform="translateY(-2px)",
+                onMouseLeave:e=>e.currentTarget.style.transform="none",
+                animation:`fadeUp .4s cubic-bezier(0.16, 1, 0.3, 1) ${i*.05}s both` }}>
+              <div style={{ fontFamily:"var(--font-mono)",fontSize:11,letterSpacing:1,
+                color:"var(--amber-text)", fontWeight:600 }}>{u.id}</div>
               <div>
-                <div style={{ fontFamily:"var(--font-sans)",fontSize:13,
-                  color:"var(--ink)",fontWeight:500 }}>{u.name}</div>
-                <div style={{ fontFamily:"var(--font-sans)",fontSize:11,
+                <div style={{ fontFamily:"var(--font-sans)",fontSize:14,
+                  color:"var(--ink)",fontWeight:600 }}>{u.name}</div>
+                <div style={{ fontFamily:"var(--font-sans)",fontSize:12,
                   color:"var(--muted)" }}>{u.email}</div>
               </div>
-              <div style={{ display:"inline-flex",alignItems:"center",gap:5 }}>
-                <span style={{ fontSize:11 }}>{PTYPE_ICON[u.type]||"👤"}</span>
-                <span style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,
-                  color:"var(--muted)",textTransform:"uppercase" }}>{u.type}</span>
+              <div style={{ display:"inline-flex",alignItems:"center",gap:6 }}>
+                <span style={{ fontSize:14 }}>{PTYPE_ICON[u.type]||"👤"}</span>
+                <span style={{ fontFamily:"var(--font-mono)",fontSize:9,letterSpacing:1,
+                  color:"var(--ink-mid)",textTransform:"uppercase",fontWeight:600 }}>{u.type}</span>
               </div>
               {u.passStatus!=="—"?<Pill s={u.passStatus}/>:
-                <span style={{ fontFamily:"var(--font-mono)",fontSize:8,color:"var(--muted)" }}>—</span>}
+                <span style={{ fontFamily:"var(--font-mono)",fontSize:10,color:"var(--muted)", fontWeight:600 }}>—</span>}
             </div>
           ))}
         </div>
@@ -1307,143 +1327,148 @@ export function AnalyticsDashboard() {
   ];
 
   const BIG=[
-    {num:"243",   lbl:"ACTIVE PASSES",  delta:"+12",   up:true,  c:"var(--amber-text)"},
-    {num:"₹1.8L", lbl:"MONTHLY REVENUE",delta:"+8%",   up:true,  c:"var(--green)"},
-    {num:"4,820", lbl:"WEEKLY SCANS",   delta:"-3%",   up:false, c:"var(--ink)"},
-    {num:"97.2%", lbl:"SCAN SUCCESS",   delta:"stable",up:true,  c:"var(--ink)"},
+    {num:"243",   lbl:"ACTIVE PASSES",  delta:"+12",   up:true,  c:"var(--amber-text)", val:243},
+    {num:"₹1.8L", lbl:"MONTHLY REVENUE",delta:"+8%",   up:true,  c:"var(--green)",      val:0},
+    {num:"4,820", lbl:"WEEKLY SCANS",   delta:"-3%",   up:false, c:"var(--ink)",        val:4820},
+    {num:"97.2%", lbl:"SCAN SUCCESS",   delta:"stable",up:true,  c:"var(--ink)",        val:0},
   ];
 
   return (
-    <>
-      <style>{G}</style>
-      <Page>
-        <div style={{ display:"flex",justifyContent:"space-between",
-          alignItems:"flex-end",marginBottom:0 }}>
-          <div>
-            <Tag>Admin · Analytics</Tag>
-            <div style={{ fontFamily:"var(--font-display)",fontSize:40,
-              letterSpacing:1,color:"var(--ink)",lineHeight:1 }}>ANALYTICS ENGINE</div>
-            <div style={{ fontFamily:"var(--font-sans)",fontSize:13,
-              color:"var(--muted)",marginTop:6 }}>Real-time transit metrics.</div>
+    <Page>
+      <div style={{ display:"flex",justifyContent:"space-between",
+        alignItems:"flex-end",marginBottom:32 }}>
+        <div>
+          <Tag>Admin · Analytics</Tag>
+          <div style={{ fontFamily:"var(--font-display)",fontSize:48,
+            letterSpacing:1,color:"var(--ink)",lineHeight:1, textShadow:"0 2px 4px rgba(26,18,8,0.05)" }}>ANALYTICS ENGINE</div>
+          <div style={{ fontFamily:"var(--font-sans)",fontSize:15,
+            color:"var(--muted)",marginTop:8, fontWeight:500 }}>Real-time transit metrics.</div>
+        </div>
+        {/* Period selector */}
+        <div style={{ display:"flex", background:"var(--surface)", 
+          border:"1.5px solid var(--rule)", borderRadius:"8px", overflow:"hidden", 
+          boxShadow:"0 2px 8px rgba(26,18,8,0.04)" }}>
+          {["week","month","year"].map(p=>(
+            <button key={p} onClick={()=>setPeriod(p)}
+              style={{ padding:"10px 24px",
+                background:period===p?"var(--ink)":"transparent",
+                color:period===p?"var(--amber-on-ink)":"var(--muted)",
+                border:"none",borderRight:p!=="year"?"1px solid var(--rule)":"none",
+                fontFamily:"var(--font-mono)",fontSize:11,letterSpacing:2, fontWeight:700,
+                cursor:"pointer",transition:"all .2s ease",textTransform:"uppercase" }}>{p}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Big stats strip ── */}
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:32 }}>
+        {BIG.map((s,i)=>(
+          <div key={s.lbl} style={{ padding:"24px 28px", background:"var(--surface)",
+            borderRadius:"12px", border:"1px solid var(--rule)",
+            boxShadow:"0 4px 12px rgba(26,18,8,0.04), 0 1px 3px rgba(26,18,8,0.02)",
+            animation:`fadeUp .5s cubic-bezier(0.16, 1, 0.3, 1) ${i*.08}s both`,
+            transition:"transform .2s ease, box-shadow .2s ease",
+            onMouseEnter:e=>{
+              e.currentTarget.style.transform="translateY(-3px)";
+              e.currentTarget.style.boxShadow="0 8px 24px rgba(26,18,8,0.08)";
+            },
+            onMouseLeave:e=>{
+              e.currentTarget.style.transform="none";
+              e.currentTarget.style.boxShadow="0 4px 12px rgba(26,18,8,0.04), 0 1px 3px rgba(26,18,8,0.02)";
+            } }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+              <div>
+                <div style={{ fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:2,
+                  color:"var(--ink-mid)",marginBottom:12,fontWeight:700 }}>{s.lbl}</div>
+                <div style={{ fontFamily:"var(--font-display)",fontSize:48,letterSpacing:1,
+                  color:s.c,lineHeight:1,animation:"inkReveal .7s ease both",
+                  animationDelay:`${i*.1+.2}s` }}>
+                  {s.val ? <AnimatedCount target={s.val}/> : s.num}
+                </div>
+              </div>
+              <div style={{ fontFamily:"var(--font-sans)",fontSize:13, fontWeight:600,
+                color:s.up?"var(--green)":"var(--red)",
+                display:"flex",alignItems:"center",gap:4,
+                background:s.up?"var(--success-bg)":"var(--error-bg)",
+                padding:"6px 10px", borderRadius:"6px", opacity:0,
+                animation:`slideDown .4s cubic-bezier(0.16, 1, 0.3, 1) ${0.55 + i*0.08}s both` }}>
+                <span style={{fontSize:16, lineHeight:1}}>{s.up?"↗":"↘"}</span><span>{s.delta}</span>
+              </div>
+            </div>
           </div>
-          {/* Period selector */}
-          <div style={{ display:"flex",border:"1.5px solid var(--ink)" }}>
-            {["week","month","year"].map(p=>(
-              <button key={p} onClick={()=>setPeriod(p)}
-                style={{ padding:"9px 22px",
-                  background:period===p?"var(--ink)":"transparent",
-                  color:period===p?"var(--amber-on-ink)":"var(--muted)",
-                  border:"none",borderRight:p!=="year"?"1px solid var(--ink)":"none",
-                  fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2,
-                  cursor:"pointer",transition:"all .18s",textTransform:"uppercase" }}>{p}</button>
-            ))}
-          </div>
+        ))}
+      </div>
+
+      {/* ── Charts row ── */}
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 320px",gap:20,marginBottom:32 }}>
+
+        {/* Ridership bar chart */}
+        <div style={{ border:"1px solid var(--rule)",borderRadius:"12px",background:"var(--surface)",padding:"28px", boxShadow:"0 4px 12px rgba(26,18,8,0.03)" }}>
+          <Tag>Daily Ridership</Tag>
+          <div style={{ fontFamily:"var(--font-serif)",fontSize:24,color:"var(--ink)",marginBottom:24 }}>Passenger Trips</div>
+          <MiniBar data={DEMAND} maxVal={250} color="var(--amber)" height={160}/>
         </div>
 
-        {/* Masthead rule */}
-        <div style={{ borderTop:"3px solid var(--ink)",borderBottom:"1px solid var(--rule)",
-          marginBottom:28,marginTop:16 }}/>
+        {/* Revenue bar chart */}
+        <div style={{ border:"1px solid var(--rule)",borderRadius:"12px",background:"var(--surface)",padding:"28px", boxShadow:"0 4px 12px rgba(26,18,8,0.03)" }}>
+          <Tag>Financials</Tag>
+          <div style={{ fontFamily:"var(--font-serif)",fontSize:24,color:"var(--ink)",marginBottom:24 }}>Revenue (₹K)</div>
+          <MiniBar data={REVENUE} maxVal={65} color="var(--green)" height={160}/>
+        </div>
 
-        {/* ── Big stats strip ── */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",
-          borderBottom:"1px solid var(--rule)",marginBottom:28 }}>
-          {BIG.map((s,i)=>(
-            <div key={s.lbl} style={{ padding:"20px 24px",
-              borderRight:i<3?"1px solid var(--rule)":"none",
-              animation:`fadeUp .4s ease ${i*.08}s both` }}>
-              <div style={{ fontFamily:"var(--font-display)",fontSize:44,letterSpacing:1,
-                color:s.c,lineHeight:1,animation:"inkReveal .7s ease both",
-                animationDelay:`${i*.1+.2}s` }}>
-                {s.lbl==="ACTIVE PASSES"
-                  ? <AnimatedCount target={243} delay={80}/>
-                  : s.lbl==="WEEKLY SCANS"
-                    ? <AnimatedCount target={4820} delay={100}/>
-                    : s.num}
+        {/* Route distribution */}
+        <div style={{ border:"1px solid var(--rule)",borderRadius:"12px",background:"var(--surface)",padding:"28px", boxShadow:"0 4px 12px rgba(26,18,8,0.03)" }}>
+          <Tag>Distribution</Tag>
+          <div style={{ fontFamily:"var(--font-serif)",fontSize:24,color:"var(--ink)",marginBottom:24 }}>By Route</div>
+          {ROUTE_SPLIT.map((r,i)=>(
+            <div key={r.name} style={{ marginBottom:18,
+              animation:`slideInRight .4s ease ${i*.1}s both` }}>
+              <div style={{ display:"flex",justifyContent:"space-between",marginBottom:8,
+                alignItems:"center" }}>
+                <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                  <div style={{ width:12,height:12,background:r.color, borderRadius:"3px" }}/>
+                  <span style={{ fontFamily:"var(--font-sans)",fontSize:14, fontWeight:600,
+                    color:"var(--ink)" }}>{r.name}</span>
+                </div>
+                <span style={{ fontFamily:"var(--font-display)",fontSize:20,
+                  color:"var(--ink)",letterSpacing:1 }}>{r.pct}%</span>
               </div>
-              <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2,
-                color:"var(--muted)",margin:"8px 0 10px",fontWeight:700 }}>{s.lbl}</div>
-              <div style={{ fontFamily:"var(--font-sans)",fontSize:11,
-                color:s.up?"var(--green)":"var(--red)",
-                display:"inline-flex",alignItems:"center",gap:4,
-                background:s.up?"var(--success-bg)":"var(--error-bg)",
-                padding:"3px 8px",opacity:0,
-                animation:`slideDown .28s ease ${0.55 + i*0.08}s both` }}>
-                <span>{s.up?"↑":"↓"}</span><span>{s.delta}</span>
+              <div style={{ height:8,background:"var(--parchment)",position:"relative", borderRadius:"4px", overflow:"hidden" }}>
+                <div style={{ position:"absolute",left:0,top:0,height:"100%",
+                  width:`${r.pct}%`,background:r.color, borderRadius:"4px",
+                  transition:"width .8s var(--ease-spring)" }}/>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* ── Charts row ── */}
-        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 300px",gap:20,marginBottom:24 }}>
-
-          {/* Ridership bar chart */}
-          <div style={{ border:"1.5px solid var(--rule)",borderRadius:0,background:"var(--surface)",padding:"20px" }}>
-            <Tag>Daily Ridership</Tag>
-            <div style={{ fontFamily:"var(--font-serif)",fontSize:20,color:"var(--ink)",marginBottom:20 }}>Passenger Trips</div>
-            <MiniBar data={DEMAND} maxVal={250} color="var(--amber)" height={120}/>
-          </div>
-
-          {/* Revenue bar chart */}
-          <div style={{ border:"1.5px solid var(--rule)",borderRadius:0,background:"var(--surface)",padding:"20px" }}>
-            <Tag>Financials</Tag>
-            <div style={{ fontFamily:"var(--font-serif)",fontSize:20,color:"var(--ink)",marginBottom:20 }}>Revenue (₹K)</div>
-            <MiniBar data={REVENUE} maxVal={65} color="var(--green)" height={120}/>
-          </div>
-
-          {/* Route distribution */}
-          <div style={{ border:"1.5px solid var(--rule)",borderRadius:0,background:"var(--surface)",padding:"20px" }}>
-            <Tag>Distribution</Tag>
-            <div style={{ fontFamily:"var(--font-serif)",fontSize:20,color:"var(--ink)",marginBottom:20 }}>By Route</div>
-            {ROUTE_SPLIT.map((r,i)=>(
-              <div key={r.name} style={{ marginBottom:16,
-                animation:`slideInRight .4s ease ${i*.1}s both` }}>
-                <div style={{ display:"flex",justifyContent:"space-between",marginBottom:6,
-                  alignItems:"center" }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <div style={{ width:10,height:10,background:r.color }}/>
-                    <span style={{ fontFamily:"var(--font-sans)",fontSize:12,
-                      color:"var(--ink)" }}>{r.name}</span>
-                  </div>
-                  <span style={{ fontFamily:"var(--font-display)",fontSize:18,
-                    color:"var(--ink)",letterSpacing:1 }}>{r.pct}%</span>
-                </div>
-                <div style={{ height:6,background:"var(--parchment)",position:"relative" }}>
-                  <div style={{ position:"absolute",left:0,top:0,height:"100%",
-                    width:`${r.pct}%`,background:r.color,
-                    transition:"width .8s var(--ease-spring)" }}/>
-                </div>
+          <div style={{ borderTop:"1px solid var(--rule)", margin:"24px 0 20px" }}/>
+          <div style={{ fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:3, fontWeight:700,
+            color:"var(--ink-mid)",marginBottom:14,textTransform:"uppercase" }}>BY PASS DURATION</div>
+          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10 }}>
+            {[["ANNUAL",38,"var(--ink)"],["QUARTERLY",45,"var(--amber-text)"],["MONTHLY",17,"var(--muted)"]].map(([t,p,c])=>(
+              <div key={t} style={{ background:"var(--cream)",padding:"14px 10px", borderRadius:"8px",
+                textAlign:"center",border:"1px solid var(--rule)" }}>
+                <div style={{ fontFamily:"var(--font-display)",fontSize:26,
+                  color:c,lineHeight:1,marginBottom:4 }}>{p}%</div>
+                <div style={{ fontFamily:"var(--font-mono)",fontSize:8, fontWeight:700,
+                  letterSpacing:1,color:"var(--muted)" }}>{t}</div>
               </div>
             ))}
-            <Rule my={16}/>
-            <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:3,
-              color:"var(--muted)",marginBottom:10,textTransform:"uppercase" }}>BY PASS DURATION</div>
-            <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8 }}>
-              {[["ANNUAL",38,"var(--ink)"],["QUARTERLY",45,"var(--amber-text)"],["MONTHLY",17,"var(--muted)"]].map(([t,p,c])=>(
-                <div key={t} style={{ background:"var(--parchment)",padding:"10px 8px",
-                  textAlign:"center",border:"1px solid var(--rule)" }}>
-                  <div style={{ fontFamily:"var(--font-display)",fontSize:22,
-                    color:c,lineHeight:1,marginBottom:3 }}>{p}%</div>
-                  <div style={{ fontFamily:"var(--font-mono)",fontSize:6,
-                    letterSpacing:1,color:"var(--muted)" }}>{t}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
+      </div>
 
-        {/* ── Recent applications log ── */}
-        <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)" }}>
-          <div style={{ padding:"16px 24px",borderBottom:"2px solid var(--ink)",
-            display:"flex",justifyContent:"space-between",alignItems:"center",
-            background:"var(--parchment)" }}>
-            <div>
-              <Tag>Live Feed</Tag>
-              <div style={{ fontFamily:"var(--font-display)",fontSize:20,
-                letterSpacing:2,color:"var(--ink)" }}>RECENT APPLICATIONS</div>
-            </div>
-            <Btn variant="secondary" size="sm">VIEW ALL LOGS →</Btn>
+      {/* ── Recent applications log ── */}
+      <div style={{ border:"1px solid var(--rule)",borderRadius:"12px",background:"var(--surface)", boxShadow:"0 4px 16px rgba(26,18,8,0.04)", overflow:"hidden" }}>
+        <div style={{ padding:"20px 28px",borderBottom:"1px solid var(--rule)",
+          display:"flex",justifyContent:"space-between",alignItems:"center",
+          background:"var(--surface)" }}>
+          <div>
+            <Tag>Live Feed</Tag>
+            <div style={{ fontFamily:"var(--font-display)",fontSize:24,
+              letterSpacing:2,color:"var(--ink)", textShadow:"0 1px 2px rgba(26,18,8,0.05)" }}>RECENT APPLICATIONS</div>
           </div>
+          <Btn variant="secondary" size="sm">VIEW ALL LOGS →</Btn>
+        </div>
 
           <div style={{ display:"grid",
             gridTemplateColumns:"110px 1.5fr 1fr 100px 80px",
@@ -1484,7 +1509,6 @@ export function AnalyticsDashboard() {
           ))}
         </div>
       </Page>
-    </>
   );
 }
 
@@ -1516,7 +1540,7 @@ export function AnnouncementSender() {
 
   return (
     <>
-      <style>{G}</style>
+      
       <Page>
         <PageHeader tag="Admin · Announcements" title="ANNOUNCEMENTS"
           subtitle="Broadcast messages to passengers and conductors"/>
@@ -1645,7 +1669,7 @@ export function RenewalFlow({ currentPass, onDone }) {
 
   if(done) return (
     <>
-      <style>{G}</style>
+      
       <Page style={{ display:"flex",alignItems:"center",justifyContent:"center" }}>
         <div style={{ textAlign:"center",animation:"fadeUp .5s ease" }}>
           <div style={{ fontFamily:"var(--font-display)",fontSize:54,color:"var(--ink)",
@@ -1662,7 +1686,7 @@ export function RenewalFlow({ currentPass, onDone }) {
 
   return (
     <>
-      <style>{G}</style>
+      
       <Page style={{ maxWidth:720,margin:"0 auto" }}>
         <PageHeader tag="Passenger · Pass" title="RENEW PASS"
           subtitle={`Pass: ${PASS.pass_number} — ${PASS.route}`}/>
@@ -1772,7 +1796,7 @@ export function BusRouteMap() {
 
   return (
     <>
-      <style>{G}</style>
+      
       <Page>
         <PageHeader tag="Live Route Map" title="TRANSIT MAP"
           subtitle="Real-time stop-by-stop view with live bus position"/>
@@ -1967,7 +1991,7 @@ export function CameraScanner() {
 
   return (
     <>
-      <style>{G}</style>
+      
       <Page>
         <PageHeader tag="Conductor · Scanner" title="CAMERA SCAN"
           subtitle="Point camera at passenger's QR code"/>
@@ -2100,7 +2124,7 @@ export function TripLog() {
 
   return (
     <>
-      <style>{G}</style>
+      
       <Page>
         <PageHeader tag="Conductor · Report" title="TRIP LOG"
           subtitle="03 Mar 2024 · Red Line · BUS-02"
@@ -2127,10 +2151,13 @@ export function TripLog() {
         {/* Table header */}
         <div style={{ display:"grid",
           gridTemplateColumns:"36px 60px 80px 1fr 140px 80px",
-          gap:12,padding:"6px 12px",borderBottom:"2px solid var(--ink)" }}>
+          gap:12,padding:"10px 16px",marginBottom:8,
+          background:"var(--surface)", borderRadius:"8px",
+          border:"1px solid var(--rule)",
+          boxShadow:"0 2px 4px rgba(26,18,8,.02)" }}>
           {["#","TIME","STATUS","STUDENT","STOP","PASS"].map(h=>(
-            <span key={h} style={{ fontFamily:"var(--font-mono)",fontSize:7,
-              letterSpacing:3,color:"var(--muted)" }}>{h}</span>
+            <span key={h} style={{ fontFamily:"var(--font-mono)",fontSize:10,
+              letterSpacing:3,color:"var(--ink-mid)", fontWeight:700 }}>{h}</span>
           ))}
         </div>
 
@@ -2140,21 +2167,26 @@ export function TripLog() {
           return (
             <div key={i} style={{ display:"grid",
               gridTemplateColumns:"36px 60px 80px 1fr 140px 80px",
-              gap:12,padding:"12px",alignItems:"center",
-              background:i%2===0?"var(--surface)":"var(--cream)",
-              borderBottom:"1px solid var(--rule)",
+              gap:12,padding:"14px 16px",alignItems:"center",
+              background:"var(--surface)", marginBottom:8,
+              borderRadius:"8px",
+              border:`1px solid var(--rule)`,
               borderLeft:`4px solid ${borderColor}`,
-              animation:`fadeUp .3s ease ${i*.05}s both` }}>
-              <span style={{ fontFamily:"var(--font-mono)",fontSize:9,
+              boxShadow:"0 2px 8px rgba(26,18,8,0.04)",
+              transition:"all .2s ease",
+              onMouseEnter:e=>e.currentTarget.style.transform="translateY(-2px)",
+              onMouseLeave:e=>e.currentTarget.style.transform="none",
+              animation:`fadeUp .4s cubic-bezier(0.16, 1, 0.3, 1) ${i*.05}s both` }}>
+              <span style={{ fontFamily:"var(--font-mono)",fontSize:11,
                 color:"var(--muted)",textAlign:"center" }}>#{i+1}</span>
-              <span style={{ fontFamily:"var(--font-mono)",fontSize:9,color:"var(--muted)" }}>{s.time}</span>
+              <span style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"var(--ink-mid)",fontWeight:600 }}>{s.time}</span>
               <Pill s={s.result}/>
               <div>
-                <div style={{ fontFamily:"var(--font-sans)",fontSize:13,color:"var(--ink)" }}>{s.student}</div>
-                <div style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--muted)" }}>{s.pass}</div>
+                <div style={{ fontFamily:"var(--font-sans)",fontSize:14,color:"var(--ink)", fontWeight:600 }}>{s.student}</div>
+                <div style={{ fontFamily:"var(--font-mono)",fontSize:9,letterSpacing:1,color:"var(--muted)" }}>{s.pass}</div>
               </div>
-              <span style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--muted)" }}>{s.stop}</span>
-              <span style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:1,color:"var(--muted)" }}>{s.pass.slice(-6)}</span>
+              <span style={{ fontFamily:"var(--font-sans)",fontSize:13,color:"var(--ink-mid)" }}>{s.stop}</span>
+              <span style={{ fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:1,color:"var(--muted)" }}>{s.pass.slice(-6)}</span>
             </div>
           );
         })}
@@ -2207,7 +2239,7 @@ export function ManualLookup() {
 
   return (
     <>
-      <style>{G}</style>
+      
       <Page style={{ maxWidth:640,margin:"0 auto" }}>
         <PageHeader tag="Conductor · Lookup" title="MANUAL LOOKUP"
           subtitle="Search by passenger ID or pass number"/>

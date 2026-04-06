@@ -25,6 +25,7 @@ import StudentProfile from "./screens/StudentProfile";
 import AdminHub from "./screens/AdminHub";
 import NearbyTaxis from "./screens/NearbyTaxis";
 import TicketBooking from "./screens/TicketBooking";
+import AIChatbot from "./screens/Aichatbot";
 import {
   NotificationsScreen,
   RouteManager,
@@ -105,12 +106,14 @@ body::after {
 //  TRANSIT DATA
 // ══════════════════════════════════════════════════════════════════════
 
+import { User, GraduationCap, Leaf, Accessibility, Briefcase } from "lucide-react";
+
 const PASSENGER_TYPES = [
-  { id:"general",          label:"GENERAL",          sub:"Standard full fare",               disc:0,  color:"#1A1208", icon:"👤" },
-  { id:"student",          label:"STUDENT",          sub:"30% off — valid student ID req.",  disc:30, color:"#1E6641", icon:"🎓" },
-  { id:"senior",           label:"SENIOR CITIZEN",   sub:"50% off — age 60+ (Govt scheme)",  disc:50, color:"#C8832A", icon:"🪴" },
-  { id:"differently_abled",label:"DIFFERENTLY ABLED",sub:"75% off — disability cert. req.",  disc:75, color:"#3D2410", icon:"♿" },
-  { id:"corporate",        label:"CORPORATE",        sub:"15% off — employer code req.",     disc:15, color:"#6B5535", icon:"💼" },
+  { id:"general",          label:"GENERAL",          sub:"Standard full fare",               disc:0,  color:"#1A1208", icon: <User size={20} color="#E8DFD5" /> },
+  { id:"student",          label:"STUDENT",          sub:"30% off — valid student ID req.",  disc:30, color:"#1E6641", icon: <GraduationCap size={20} color="#E8DFD5" /> },
+  { id:"senior",           label:"SENIOR CITIZEN",   sub:"50% off — age 60+ (Govt scheme)",  disc:50, color:"#C8832A", icon: <Leaf size={20} color="#1A1208" /> },
+  { id:"differently_abled",label:"DIFFERENTLY ABLED",sub:"75% off — disability cert. req.",  disc:75, color:"#3D2410", icon: <Accessibility size={20} color="#E8DFD5" /> },
+  { id:"corporate",        label:"CORPORATE",        sub:"15% off — employer code req.",     disc:15, color:"#6B5535", icon: <Briefcase size={20} color="#E8DFD5" /> },
 ];
 
 const CITY_ROUTES = [
@@ -1526,6 +1529,7 @@ export default function App() {
         <Footer/>
       </div>
 
+      <AIChatbot role={auth.role} onNavigate={setPage} />
       <toast.Toaster/>
     </>
   );

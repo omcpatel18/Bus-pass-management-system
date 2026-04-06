@@ -546,7 +546,7 @@ function StopSearch({ value, onChange, placeholder, exclude=[], label, labelColo
   };
 
   return (
-    <div ref={wrapRef} style={{ position:"relative", width:"100%" }}>
+    <div ref={wrapRef} style={{ position:"relative", width:"100%", zIndex: open ? 50 : 1 }}>
       {label&&<div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:3,
         color:labelColor,textTransform:"uppercase",marginBottom:6 }}>{label}</div>}
       <div style={{ display:"flex",alignItems:"center",gap:8,
@@ -736,12 +736,12 @@ export default function TicketBooking() {
               alignItems:"start", animation:"fadeUp .35s ease" }}>
 
               <div>
-                <div style={{ border:"1.5px solid var(--ink)", borderRadius:"var(--r-xl)",overflow:"hidden", background:"var(--surface)",
+                <div style={{ border:"1.5px solid var(--ink)", borderRadius:"var(--r-xl)", background:"var(--surface)",
                   marginBottom:14 }}>
 
                   {/* From / Swap / To row */}
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 48px 1fr",
-                    borderBottom:"1px solid var(--rule)" }}>
+                    borderBottom:"1px solid var(--rule)", position:"relative", zIndex:20 }}>
                     <div style={{ padding:"14px 16px" }}>
                       <StopSearch value={pickup} onChange={setPickup}
                         placeholder="From stop…" exclude={dest?[dest]:[]}
