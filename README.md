@@ -1,4 +1,4 @@
-# 🚌 BusPassPro — College Bus Pass Management System
+# 🚌 BusPassPro — Bus Pass Management System
 ### Final Year Project | Python (Django) + React
 
 ---
