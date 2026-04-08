@@ -59,6 +59,27 @@ const G = `
   --shadow-md:0 6px 24px rgba(26,18,8,.12);
   --shadow-lg:0 16px 48px rgba(26,18,8,.18);
 }
+.admin-hub {
+  --cream:#0A0A0A;  --surface:#121212; --parchment:#1A1A1A;
+  --ink:#FAFAFA;    --ink-mid:#A3A3A3;
+  --amber:#F59E0B;  --amber-text:#FBBF24; --amber-on-ink:#F59E0B;
+  --amber-light:#452202; --muted:#737373; --rule:#262626;
+  --green:#10B981;  --green-on-ink:#34D399;
+  --red:#EF4444;    --cream-on-ink:#1A1A1A; --muted-on-ink:#737373;
+  --success-bg:rgba(16,185,129,0.1); --error-bg:rgba(239,68,68,0.1);
+  --warn-bg:rgba(245,158,11,0.1);    --info-bg:rgba(250,250,250,0.05);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.4);
+  --shadow-md:0 6px 24px rgba(0,0,0,.6);
+  --shadow-lg:0 16px 48px rgba(0,0,0,.8);
+}
+.admin-hub * { border-color: var(--rule) !important; }
+.admin-hub [style*="color: var(--amber)"] { color: var(--amber) !important; }
+.admin-hub [style*="color: var(--amber-text)"] { color: var(--amber-text) !important; }
+.admin-hub [style*="color:var(--amber-text)"] { color: var(--amber-text) !important; }
+.admin-hub [style*="color: var(--muted)"] { color: var(--muted) !important; }
+.admin-hub [style*="color:var(--muted)"] { color: var(--muted) !important; }
+.admin-hub [style*="color: var(--green)"] { color: var(--green) !important; }
+.admin-hub [style*="color:var(--green)"] { color: var(--green) !important; }
 @keyframes fadeUp    { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 @keyframes fadeIn    { from{opacity:0} to{opacity:1} }
 @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
@@ -1540,7 +1561,6 @@ export function AnnouncementSender() {
 
   return (
     <>
-      
       <Page>
         <PageHeader tag="Admin · Announcements" title="ANNOUNCEMENTS"
           subtitle="Broadcast messages to passengers and conductors"/>
@@ -1647,7 +1667,7 @@ export function AnnouncementSender() {
 //  8. RENEWAL FLOW
 // ══════════════════════════════════════════════════════════════════════
 export function RenewalFlow({ currentPass, onDone }) {
-  const PASS=currentPass||{ pass_number:"BPP·2024·001234",route:"Red Line",boarding_stop:"Library Square",fare:380,type:"R1",color:"#B02020" };
+  const PASS=currentPass||{ pass_number:"BPP·2024·001234",route:"Red Line",boarding_stop:"Library Square",fare:380,type:"R1",color:"#B02020", name:"Aryan Sharma", validity:"01 APR 2024" };
   const [duration,setDuration]=useState("quarterly");
   const [done,setDone]=useState(false);
   const [paying,setPaying]=useState(false);
@@ -1664,14 +1684,16 @@ export function RenewalFlow({ currentPass, onDone }) {
   const total=Math.round(PASS.fare*sel.mo*(1-sel.disc/100));
 
   const pay=async()=>{
-    setPaying(true); await new Promise(r=>setTimeout(r,1200)); setPaying(false); setDone(true);
+    setPaying(true); await new Promise(r=>setTimeout(r,1500)); setPaying(false); setDone(true);
   };
 
   if(done) return (
     <>
-      
       <Page style={{ display:"flex",alignItems:"center",justifyContent:"center" }}>
         <div style={{ textAlign:"center",animation:"fadeUp .5s ease" }}>
+          <div style={{ width:80,height:80,background:"var(--success-bg)",border:"3px solid var(--green)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px",borderRadius:"50%",animation:"stampIn .6s cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
+            <span style={{ fontFamily:"var(--font-display)",fontSize:40,color:"var(--green)" }}>✓</span>
+          </div>
           <div style={{ fontFamily:"var(--font-display)",fontSize:54,color:"var(--ink)",
             letterSpacing:1,lineHeight:1 }}>RENEWED!</div>
           <div style={{ fontFamily:"var(--font-serif)",fontSize:16,color:"var(--muted)",
@@ -1686,82 +1708,119 @@ export function RenewalFlow({ currentPass, onDone }) {
 
   return (
     <>
-      
-      <Page style={{ maxWidth:720,margin:"0 auto" }}>
+      <Page style={{ maxWidth:840,margin:"0 auto" }}>
         <PageHeader tag="Passenger · Pass" title="RENEW PASS"
-          subtitle={`Pass: ${PASS.pass_number} — ${PASS.route}`}/>
+          subtitle={`Extend validity for pass ${PASS.pass_number}`}/>
 
-        {/* Current pass preview */}
-        <div style={{ background:"var(--ink)",padding:"18px 22px",marginBottom:24,
-          display:"flex",justifyContent:"space-between",alignItems:"center",
-          borderLeft:`6px solid ${PASS.color||"var(--amber)"}` }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 340px", gap:36, alignItems:"start" }}>
           <div>
-            <div style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:3,
-              color:"var(--muted-on-ink)",marginBottom:4 }}>CURRENT PASS</div>
-            <div style={{ fontFamily:"var(--font-display)",fontSize:24,letterSpacing:1,
-              color:"var(--amber-on-ink)" }}>{PASS.route}</div>
-            <div style={{ fontFamily:"var(--font-sans)",fontSize:12,
-              color:"var(--muted-on-ink)",marginTop:3 }}>
-              Board at {PASS.boarding_stop} · ₹{PASS.fare}/month base
+            {/* Duration selection */}
+            <Tag>SELECT RENEWAL DURATION</Tag>
+            <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
+              {DURS.map((d,i)=>{
+                const amt=Math.round(PASS.fare*d.mo*(1-d.disc/100));
+                const active = duration===d.id;
+                return (
+                  <div key={d.id} onClick={()=>setDuration(d.id)}
+                    style={{ border:`2px solid ${active?"var(--amber)":"var(--rule)"}`,
+                      padding:"16px 20px",cursor:"pointer",
+                      background:active?"var(--surface)":"var(--cream)",
+                      transition:"all .2s ease", display:"flex", justifyContent:"space-between",
+                      alignItems:"center", borderRadius:"12px",
+                      boxShadow:active?"0 4px 16px rgba(200,131,42,0.1)":"none",
+                      transform:active?"translateY(-2px)":"none",
+                      animation:`slideInRight .3s ease ${i*0.05}s both` }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+                      <div style={{ width:24,height:24,borderRadius:"50%", border:active?"6px solid var(--amber)":"2px solid var(--rule)", transition:"all .2s" }}/>
+                      <div>
+                        <div style={{ fontFamily:"var(--font-display)",fontSize:20,letterSpacing:1,
+                          color:active?"var(--amber-text)":"var(--ink)", display:"flex", alignItems:"center", gap:8 }}>
+                          {d.label}
+                          {d.disc>0&&<span style={{ fontFamily:"var(--font-mono)",fontSize:9,
+                            letterSpacing:1,color:"var(--green)",
+                            background:"var(--success-bg)",padding:"2px 6px", borderRadius:"4px", border:"1px solid var(--green)" }}>{d.disc}% OFF</span>}
+                        </div>
+                        <div style={{ fontFamily:"var(--font-sans)",fontSize:13,
+                          color:"var(--muted)", marginTop:2 }}>{d.desc}</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign:"right" }}>
+                      <div style={{ fontFamily:"var(--font-display)",fontSize:24,letterSpacing:1,
+                        color:"var(--ink)" }}>₹{amt}</div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
-          <div style={{ fontFamily:"var(--font-mono)",fontSize:11,letterSpacing:2,
-            color:"var(--amber-on-ink)",border:"1px solid rgba(240,168,48,.3)",
-            padding:"6px 14px" }}>SAME ROUTE</div>
-        </div>
 
-        {/* Duration selection */}
-        <Tag>SELECT RENEWAL DURATION</Tag>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:28 }}>
-          {DURS.map(d=>{
-            const amt=Math.round(PASS.fare*d.mo*(1-d.disc/100));
-            return (
-              <div key={d.id} onClick={()=>setDuration(d.id)}
-                style={{ border:`2px solid ${duration===d.id?"var(--ink)":"var(--rule)"}`,
-                  padding:"14px 10px",cursor:"pointer",
-                  background:duration===d.id?"var(--ink)":"var(--surface)",
-                  transition:"all .18s",textAlign:"center" }}>
-                <div style={{ fontFamily:"var(--font-display)",fontSize:14,letterSpacing:2,
-                  color:duration===d.id?"var(--amber-on-ink)":"var(--ink)" }}>{d.label}</div>
-                <div style={{ fontFamily:"var(--font-display)",fontSize:24,letterSpacing:1,
-                  color:duration===d.id?"var(--cream-on-ink)":"var(--ink)",
-                  margin:"6px 0 3px" }}>₹{amt}</div>
-                <div style={{ fontFamily:"var(--font-mono)",fontSize:6,letterSpacing:2,
-                  color:duration===d.id?"var(--muted-on-ink)":"var(--muted)" }}>{d.desc}</div>
-                {d.disc>0&&<div style={{ fontFamily:"var(--font-mono)",fontSize:7,
-                  letterSpacing:1,color:"var(--green-on-ink)",marginTop:4,
-                  background:"rgba(82,183,136,.15)",padding:"2px 6px" }}>{d.disc}% OFF</div>}
+            {/* Payment summary */}
+            <Tag>PAYMENT SUMMARY</Tag>
+            <div style={{ border:"1.5px solid var(--rule)",borderRadius:"12px",background:"var(--surface)",
+              padding:"20px 24px",marginBottom:20 }}>
+              {[["Route",PASS.route],["Duration",`${sel.label} (${sel.desc})`],
+                ["Base Fare",`₹${PASS.fare} × ${sel.mo}`],
+                sel.disc>0&&["Discount",`${sel.disc}% off`]].filter(Boolean).map(([k,v])=>(
+                <div key={k} style={{ display:"flex",justifyContent:"space-between",
+                  padding:"10px 0",borderBottom:"1px solid var(--rule)" }}>
+                  <span style={{ fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:2,
+                    color:"var(--muted)" }}>{k}</span>
+                  <span style={{ fontFamily:"var(--font-sans)",fontSize:14,color:"var(--ink)", fontWeight:600 }}>{v}</span>
+                </div>
+              ))}
+              <div style={{ display:"flex",justifyContent:"space-between",
+                alignItems:"center",paddingTop:16 }}>
+                <span style={{ fontFamily:"var(--font-display)",fontSize:20,
+                  letterSpacing:2,color:"var(--ink)" }}>TOTAL DUE</span>
+                <span style={{ fontFamily:"var(--font-display)",fontSize:36,
+                  letterSpacing:1,color:"var(--amber-text)" }}>₹{total.toLocaleString()}</span>
               </div>
-            );
-          })}
-        </div>
-
-        {/* Payment summary */}
-        <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",
-          padding:"20px 24px",marginBottom:20 }}>
-          <Tag>PAYMENT SUMMARY</Tag>
-          {[["Route",PASS.route],["Duration",`${sel.label} (${sel.desc})`],
-            ["Base Fare",`₹${PASS.fare} × ${sel.mo}`],
-            sel.disc>0&&["Discount",`${sel.disc}% off`]].filter(Boolean).map(([k,v])=>(
-            <div key={k} style={{ display:"flex",justifyContent:"space-between",
-              padding:"8px 0",borderBottom:"1px solid var(--rule)" }}>
-              <span style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2,
-                color:"var(--muted)" }}>{k}</span>
-              <span style={{ fontFamily:"var(--font-sans)",fontSize:13,color:"var(--ink)" }}>{v}</span>
             </div>
-          ))}
-          <div style={{ display:"flex",justifyContent:"space-between",
-            alignItems:"center",paddingTop:12 }}>
-            <span style={{ fontFamily:"var(--font-display)",fontSize:18,
-              letterSpacing:2,color:"var(--ink)" }}>TOTAL</span>
-            <span style={{ fontFamily:"var(--font-display)",fontSize:32,
-              letterSpacing:1,color:"var(--ink)" }}>₹{total.toLocaleString()}</span>
+
+            <Btn variant="primary" size="lg" full onClick={pay} disabled={paying}>
+              {paying?<><Spinner size={18}/> PROCESSING PAYMENT…</>:`PAY ₹${total.toLocaleString()} & RENEW →`}
+            </Btn>
+          </div>
+
+          <div style={{ position:"sticky", top:24 }}>
+            <Tag>Current Pass</Tag>
+            {/* Visual Tear-Off Ticket Stub */}
+            <div style={{ background:"var(--surface)", border:"2px solid var(--ink)", borderRadius:"16px", overflow:"hidden", boxShadow:"var(--shadow-lg)", position:"relative", animation:"slideDown .5s ease" }}>
+              <div style={{ background:PASS.color||"var(--amber)", padding:"24px 20px", color:"white", position:"relative" }}>
+                 <div style={{ fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:3, opacity:0.8, marginBottom:4 }}>PASSENGER TICKET</div>
+                 <div style={{ fontFamily:"var(--font-display)",fontSize:32,lineHeight:1.1, letterSpacing:1 }}>{PASS.route.toUpperCase()}</div>
+                 <div style={{ position:"absolute", top:20, right:20, fontSize:28, opacity:0.2 }}>🚌</div>
+              </div>
+              <div style={{ position:"relative", height:20, background:"var(--surface)" }}>
+                 <div style={{ position:"absolute", left:-14, top:0, width:24,height:24, borderRadius:"50%", background:"var(--cream)", borderRight:"2px solid var(--ink)", zIndex:2 }}/>
+                 <div style={{ position:"absolute", right:-14, top:0, width:24,height:24, borderRadius:"50%", background:"var(--cream)", borderLeft:"2px solid var(--ink)", zIndex:2 }}/>
+                 <div style={{ position:"absolute", left:16, right:16, top:11, borderTop:"2px dashed var(--rule)", zIndex:1 }}/>
+              </div>
+              <div style={{ padding:"20px", background:"var(--surface)" }}>
+                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+                   <div>
+                     <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2, color:"var(--muted)" }}>PASSENGER</div>
+                     <div style={{ fontFamily:"var(--font-sans)",fontSize:14, fontWeight:600, color:"var(--ink)" }}>{PASS.name}</div>
+                   </div>
+                   <div>
+                     <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2, color:"var(--muted)" }}>PASS NO.</div>
+                     <div style={{ fontFamily:"var(--font-sans)",fontSize:14, fontWeight:600, color:"var(--ink)" }}>{PASS.pass_number}</div>
+                   </div>
+                   <div style={{ gridColumn:"1 / -1" }}>
+                     <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2, color:"var(--muted)" }}>BOARDING</div>
+                     <div style={{ fontFamily:"var(--font-sans)",fontSize:14, fontWeight:600, color:"var(--ink)" }}>{PASS.boarding_stop}</div>
+                   </div>
+                   <div style={{ gridColumn:"1 / -1" }}>
+                     <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2, color:"var(--muted)" }}>VALID THRU</div>
+                     <div style={{ fontFamily:"var(--font-sans)",fontSize:18, fontWeight:600, color:"var(--red)" }}>{PASS.validity}</div>
+                   </div>
+                 </div>
+                 <div style={{ textAlign:"center", padding:"12px 0", borderTop:"2px solid var(--rule)", borderBottom:"2px solid var(--rule)", marginTop:20 }}>
+                   <div style={{ fontFamily:"var(--font-display)",fontSize:24, letterSpacing:4, color:"var(--ink)" }}>{PASS.type}</div>
+                 </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        <Btn variant="primary" size="lg" full onClick={pay} disabled={paying}>
-          {paying?<><Spinner size={18}/> PROCESSING…</>:`PAY ₹${total.toLocaleString()} & RENEW →`}
-        </Btn>
       </Page>
       <toast.Toaster/>
     </>
@@ -1790,138 +1849,167 @@ export function BusRouteMap() {
 
   useEffect(()=>{
     setBusPos(route.busAt);
-    const t=setInterval(()=>setBusPos(p=>(p+1)%route.stops.length),3000);
+    const t=setInterval(()=>setBusPos(p=>(p+1)%route.stops.length),3500);
     return()=>clearInterval(t);
   },[selRoute]);
 
   return (
     <>
-      
+      <style>{`
+        @keyframes radarSweep {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes ripple {
+          0% { transform: scale(1); opacity: 0.8; }
+          100% { transform: scale(3); opacity: 0; }
+        }
+        @keyframes mapReveal {
+          from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+          to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+      `}</style>
       <Page>
-        <PageHeader tag="Live Route Map" title="TRANSIT MAP"
-          subtitle="Real-time stop-by-stop view with live bus position"/>
+        <PageHeader tag="Live Route Map" title="TRANSIT RADAR"
+          subtitle="Real-time stop-by-stop view with dynamic vehicle tracking"/>
 
-        {/* Route selector */}
-        <div style={{ display:"flex",gap:2,marginBottom:28 }}>
-          {ROUTES_DATA.map((r,i)=>(
-            <button key={r.name} onClick={()=>setSelRoute(i)}
-              style={{ padding:"10px 22px",
-                background:selRoute===i?r.color:"transparent",
-                color:selRoute===i?"white":"var(--muted)",
-                border:`1.5px solid ${selRoute===i?r.color:"var(--rule)"}`,
-                fontFamily:"var(--font-display)",fontSize:14,letterSpacing:2,
-                cursor:"pointer",transition:"all .18s" }}>{r.name.toUpperCase()}</button>
-          ))}
-        </div>
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 340px",gap:28,alignItems:"start" }}>
 
-        <div style={{ display:"grid",gridTemplateColumns:"1fr 280px",gap:28,alignItems:"start" }}>
-
-          {/* Route visualization */}
-          <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",padding:"24px" }}>
-            <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:24 }}>
-              <div style={{ width:4,height:32,background:route.color }}/>
-              <div>
-                <div style={{ fontFamily:"var(--font-display)",fontSize:18,letterSpacing:2,
-                  color:"var(--ink)" }}>{route.name}</div>
-                <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:3,
-                  color:"var(--muted)" }}>
-                  {route.stops[0]} → {route.stops[route.stops.length-1]}
-                </div>
-              </div>
+          {/* Left panel - Map Visualization */}
+          <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+            {/* Route selector overlaying the map or above it */}
+            <div style={{ display:"flex",gap:8, overflowX:"auto", paddingBottom:4 }}>
+              {ROUTES_DATA.map((r,i)=>(
+                <button key={r.name} onClick={()=>setSelRoute(i)}
+                  style={{ padding:"12px 24px", borderRadius:"30px",
+                    background:selRoute===i?r.color:"var(--surface)",
+                    color:selRoute===i?"white":"var(--ink)",
+                    border:`1.5px solid ${selRoute===i?r.color:"var(--rule)"}`,
+                    fontFamily:"var(--font-sans)",fontSize:14, fontWeight:600,
+                    cursor:"pointer",transition:"all .2s ease",
+                    boxShadow:selRoute===i?`0 4px 12px ${r.color}40`:"none" }}>
+                  {r.name}
+                </button>
+              ))}
             </div>
 
-            <div style={{ position:"relative",paddingLeft:56 }}>
-              {route.stops.map((stop,i)=>(
-                <div key={stop} style={{ position:"relative",marginBottom:0 }}>
-                  {/* Vertical connector */}
-                  {i<route.stops.length-1&&(
-                    <div style={{ position:"absolute",left:-28,top:24,width:4,
-                      height:64,
-                      background:i<busPos?route.color:"var(--rule)",
-                      transition:"background .5s" }}/>
-                  )}
-                  {/* Stop dot */}
-                  <div style={{ position:"absolute",left:-36,top:8,
-                    width:i===busPos?22:18,height:i===busPos?22:18,
-                    background:i<=busPos?route.color:"var(--cream)",
-                    border:`3px solid ${route.color}`,
-                    display:"flex",alignItems:"center",justifyContent:"center",
-                    transition:"all .4s",zIndex:2,
-                    marginLeft:i===busPos?-2:0 }}>
-                    {i===busPos&&<span style={{ fontSize:10 }}>🚌</span>}
-                  </div>
-                  {/* Stop info */}
-                  <div style={{ padding:"8px 0 56px" }}>
-                    <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:2 }}>
-                      <div style={{ fontFamily:"var(--font-sans)",fontSize:15,
-                        color:i===busPos?"var(--ink)":i<busPos?"var(--muted)":"var(--ink)",
-                        fontWeight:i===busPos?600:400 }}>{stop}</div>
-                      {i===busPos&&(
-                        <span style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:2,
-                          color:"var(--amber-text)",background:"var(--warn-bg)",
-                          padding:"2px 8px",border:"1px solid var(--amber)",
-                          animation:"pulse 2s ease-in-out infinite" }}>BUS HERE</span>
-                      )}
-                      {i<busPos&&<span style={{ fontFamily:"var(--font-mono)",fontSize:7,
-                        letterSpacing:2,color:"var(--green)" }}>✓</span>}
+            {/* The Animated "Map" */}
+            <div style={{ 
+              position:"relative", background:"var(--ink)", borderRadius:"24px", 
+              overflow:"hidden", minHeight:"500px", padding:"40px",
+              boxShadow:"inset 0 0 80px rgba(0,0,0,0.5), 0 12px 40px rgba(26,18,8,0.2)",
+              animation:"mapReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1)"
+             }}>
+              {/* Grid / Radar background */}
+              <div style={{ position:"absolute", inset:0, opacity:0.1, 
+                backgroundImage:"linear-gradient(rgba(246, 240, 228, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(246, 240, 228, 0.4) 1px, transparent 1px)", 
+                backgroundSize:"40px 40px" }}/>
+              <div style={{ position:"absolute", inset:0, background: "radial-gradient(circle at center, transparent 0%, var(--ink) 90%)", zIndex:1 }}/>
+
+              {/* Radar Sweeper */}
+              <div style={{ position:"absolute", top:"50%", left:"50%", width:600, height:600, marginTop:-300, marginLeft:-300, 
+                background:`conic-gradient(from 0deg, transparent 70%, ${route.color}80 100%)`, 
+                borderRadius:"50%", animation:"radarSweep 4s linear infinite", zIndex:2, opacity:0.4 }}/>
+
+              <div style={{ position:"relative", zIndex:5, maxWidth:400, margin:"0 auto" }}>
+                {route.stops.map((stop,i)=>(
+                  <div key={stop} style={{ position:"relative", height:80, display:"flex", alignItems:"flex-start", gap:24 }}>
+                    {/* Time */}
+                    <div style={{ width:40, textAlign:"right", fontFamily:"var(--font-mono)", fontSize:11, color:"var(--muted-on-ink)", paddingTop:2 }}>
+                       {route.time[i]}
                     </div>
-                    <div style={{ fontFamily:"var(--font-mono)",fontSize:9,letterSpacing:2,
-                      color:"var(--muted)" }}>{route.time[i]}</div>
+                    {/* Line & Dots */}
+                    <div style={{ position:"relative", width:20, display:"flex", flexDirection:"column", alignItems:"center" }}>
+                      {/* Connection Line */}
+                      {i < route.stops.length - 1 && (
+                        <div style={{ position:"absolute", top:16, bottom:-64, width:4, 
+                          background:i<busPos?route.color:"rgba(255,255,255,0.1)", transition:"background 0.5s ease" }}/>
+                      )}
+                      
+                      {/* Stop Dot */}
+                      <div style={{ width:16, height:16, borderRadius:"50%", 
+                        background:i===busPos?"var(--cream)":i<busPos?route.color:"var(--ink)",
+                        border:`3px solid ${i<=busPos?route.color:"rgba(255,255,255,0.2)"}`, 
+                        zIndex:2, transition:"all 0.4s ease", position:"relative" }}>
+                        
+                        {i === busPos && (
+                          <>
+                            <div style={{ position:"absolute", inset:-8, border:`2px solid ${route.color}`, borderRadius:"50%", animation:"ripple 1.5s infinite" }}/>
+                            <div style={{ position:"absolute", left:"150%", top:"50%", transform:"translateY(-50%)", background:"var(--amber)", color:"var(--ink)", padding:"4px 8px", borderRadius:"4px", fontFamily:"var(--font-mono)", fontSize:9, fontWeight:"bold", letterSpacing:1, whiteSpace:"nowrap", boxShadow:"0 2px 8px rgba(0,0,0,0.4)" }}>
+                              BUS-0{selRoute+1}
+                            </div>
+                          </>
+                        )}
+                        {i < busPos && (
+                          <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", color:"var(--cream)", fontSize:8 }}>✓</div>
+                        )}
+                      </div>
+                    </div>
+                    {/* Stop Name */}
+                    <div style={{ flex:1, paddingTop:1, fontFamily:"var(--font-sans)", fontSize:16, 
+                      color:i===busPos?"white":i<busPos?"var(--muted-on-ink)":"rgba(255,255,255,0.6)", 
+                      fontWeight:i===busPos?600:400, transition:"all 0.4s ease",
+                      textShadow:i===busPos?`0 0 10px ${route.color}`:"none" }}>
+                      {stop}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Right info panel */}
-          <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
+          <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
+            {/* Live status glass card */}
+            <div style={{ background:route.color, borderRadius:"16px", padding:"24px", color:"white", boxShadow:`0 12px 32px ${route.color}50`, transition:"background 0.4s ease" }}>
+              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:16 }}>
+                <div style={{ width:10,height:10,background:"#fff", borderRadius:"50%",
+                  animation:"pulse 2s ease-in-out infinite" }}/>
+                <span style={{ fontFamily:"var(--font-mono)",fontSize:10,
+                  letterSpacing:3, fontWeight:700 }}>LIVE TRACKING</span>
+              </div>
+              <div style={{ fontFamily:"var(--font-display)",fontSize:32,
+                letterSpacing:1,marginBottom:4, lineHeight:1 }}>
+                BUS-0{selRoute+1}
+              </div>
+              <div style={{ fontFamily:"var(--font-sans)",fontSize:16, opacity:0.9, marginBottom:16 }}>
+                Currently at <strong>{route.stops[busPos]}</strong>
+              </div>
+              <div style={{ background:"rgba(0,0,0,0.2)", padding:"12px 16px", borderRadius:"8px" }}>
+                 <div style={{ fontFamily:"var(--font-mono)",fontSize:9,letterSpacing:2, opacity:0.8, marginBottom:4 }}>NEXT STOP</div>
+                 <div style={{ fontFamily:"var(--font-sans)",fontSize:16, fontWeight:600 }}>
+                   {route.stops[Math.min(busPos+1,route.stops.length-1)]}
+                 </div>
+                 <div style={{ fontFamily:"var(--font-mono)",fontSize:10, marginTop:4, opacity:0.8 }}>
+                   {busPos<route.stops.length-1?"Arriving in ~4 mins":"End of route"}
+                 </div>
+              </div>
+            </div>
+
             {/* Route stats */}
-            <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",padding:"18px" }}>
+            <div style={{ border:"1px solid var(--rule)",borderRadius:"16px",background:"var(--surface)",padding:"24px", boxShadow:"var(--shadow-sm)" }}>
               <Tag>Route Info</Tag>
               {[["STOPS",route.stops.length],
                 ["FIRST BUS",route.time[0]],
                 ["LAST STOP",route.time[route.stops.length-1]],
-                ["BUS NOW AT",route.stops[busPos]]].map(([l,v])=>(
+                ["FREQUENCY","Every 12 min"]].map(([l,v])=>(
                 <div key={l} style={{ display:"flex",justifyContent:"space-between",
-                  padding:"8px 0",borderBottom:"1px solid var(--rule)" }}>
-                  <span style={{ fontFamily:"var(--font-mono)",fontSize:7,
+                  padding:"12px 0",borderBottom:"1px solid var(--rule)" }}>
+                  <span style={{ fontFamily:"var(--font-mono)",fontSize:9,
                     letterSpacing:2,color:"var(--muted)" }}>{l}</span>
-                  <span style={{ fontFamily:"var(--font-sans)",fontSize:12,
-                    color:"var(--ink)",fontWeight:500 }}>{v}</span>
+                  <span style={{ fontFamily:"var(--font-sans)",fontSize:14,
+                    color:"var(--ink)",fontWeight:600 }}>{v}</span>
                 </div>
               ))}
             </div>
 
-            {/* Live status */}
-            <div style={{ border:`2px solid ${route.color}`,padding:"16px 18px",
-              background:"var(--warn-bg)" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:8 }}>
-                <div style={{ width:8,height:8,background:route.color,
-                  animation:"pulse 2s ease-in-out infinite" }}/>
-                <span style={{ fontFamily:"var(--font-mono)",fontSize:8,
-                  letterSpacing:3,color:"var(--amber-text)" }}>LIVE TRACKING</span>
-              </div>
-              <div style={{ fontFamily:"var(--font-display)",fontSize:18,
-                letterSpacing:1,color:"var(--ink)",marginBottom:4 }}>
-                BUS-0{selRoute+1}
-              </div>
-              <div style={{ fontFamily:"var(--font-sans)",fontSize:13,color:"var(--muted)" }}>
-                At <strong style={{ color:"var(--ink)" }}>{route.stops[busPos]}</strong>
-              </div>
-              <div style={{ fontFamily:"var(--font-mono)",fontSize:9,letterSpacing:1,
-                color:"var(--muted)",marginTop:6 }}>
-                Next: {route.stops[Math.min(busPos+1,route.stops.length-1)]}
-                {busPos<route.stops.length-1?" · ~8 min":" · End of route"}
-              </div>
-            </div>
-
             {/* My stop */}
-            <div style={{ border:"1.5px solid var(--rule)",borderRadius:"var(--r-sm)",background:"var(--surface)",
-              padding:"16px 18px" }}>
+            <div style={{ border:"1px solid var(--rule)",borderRadius:"16px",background:"var(--surface)",
+              padding:"24px", boxShadow:"var(--shadow-sm)" }}>
               <Tag>My Boarding Stop</Tag>
-              <div style={{ fontFamily:"var(--font-serif)",fontSize:16,
-                color:"var(--ink)",marginBottom:6,fontStyle:"italic" }}>Library Square</div>
-              <div style={{ fontFamily:"var(--font-sans)",fontSize:12,
+              <div style={{ fontFamily:"var(--font-serif)",fontSize:20,
+                color:"var(--amber-text)",marginBottom:8 }}>Library Square</div>
+              <div style={{ fontFamily:"var(--font-sans)",fontSize:14,
                 color:"var(--muted)",lineHeight:1.6 }}>
                 Bus arrives in approx.{" "}
                 <strong style={{ color:"var(--ink)" }}>12 minutes</strong>.

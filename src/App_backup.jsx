@@ -1,27 +1,27 @@
-/**
- * ══════════════════════════════════════════════════════════════════════
- *  BUSPASSPRO — PUBLIC CITY TRANSIT SYSTEM
- *  Unified entry point — all screens, all roles, premium experience.
+﻿/**
+ * ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+ *  BUSPASSPRO ΓÇö PUBLIC CITY TRANSIT SYSTEM
+ *  Unified entry point ΓÇö all screens, all roles, premium experience.
  *
  *  WHAT CHANGED FROM v1 (college-only):
- *  ─────────────────────────────────────────────────────────────────
- *  ✦ Rebranded → Public City Transit, not college-only
- *  ✦ Passenger types: General · Student · Senior · Differently Abled · Corporate
- *  ✦ Pass types: Daily · Weekly · Monthly · Quarterly · Annual
- *  ✦ City-scale routes with transit line identifiers (R1/R2/R3)
- *  ✦ Nav copy: "STUDENTS" → "PASSENGERS", "APPLY PASS" → "GET PASS"
- *  ✦ Premium UI: animated route badges, grain texture, spring curves
- *  ✦ Better hover states, richer empty states, proper focus rings
- *  ✦ Register: passenger-type aware (student ID only shown for students)
- *  ✦ Admin: passenger-type column, category-aware discount display
- *  ✦ Footer: proper public transit branding, no college reference
- * ══════════════════════════════════════════════════════════════════════
+ *  ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ *  Γ£ª Rebranded ΓåÆ Public City Transit, not college-only
+ *  Γ£ª Passenger types: General ┬╖ Student ┬╖ Senior ┬╖ Differently Abled ┬╖ Corporate
+ *  Γ£ª Pass types: Daily ┬╖ Weekly ┬╖ Monthly ┬╖ Quarterly ┬╖ Annual
+ *  Γ£ª City-scale routes with transit line identifiers (R1/R2/R3)
+ *  Γ£ª Nav copy: "STUDENTS" ΓåÆ "PASSENGERS", "APPLY PASS" ΓåÆ "GET PASS"
+ *  Γ£ª Premium UI: animated route badges, grain texture, spring curves
+ *  Γ£ª Better hover states, richer empty states, proper focus rings
+ *  Γ£ª Register: passenger-type aware (student ID only shown for students)
+ *  Γ£ª Admin: passenger-type column, category-aware discount display
+ *  Γ£ª Footer: proper public transit branding, no college reference
+ * ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
  */
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import PassengerDashboard from "./screens/PassengerDashboard";
+import StudentDashboard from "./screens/StudentDashboard";
 import ApplyPass from "./screens/ApplyPass";
-import PassengerProfile from "./screens/PassengerProfile";
+import StudentProfile from "./screens/StudentProfile";
 import AdminHub from "./screens/AdminHub";
 import NearbyTaxis from "./screens/NearbyTaxis";
 import TicketBooking from "./screens/TicketBooking";
@@ -39,9 +39,9 @@ import {
   ManualLookup,
 } from "./screens/MissingScreens";
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  DESIGN SYSTEM
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;700&family=Instrument+Sans:wght@400;500;600&display=swap');
 
@@ -102,18 +102,18 @@ body::after {
 @keyframes arrowShift { from{transform:translateX(0)} to{transform:translateX(4px)} }
 `;
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  TRANSIT DATA
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
 import { User, GraduationCap, Leaf, Accessibility, Briefcase } from "lucide-react";
 
 const PASSENGER_TYPES = [
   { id:"general",          label:"GENERAL",          sub:"Standard full fare",               disc:0,  color:"#1A1208", icon: <User size={20} color="#E8DFD5" /> },
-  { id:"student",          label:"STUDENT",          sub:"30% off — valid student ID req.",  disc:30, color:"#1E6641", icon: <GraduationCap size={20} color="#E8DFD5" /> },
-  { id:"senior",           label:"SENIOR CITIZEN",   sub:"50% off — age 60+ (Govt scheme)",  disc:50, color:"#C8832A", icon: <Leaf size={20} color="#1A1208" /> },
-  { id:"differently_abled",label:"DIFFERENTLY ABLED",sub:"75% off — disability cert. req.",  disc:75, color:"#3D2410", icon: <Accessibility size={20} color="#E8DFD5" /> },
-  { id:"corporate",        label:"CORPORATE",        sub:"15% off — employer code req.",     disc:15, color:"#6B5535", icon: <Briefcase size={20} color="#E8DFD5" /> },
+  { id:"student",          label:"STUDENT",          sub:"30% off ΓÇö valid student ID req.",  disc:30, color:"#1E6641", icon: <GraduationCap size={20} color="#E8DFD5" /> },
+  { id:"senior",           label:"SENIOR CITIZEN",   sub:"50% off ΓÇö age 60+ (Govt scheme)",  disc:50, color:"#C8832A", icon: <Leaf size={20} color="#1A1208" /> },
+  { id:"differently_abled",label:"DIFFERENTLY ABLED",sub:"75% off ΓÇö disability cert. req.",  disc:75, color:"#3D2410", icon: <Accessibility size={20} color="#E8DFD5" /> },
+  { id:"corporate",        label:"CORPORATE",        sub:"15% off ΓÇö employer code req.",     disc:15, color:"#6B5535", icon: <Briefcase size={20} color="#E8DFD5" /> },
 ];
 
 const CITY_ROUTES = [
@@ -150,28 +150,28 @@ const DURATION_FARE_FACTOR = { daily:.08, weekly:.32, monthly:1, quarterly:2.7, 
 
 const LINE_COLORS = { "Red Line":"#B02020", "Blue Line":"#1A4A8A", "Green Line":"#1E6641" };
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  MOCK DATA
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
 const INITIAL_NOTIFS = [
-  { id:1, type:"success", title:"Pass Approved!",     body:"Your monthly pass BPP·2024·001234 for Red Line has been approved. QR ready.", time:"2 min ago",  read:false },
+  { id:1, type:"success", title:"Pass Approved!",     body:"Your monthly pass BPP┬╖2024┬╖001234 for Red Line has been approved. QR ready.", time:"2 min ago",  read:false },
   { id:2, type:"warn",    title:"Pass Expiring Soon", body:"Your current pass expires in 7 days. Renew to avoid disruption.",             time:"1 hr ago",   read:false },
   { id:3, type:"info",    title:"Blue Line Delay",    body:"Blue Line (R2) running 14 minutes late near Ring Road.",                      time:"3 hrs ago",  read:true  },
-  { id:4, type:"success", title:"Payment Confirmed",  body:"₹520 received for pass BPP·2024·001234.",                                    time:"2 days ago", read:true  },
+  { id:4, type:"success", title:"Payment Confirmed",  body:"Γé╣520 received for pass BPP┬╖2024┬╖001234.",                                    time:"2 days ago", read:true  },
 ];
 
 const MOCK_APPS = [
   { id:"A-001", passenger:"Priya Patel",  pid:"STU-10018", ptype:"student",          email:"priya@mail.com",   route:"Red Line",   stop:"Library Square", type:"Monthly",   status:"PENDING",  date:"01 Mar 2024", amt:266,  phone:"+91 98765 11111", reason:"Daily commute to university." },
   { id:"A-002", passenger:"Ramesh Kumar", pid:"SEN-10027", ptype:"senior",           email:"ramesh@mail.com",  route:"Blue Line",  stop:"Railway Station",type:"Monthly",   status:"APPROVED", date:"28 Feb 2024", amt:260,  phone:"+91 98765 22222", reason:"Regular travel to hospital." },
-  { id:"A-003", passenger:"Sneha Iyer",   pid:"GEN-10031", ptype:"general",          email:"sneha@mail.com",   route:"Green Line", stop:"Main Market",    type:"Quarterly", status:"PENDING",  date:"02 Mar 2024", amt:1188, phone:"+91 98765 33333", reason:"Work commute — office near City Square." },
+  { id:"A-003", passenger:"Sneha Iyer",   pid:"GEN-10031", ptype:"general",          email:"sneha@mail.com",   route:"Green Line", stop:"Main Market",    type:"Quarterly", status:"PENDING",  date:"02 Mar 2024", amt:1188, phone:"+91 98765 33333", reason:"Work commute ΓÇö office near City Square." },
   { id:"A-004", passenger:"Amit Singh",   pid:"COR-10045", ptype:"corporate",        email:"amit@techcorp.com",route:"Red Line",   stop:"IT Park",        type:"Quarterly", status:"REJECTED", date:"25 Feb 2024", amt:969,  phone:"+91 98765 44444", reason:"Employee corporate pass." },
   { id:"A-005", passenger:"Divya Menon",  pid:"DAB-10052", ptype:"differently_abled",email:"divya@mail.com",   route:"Blue Line",  stop:"Bus Terminal",   type:"Monthly",   status:"APPROVED", date:"01 Mar 2024", amt:130,  phone:"+91 98765 55555", reason:"Daily essential travel." },
 ];
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  SHARED ATOMS
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
 const Tag = ({ children, color }) => (
   <div style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:4,
@@ -212,71 +212,41 @@ const Pill = ({ s }) => {
   return <span style={{ background:p.bg,color:p.c,fontFamily:"var(--font-mono)",fontSize:9,fontWeight:700,letterSpacing:2,padding:"3px 12px",borderRadius:"var(--r-full)",display:"inline-block",lineHeight:1.7 }}>{(s||"").toUpperCase()}</span>;
 };
 
-const Btn = ({ children, onClick, variant="primary", size="md", full=false, disabled=false, type="button" }) => {
+const Btn = ({ children, onClick, variant="primary", size="md", full=false, disabled=false }) => {
   const [h,setH]=useState(false);
-  const pad={sm:"7px 16px",md:"12px 28px",lg:"16px 40px"}[size]||"12px 28px";
-  const fs={sm:11,md:14,lg:18}[size]||14;
+  const pad={sm:"7px 16px",md:"11px 26px",lg:"14px 36px"}[size]||"11px 26px";
+  const fs={sm:11,md:13,lg:16}[size]||13;
+  const s={
+    primary:  {bg:h&&!disabled?"#2C1E0A":"var(--ink)",          c:"var(--amber-on-ink)", b:"none"},
+    secondary:{bg:h&&!disabled?"var(--parchment)":"transparent", c:"var(--ink)",          b:"1.5px solid var(--ink)"},
+    danger:   {bg:h&&!disabled?"#8A1818":"var(--red)",           c:"var(--cream-on-ink)", b:"none"},
+    success:  {bg:h&&!disabled?"#155230":"var(--green)",         c:"var(--cream-on-ink)", b:"none"},
+    ghost:    {bg:h&&!disabled?"var(--parchment)":"transparent", c:"var(--amber-text)",   b:"1.5px solid var(--rule)"},
+  }[variant]||{};
   
-  const themes = {
-    primary:   { bg: "var(--ink)",          c: "var(--amber-on-ink)", b: "none" },
-    secondary: { bg: "transparent",        c: "var(--ink)",          b: "1.5px solid var(--ink)" },
-    danger:    { bg: "var(--red)",           c: "white",               b: "none" },
-    success:   { bg: "var(--green)",         c: "white",               b: "none" },
-    ghost:     { bg: "transparent",        c: "var(--ink)",          b: "1.5px solid var(--rule)" },
+  // Helper to apply hover styles to arrow spans
+  const applyArrowHover = (child) => {
+    if (!child) return child;
+    if (typeof child === "string") return child;
+    if (child.type === "span" && child.props.style?.transition?.includes("transform")) {
+      return React.cloneElement(child, {
+        style: {
+          ...child.props.style,
+          transform: h && !disabled ? "translateX(4px)" : "translateX(0)"
+        }
+      });
+    }
+    if (Array.isArray(child)) {
+      return child.map(c => applyArrowHover(c));
+    }
+    return child;
   };
-  const s = themes[variant] || themes.primary;
-
-  return (
-    <div style={{ 
-      display: full ? "block" : "inline-block",
-      overflow: "hidden", 
-      borderRadius: "var(--r-xs)",
-      width: full ? "100%" : "auto"
-    }}>
-      <button 
-        type={type}
-        onClick={onClick} 
-        disabled={disabled}
-        onMouseEnter={() => setH(true)} 
-        onMouseLeave={() => setH(false)}
-        style={{ 
-          width: "100%",
-          padding: pad,
-          background: s.bg,
-          color: s.c,
-          border: s.b,
-          fontFamily: "var(--font-display)",
-          fontSize: fs,
-          letterSpacing: 2,
-          cursor: disabled ? "not-allowed" : "pointer",
-          opacity: disabled ? 0.45 : 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 0,
-          position: "relative",
-          transition: "background 200ms ease, transform 200ms ease",
-          transform: h && !disabled ? "translateY(-1px)" : "none"
-        }}
-      >
-        <span style={{ 
-          position: "absolute",
-          left: 12,
-          opacity: h ? 1 : 0,
-          transform: h ? "translateX(0)" : "translateX(-100%)",
-          transition: "transform 220ms ease, opacity 220ms ease",
-          fontSize: "1.2em"
-        }}>→</span>
-        <span style={{ 
-          display: "inline-block",
-          transform: h ? "translateX(6px)" : "translateX(0)",
-          transition: "transform 220ms ease"
-        }}>
-          {children}
-        </span>
-      </button>
-    </div>
-  );
+  
+  const processedChildren = React.Children.map(children, applyArrowHover);
+  
+  return <button onClick={onClick} disabled={disabled}
+    onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+    style={{ padding:pad,background:s.bg,color:s.c,border:s.b||"none",fontFamily:"var(--font-display)",fontSize:fs,letterSpacing:2,cursor:disabled?"not-allowed":"pointer",opacity:disabled?.45:1,width:full?"100%":"auto",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:8,borderRadius:"var(--r-sm)",transition:"background .18s, transform .1s",transform:h&&!disabled?"translateY(-1px)":"none" }}>{processedChildren}</button>;
 };
 
 const Field = ({ label, type="text", value, onChange, placeholder, error, readOnly, hint, required }) => {
@@ -304,13 +274,13 @@ const Spinner = ({size=18}) => (
   <div style={{ width:size,height:size,border:"2px solid rgba(200,131,42,.25)",borderTop:"2px solid var(--amber)",borderRadius:"50%",animation:"spin .7s linear infinite",display:"inline-block" }}/>
 );
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  TOAST
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function useToast() {
   const [ts,setTs]=useState([]);
   const add=useCallback((msg,type="info")=>{ const id=Date.now(); setTs(t=>[...t,{id,msg,type}]); setTimeout(()=>setTs(t=>t.filter(x=>x.id!==id)),type==="error"?6000:3500); },[]);
-  const C={ success:{bg:"var(--success-bg)",b:"var(--green)",t:"var(--green)",i:"✓"}, error:{bg:"var(--error-bg)",b:"var(--red)",t:"var(--red)",i:"✕"}, info:{bg:"var(--surface)",b:"var(--ink)",t:"var(--ink)",i:"◆"}, warn:{bg:"var(--warn-bg)",b:"var(--amber-text)",t:"var(--amber-text)",i:"⚠"} };
+  const C={ success:{bg:"var(--success-bg)",b:"var(--green)",t:"var(--green)",i:"Γ£ô"}, error:{bg:"var(--error-bg)",b:"var(--red)",t:"var(--red)",i:"Γ£ò"}, info:{bg:"var(--surface)",b:"var(--ink)",t:"var(--ink)",i:"Γùå"}, warn:{bg:"var(--warn-bg)",b:"var(--amber-text)",t:"var(--amber-text)",i:"ΓÜá"} };
   const Toaster = ()=>(
     <div style={{ position:"fixed",bottom:24,right:24,zIndex:9999,display:"flex",flexDirection:"column",gap:8 }}>
       {ts.map(t=>{ const c=C[t.type]||C.info; return(
@@ -324,9 +294,9 @@ function useToast() {
   return { success:m=>add(m,"success"),error:m=>add(m,"error"),info:m=>add(m,"info"),warn:m=>add(m,"warn"),Toaster };
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  NAV CONFIG  (public transit terminology)
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 const NAV_CONFIG = {
   passenger: [
     { label:"HOME",       page:"dashboard"   },
@@ -355,16 +325,16 @@ const NAV_CONFIG = {
 
 const DEFAULT_PAGE = { passenger:"dashboard", admin:"admin", conductor:"conductor" };
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  TICKER
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 const TICKER_MSGS = [
-  "R1 RED LINE · ON TIME","R2 BLUE LINE · 14 MIN DELAY — RING ROAD CONGESTION","R3 GREEN LINE · ON TIME",
-  "NEW STOP: TECH HUB GATE 2 — EFFECTIVE 15 MARCH","SENIOR & DIFFERENTLY-ABLED PASSES — 50–75% DISCOUNT",
-  "CORPORATE BULK PASSES — CONTACT ADMIN FOR EMPLOYER CODE","DAILY PASS VALID 24 HRS FROM FIRST SCAN",
+  "R1 RED LINE ┬╖ ON TIME","R2 BLUE LINE ┬╖ 14 MIN DELAY ΓÇö RING ROAD CONGESTION","R3 GREEN LINE ┬╖ ON TIME",
+  "NEW STOP: TECH HUB GATE 2 ΓÇö EFFECTIVE 15 MARCH","SENIOR & DIFFERENTLY-ABLED PASSES ΓÇö 50ΓÇô75% DISCOUNT",
+  "CORPORATE BULK PASSES ΓÇö CONTACT ADMIN FOR EMPLOYER CODE","DAILY PASS VALID 24 HRS FROM FIRST SCAN",
 ];
 function Ticker() {
-  const t=[...TICKER_MSGS,...TICKER_MSGS].join("   ◆   ");
+  const t=[...TICKER_MSGS,...TICKER_MSGS].join("   Γùå   ");
   return (
     <div style={{ background:"var(--ink)",color:"var(--amber-on-ink)",fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:2,overflow:"hidden",padding:"6px 0",borderBottom:"2px solid var(--amber)" }}>
       <div style={{ display:"flex",animation:"tickerScroll 38s linear infinite",whiteSpace:"nowrap" }}>
@@ -374,9 +344,9 @@ function Ticker() {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  NOTIFICATION BELL
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function NotificationBell({ notifs, setNotifs, onOpenNotifications }) {
   const [open,setOpen]=useState(false);
   const [wiggle,setWiggle]=useState(false);
@@ -396,7 +366,7 @@ function NotificationBell({ notifs, setNotifs, onOpenNotifications }) {
       {open&&(
         <div style={{ position:"absolute",top:"calc(100% + 10px)",right:0,width:340,background:"var(--surface)",border:"2px solid var(--ink)",borderRadius:"var(--r-sm)",boxShadow:"0 12px 40px rgba(26,18,8,.16)",zIndex:500,animation:"slideDown .22s var(--ease-spring)",overflow:"hidden" }}>
           <div style={{ padding:"12px 16px",borderBottom:"2px solid var(--ink)",display:"flex",justifyContent:"space-between",alignItems:"center",background:"var(--parchment)" }}>
-            <div style={{ fontFamily:"var(--font-display)",fontSize:14,letterSpacing:2,color:"var(--ink)" }}>NOTIFICATIONS {unread>0&&<span style={{ color:"var(--red)" }}>· {unread}</span>}</div>
+            <div style={{ fontFamily:"var(--font-display)",fontSize:14,letterSpacing:2,color:"var(--ink)" }}>NOTIFICATIONS {unread>0&&<span style={{ color:"var(--red)" }}>┬╖ {unread}</span>}</div>
             {unread>0&&<button onClick={()=>setNotifs(n=>n.map(x=>({...x,read:true})))} style={{ background:"none",border:"none",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:2,color:"var(--muted)",cursor:"pointer" }}>MARK ALL READ</button>}
           </div>
           {notifs.slice(0,4).map(n=>(
@@ -405,22 +375,22 @@ function NotificationBell({ notifs, setNotifs, onOpenNotifications }) {
               <div style={{ width:4,background:n.read?"transparent":TYPE_COLOR[n.type]||"var(--ink)",flexShrink:0 }}/>
               <div style={{ flex:1,padding:"11px 14px" }}>
                 <div style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--ink)",fontWeight:n.read?400:600 }}>{n.title}</div>
-                <div style={{ fontFamily:"var(--font-sans)",fontSize:11,color:"var(--muted)",marginTop:2,lineHeight:1.5 }}>{n.body.slice(0,72)}…</div>
+                <div style={{ fontFamily:"var(--font-sans)",fontSize:11,color:"var(--muted)",marginTop:2,lineHeight:1.5 }}>{n.body.slice(0,72)}ΓÇª</div>
                 <div style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--muted)",marginTop:4 }}>{n.time}</div>
               </div>
             </div>
           ))}
-          <button onClick={()=>{setOpen(false);onOpenNotifications();}} style={{ width:"100%",padding:"11px 0",background:"var(--ink)",color:"var(--amber-on-ink)",border:"none",fontFamily:"var(--font-display)",fontSize:12,letterSpacing:3,cursor:"pointer" }}>VIEW ALL →</button>
+          <button onClick={()=>{setOpen(false);onOpenNotifications();}} style={{ width:"100%",padding:"11px 0",background:"var(--ink)",color:"var(--amber-on-ink)",border:"none",fontFamily:"var(--font-display)",fontSize:12,letterSpacing:3,cursor:"pointer" }}>VIEW ALL ΓåÆ</button>
         </div>
       )}
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  LOGIN SCREEN
-// ══════════════════════════════════════════════════════════════════════
-// ── Animated bus SVG icon ─────────────────────────────────────────────
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+// ΓöÇΓöÇ Animated bus SVG icon ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function BusSVG({ color="#F0A830", size=18 }) {
   return (
     <svg width={size} height={size*0.6} viewBox="0 0 32 20" fill="none">
@@ -435,7 +405,7 @@ function BusSVG({ color="#F0A830", size=18 }) {
   );
 }
 
-// ── Animated counter ──────────────────────────────────────────────────
+// ΓöÇΓöÇ Animated counter ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function AnimatedCount({ target, suffix="" }) {
   const [count, setCount] = useState(0);
   const isNum = !isNaN(parseInt(target));
@@ -458,7 +428,7 @@ function AnimatedCount({ target, suffix="" }) {
   return <>{count.toLocaleString()}{suffix}</>;
 }
 
-// ── Live clock ────────────────────────────────────────────────────────
+// ΓöÇΓöÇ Live clock ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function LiveClock() {
   const [time, setTime] = useState(new Date());
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
@@ -485,7 +455,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
   const [err,setErr]=useState("");
   const [loading,setLoading]=useState(false);
 
-  // Bus positions along each route line (0–100% vertical)
+  // Bus positions along each route line (0ΓÇô100% vertical)
   const [busPos, setBusPos] = useState([15, 45, 72]);
 
   // Floating particles
@@ -542,7 +512,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
   return (
     <div style={{ minHeight:"100vh", background:"var(--cream)", display:"flex" }}>
 
-      {/* ── LEFT — dark hero panel with live effects ── */}
+      {/* ΓöÇΓöÇ LEFT ΓÇö dark hero panel with live effects ΓöÇΓöÇ */}
       <div style={{ width:"54%", 
         background:"radial-gradient(ellipse at 30% 80%, rgba(200,131,42,0.08) 0%, transparent 60%), var(--ink)", 
         position:"relative",
@@ -573,7 +543,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
             pointerEvents:"none" }}/>
         ))}
 
-        {/* ── 3 Animated route lines on the right edge ── */}
+        {/* ΓöÇΓöÇ 3 Animated route lines on the right edge ΓöÇΓöÇ */}
         {ROUTE_LINES.map((line, li) => (
           <div key={li} style={{ position:"absolute", left:`${line.x}%`, top:0, bottom:0, width:4,
             background:line.color, opacity:.4, filter:`drop-shadow(0 0 4px ${line.color})` }}>
@@ -609,7 +579,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
           backgroundImage:"radial-gradient(circle,rgba(240,168,48,.18) 1px,transparent 1px)",
           backgroundSize:"10px 10px", pointerEvents:"none" }}/>
 
-        {/* ── Content ── */}
+        {/* ΓöÇΓöÇ Content ΓöÇΓöÇ */}
         <div style={{ position:"relative", zIndex:5 }}>
 
           {/* Live clock */}
@@ -630,7 +600,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
           </div>
 
           <div style={{ fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:4,
-            color:"var(--amber)", marginBottom:14 }}>◆ PUBLIC CITY TRANSIT SYSTEM</div>
+            color:"var(--amber)", marginBottom:14 }}>Γùå PUBLIC CITY TRANSIT SYSTEM</div>
 
           <div style={{ fontFamily:"var(--font-display)", fontSize:64,
             color:"var(--cream-on-ink)", lineHeight:.88, letterSpacing:1, marginBottom:20,
@@ -641,7 +611,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
           <div style={{ fontFamily:"var(--font-serif)", fontSize:14,
             color:"var(--muted-on-ink)", fontStyle:"italic",
             maxWidth:320, lineHeight:1.75, marginBottom:32 }}>
-            Digital passes for everyone — students, seniors, daily commuters.
+            Digital passes for everyone ΓÇö students, seniors, daily commuters.
             Real-time tracking, AI routing, instant booking.
           </div>
 
@@ -692,7 +662,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
         </div>
       </div>
 
-      {/* ── RIGHT — form panel ── */}
+      {/* ΓöÇΓöÇ RIGHT ΓÇö form panel ΓöÇΓöÇ */}
       <div style={{ flex:1, display:"flex", flexDirection:"column",
         justifyContent:"center", padding:"56px 52px",
         paddingTop:"8vh",
@@ -716,7 +686,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
           <div style={{ marginBottom:22 }}>
             <Tag>Portal Type</Tag>
             <div style={{ display:"flex", border:"1.5px solid var(--ink)", overflow:"hidden" }}>
-              {[["passenger","🚌 PASSENGER"],["admin","⚙ ADMIN"],["conductor","🔍 CONDUCTOR"]].map(([r,l]) => (
+              {[["passenger","≡ƒÜî PASSENGER"],["admin","ΓÜÖ ADMIN"],["conductor","≡ƒöì CONDUCTOR"]].map(([r,l]) => (
                 <button key={r} onClick={()=>setRole(r)}
                   style={{ flex:1, padding:"11px 0",
                     background:role===r?"var(--ink)":"transparent",
@@ -731,16 +701,16 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
           </div>
 
           <Field label="Email Address" type="email"    value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required/>
-          <Field label="Password"      type="password" value={pw}    onChange={e=>setPw(e.target.value)}    placeholder="••••••••" required/>
+          <Field label="Password"      type="password" value={pw}    onChange={e=>setPw(e.target.value)}    placeholder="ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó" required/>
 
           {err&&<div style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--red)",marginBottom:10,padding:"8px 12px",background:"var(--error-bg)",border:"1px solid var(--red)" }}>{err}</div>}
 
           <Btn variant="primary" full size="md" onClick={submit} disabled={loading}>
-            {loading?<><Spinner size={16}/> SIGNING IN…</>:<>ENTER PORTAL <span style={{ display:"inline-block", transition:"transform .25s" }}>→</span></>}
+            {loading?<><Spinner size={16}/> SIGNING INΓÇª</>:<>ENTER PORTAL <span style={{ display:"inline-block", transition:"transform .25s" }}>ΓåÆ</span></>}
           </Btn>
 
           <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
-            <span onClick={onRegister} style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--amber-text)",cursor:"pointer",textDecoration:"underline",textUnderlineOffset:3 }}>New here? Register →</span>
+            <span onClick={onRegister} style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--amber-text)",cursor:"pointer",textDecoration:"underline",textUnderlineOffset:3 }}>New here? Register ΓåÆ</span>
             <span onClick={onForgot}   style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--muted)",cursor:"pointer",textDecoration:"underline",textUnderlineOffset:3 }}>Forgot password?</span>
           </div>
 
@@ -753,7 +723,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
             <div style={{ display:"flex", justifyContent:"center", gap:12 }}>
               {PASSENGER_TYPES.map((p, idx) => (
                 <div key={p.id} 
-                  title={`${p.label} — ${p.disc > 0 ? p.disc + "% OFF" : "STANDARD FARE"}`}
+                  title={`${p.label} ΓÇö ${p.disc > 0 ? p.disc + "% OFF" : "STANDARD FARE"}`}
                   style={{ width:36, height:36, borderRadius:"50%",
                     background:p.color, display:"flex", alignItems:"center",
                     justifyContent:"center", fontSize:16,
@@ -775,7 +745,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
             </div>
             <div style={{ fontFamily:"var(--font-mono)", fontSize:6, letterSpacing:3,
               color:"var(--muted)", marginTop:12, textAlign:"center", opacity:.7 }}>
-              DEMO MODE · ANY CREDENTIALS WORK
+              DEMO MODE ┬╖ ANY CREDENTIALS WORK
             </div>
           </div>
         </div>
@@ -784,9 +754,9 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  REGISTER SCREEN (passenger-type aware)
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function RegisterScreen({ onDone, onBack }) {
   const [step,setStep]=useState(1);
   const [role,setRole]=useState("passenger");
@@ -817,11 +787,11 @@ function RegisterScreen({ onDone, onBack }) {
     <div style={{ minHeight:"100vh",background:"var(--cream)",display:"flex",alignItems:"center",justifyContent:"center" }}>
       <div style={{ textAlign:"center",padding:48,animation:"fadeUp .5s ease" }}>
         <div style={{ width:72,height:72,borderRadius:"50%",background:"var(--success-bg)",border:"3px solid var(--green)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",animation:"stampDrop .5s ease" }}>
-          <span style={{ fontFamily:"var(--font-display)",fontSize:32,color:"var(--green)" }}>✓</span>
+          <span style={{ fontFamily:"var(--font-display)",fontSize:32,color:"var(--green)" }}>Γ£ô</span>
         </div>
         <div style={{ fontFamily:"var(--font-display)",fontSize:44,letterSpacing:1,color:"var(--ink)",lineHeight:1,marginBottom:8 }}>WELCOME ABOARD!</div>
         <div style={{ fontFamily:"var(--font-serif)",fontSize:16,color:"var(--muted)",fontStyle:"italic",marginBottom:28,lineHeight:1.7 }}>Account created.<br/>Check your email to verify.</div>
-        <Btn variant="primary" size="lg" onClick={onDone}>GO TO LOGIN →</Btn>
+        <Btn variant="primary" size="lg" onClick={onDone}>GO TO LOGIN ΓåÆ</Btn>
       </div>
     </div>
   );
@@ -835,13 +805,13 @@ function RegisterScreen({ onDone, onBack }) {
           <div style={{ display:"flex",gap:8,marginBottom:16 }}>
             {CITY_ROUTES.map(r=><div key={r.id} style={{ background:r.color,padding:"3px 8px",fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:2,color:"white" }}>{r.code}</div>)}
           </div>
-          <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:4,color:"var(--amber)",marginBottom:14 }}>◆ BUSPASSPRO</div>
+          <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:4,color:"var(--amber)",marginBottom:14 }}>Γùå BUSPASSPRO</div>
           <div style={{ fontFamily:"var(--font-display)",fontSize:46,color:"var(--cream-on-ink)",lineHeight:.9,letterSpacing:1,marginBottom:20 }}>JOIN THE<br/>TRANSIT<br/><span style={{ color:"var(--amber-on-ink)" }}>NETWORK.</span></div>
           <div style={{ fontFamily:"var(--font-serif)",fontSize:13,color:"var(--muted-on-ink)",fontStyle:"italic",lineHeight:1.7,marginBottom:28 }}>Get your digital pass in minutes. No paperwork, no queues.</div>
           {STEPS.map((s,i)=>(
             <div key={s} style={{ display:"flex",alignItems:"center",gap:12,marginBottom:12,opacity:step>=i+1?1:0.3 }}>
               <div style={{ width:24,height:24,borderRadius:"50%",background:step>i+1?"var(--green-on-ink)":step===i+1?"var(--amber-on-ink)":"transparent",border:`2px solid ${step>i+1?"var(--green-on-ink)":step===i+1?"var(--amber-on-ink)":"rgba(255,255,255,.2)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--font-display)",fontSize:12,color:step>=i+1?"var(--ink)":"rgba(255,255,255,.3)",transition:"all .3s" }}>
-                {step>i+1?"✓":i+1}
+                {step>i+1?"Γ£ô":i+1}
               </div>
               <span style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:3,color:step>=i+1?"var(--cream-on-ink)":"rgba(255,255,255,.25)" }}>{s}</span>
             </div>
@@ -855,11 +825,11 @@ function RegisterScreen({ onDone, onBack }) {
         <div style={{ maxWidth:440,animation:"fadeUp .35s ease" }}>
           {step===1&&(
             <>
-              <Tag>Step 1 — Portal</Tag>
+              <Tag>Step 1 ΓÇö Portal</Tag>
               <div style={{ fontFamily:"var(--font-serif)",fontSize:26,color:"var(--ink)",marginBottom:22 }}>Who are you?</div>
               <Tag color="var(--muted)">Portal Type</Tag>
               <div style={{ display:"flex",gap:8,marginBottom:20 }}>
-                {[["passenger","🚌 PASSENGER","Book passes & tickets"],["admin","⚙ ADMIN","Manage system"],["conductor","🔍 CONDUCTOR","Scan & verify"]].map(([r,l,sub])=>(
+                {[["passenger","≡ƒÜî PASSENGER","Book passes & tickets"],["admin","ΓÜÖ ADMIN","Manage system"],["conductor","≡ƒöì CONDUCTOR","Scan & verify"]].map(([r,l,sub])=>(
                   <div key={r} onClick={()=>setRole(r)} style={{ flex:1,border:`2px solid ${role===r?"var(--ink)":"var(--rule)"}`,padding:"12px 10px",cursor:"pointer",background:role===r?"var(--ink)":"var(--surface)",textAlign:"center",transition:"all .18s" }}>
                     <div style={{ fontFamily:"var(--font-display)",fontSize:12,letterSpacing:2,color:role===r?"var(--amber-on-ink)":"var(--ink)" }}>{l}</div>
                     <div style={{ fontFamily:"var(--font-sans)",fontSize:10,color:role===r?"var(--muted-on-ink)":"var(--muted)",marginTop:3 }}>{sub}</div>
@@ -881,7 +851,7 @@ function RegisterScreen({ onDone, onBack }) {
                         </div>
                         <div style={{ display:"flex",alignItems:"center",gap:8 }}>
                           {p.disc>0&&<div style={{ fontFamily:"var(--font-display)",fontSize:16,letterSpacing:1,color:"var(--green)" }}>{p.disc}%</div>}
-                          {ptype===p.id&&<span style={{ color:"var(--green)",fontFamily:"var(--font-display)",fontSize:14 }}>✓</span>}
+                          {ptype===p.id&&<span style={{ color:"var(--green)",fontFamily:"var(--font-display)",fontSize:14 }}>Γ£ô</span>}
                         </div>
                       </div>
                     ))}
@@ -892,7 +862,7 @@ function RegisterScreen({ onDone, onBack }) {
           )}
           {step===2&&(
             <>
-              <Tag>Step 2 — Personal Info</Tag>
+              <Tag>Step 2 ΓÇö Personal Info</Tag>
               <div style={{ fontFamily:"var(--font-serif)",fontSize:26,color:"var(--ink)",marginBottom:22 }}>About you</div>
               <Field label="Full Name" value={form.name}  onChange={e=>set("name",e.target.value)}  placeholder="Your full name" error={errs.name} required/>
               <Field label="Email"    type="email" value={form.email} onChange={e=>set("email",e.target.value)} placeholder="you@example.com" error={errs.email} required/>
@@ -901,7 +871,7 @@ function RegisterScreen({ onDone, onBack }) {
           )}
           {step===3&&(
             <>
-              <Tag>Step 3 — Identity Verification</Tag>
+              <Tag>Step 3 ΓÇö Identity Verification</Tag>
               <div style={{ fontFamily:"var(--font-serif)",fontSize:26,color:"var(--ink)",marginBottom:16 }}>Verify your category</div>
               {role==="passenger"&&(
                 <div style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:"var(--parchment)",border:"1px solid var(--rule)",marginBottom:18 }}>
@@ -924,7 +894,7 @@ function RegisterScreen({ onDone, onBack }) {
           )}
           {step===4&&(
             <>
-              <Tag>Step 4 — Secure Account</Tag>
+              <Tag>Step 4 ΓÇö Secure Account</Tag>
               <div style={{ fontFamily:"var(--font-serif)",fontSize:26,color:"var(--ink)",marginBottom:22 }}>Set your password</div>
               <Field label="Password"         type="password" value={form.password} onChange={e=>set("password",e.target.value)} placeholder="Minimum 8 characters" error={errs.password} required/>
               <Field label="Confirm Password" type="password" value={form.confirm}  onChange={e=>set("confirm",e.target.value)}  placeholder="Repeat password"      error={errs.confirm}  required/>
@@ -934,21 +904,21 @@ function RegisterScreen({ onDone, onBack }) {
                     <div style={{ position:"absolute",left:0,top:0,height:"100%",width:`${Math.min(100,form.password.length*8)}%`,background:form.password.length<8?"var(--red)":form.password.length<12?"var(--amber)":"var(--green)",transition:"width .3s, background .3s" }}/>
                   </div>
                   <div style={{ fontFamily:"var(--font-sans)",fontSize:11,color:form.password.length<8?"var(--red)":form.password.length<12?"var(--amber-text)":"var(--green)" }}>
-                    {form.password.length<8?"Too short":form.password.length<12?"Fair — consider stronger":"Strong ✓"}
+                    {form.password.length<8?"Too short":form.password.length<12?"Fair ΓÇö consider stronger":"Strong Γ£ô"}
                   </div>
                 </div>
               )}
             </>
           )}
           <div style={{ display:"flex",gap:10,marginTop:22 }}>
-            {step>1&&<Btn variant="secondary" size="md" onClick={()=>setStep(s=>s-1)}>← BACK</Btn>}
+            {step>1&&<Btn variant="secondary" size="md" onClick={()=>setStep(s=>s-1)}>ΓåÉ BACK</Btn>}
             <Btn variant="primary" full size="md" onClick={next} disabled={loading}>
-              {loading?<><Spinner size={16}/> CREATING…</>:step<4?"CONTINUE →":"CREATE ACCOUNT →"}
+              {loading?<><Spinner size={16}/> CREATINGΓÇª</>:step<4?"CONTINUE ΓåÆ":"CREATE ACCOUNT ΓåÆ"}
             </Btn>
           </div>
           <Rule my={18}/>
           <div style={{ textAlign:"center" }}>
-            <span onClick={onBack} style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--amber-text)",cursor:"pointer",textDecoration:"underline",textUnderlineOffset:3 }}>← Already registered? Sign in</span>
+            <span onClick={onBack} style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--amber-text)",cursor:"pointer",textDecoration:"underline",textUnderlineOffset:3 }}>ΓåÉ Already registered? Sign in</span>
           </div>
         </div>
       </div>
@@ -956,9 +926,9 @@ function RegisterScreen({ onDone, onBack }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  FORGOT PASSWORD
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function ForgotPasswordScreen({ onDone, onBack }) {
   const [step,setStep]=useState(1); const [email,setEmail]=useState(""); const [otp,setOtp]=useState(["","","","","",""]); const [pw,setPw]=useState(""); const [confirm,setConfirm]=useState(""); const [loading,setLoading]=useState(false); const [cd,setCd]=useState(0); const refs=useRef([]);
   useEffect(()=>{if(cd>0){const t=setTimeout(()=>setCd(c=>c-1),1000);return()=>clearTimeout(t);}},[cd]);
@@ -972,7 +942,7 @@ function ForgotPasswordScreen({ onDone, onBack }) {
       <div style={{ textAlign:"center",padding:48,animation:"fadeUp .5s ease" }}>
         <div style={{ fontFamily:"var(--font-display)",fontSize:50,color:"var(--ink)",letterSpacing:1,lineHeight:1,marginBottom:10 }}>PASSWORD RESET!</div>
         <div style={{ fontFamily:"var(--font-serif)",fontSize:15,color:"var(--muted)",fontStyle:"italic",marginBottom:26 }}>Your password has been updated.</div>
-        <Btn variant="primary" size="lg" onClick={onDone}>SIGN IN NOW →</Btn>
+        <Btn variant="primary" size="lg" onClick={onDone}>SIGN IN NOW ΓåÆ</Btn>
       </div>
     </div>
   );
@@ -983,25 +953,25 @@ function ForgotPasswordScreen({ onDone, onBack }) {
         <Tag>Password Recovery</Tag>
         <div style={{ fontFamily:"var(--font-serif)",fontSize:26,color:"var(--ink)",lineHeight:1.1,marginBottom:8 }}>{step===1?"Reset password":step===2?"Enter OTP":"New password"}</div>
         <div style={{ fontFamily:"var(--font-sans)",fontSize:13,color:"var(--muted)",marginBottom:22 }}>{step===1?"Enter your registered email.":step===2?`OTP sent to ${email}.`:"Create a strong password."}</div>
-        {step===1&&<><Field label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com"/><Btn variant="primary" full onClick={sendOTP} disabled={loading}>{loading?"SENDING…":"SEND OTP →"}</Btn></>}
+        {step===1&&<><Field label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com"/><Btn variant="primary" full onClick={sendOTP} disabled={loading}>{loading?"SENDINGΓÇª":"SEND OTP ΓåÆ"}</Btn></>}
         {step===2&&(<>
           <Tag>6-Digit OTP</Tag>
           <div style={{ display:"flex",gap:8,marginBottom:12 }}>
             {otp.map((d,i)=><input key={i} ref={el=>refs.current[i]=el} value={d} onChange={e=>handleOtp(i,e.target.value)} onKeyDown={e=>e.key==="Backspace"&&!d&&i>0&&refs.current[i-1]?.focus()} maxLength={1} inputMode="numeric" style={{ width:46,height:54,textAlign:"center",border:`2px solid ${d?"var(--amber)":"var(--rule)"}`,background:d?"var(--amber-light)":"var(--cream)",fontFamily:"var(--font-display)",fontSize:24,color:"var(--ink)",outline:"none",transition:"border-color .15s, background .15s" }}/>)}
           </div>
           <div style={{ fontFamily:"var(--font-sans)",fontSize:11,color:"var(--muted)",marginBottom:14 }}>{cd>0?`Resend in ${cd}s`:<span onClick={sendOTP} style={{ color:"var(--amber-text)",cursor:"pointer" }}>Resend OTP</span>}</div>
-          <Btn variant="primary" full onClick={verifyOTP} disabled={loading||otp.join("").length<6}>{loading?"VERIFYING…":"VERIFY →"}</Btn></>)}
-        {step===3&&<><Field label="New Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="Min 8 characters"/><Field label="Confirm Password" type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="Repeat"/><Btn variant="primary" full onClick={resetPw} disabled={loading}>{loading?"UPDATING…":"RESET PASSWORD →"}</Btn></>}
+          <Btn variant="primary" full onClick={verifyOTP} disabled={loading||otp.join("").length<6}>{loading?"VERIFYINGΓÇª":"VERIFY ΓåÆ"}</Btn></>)}
+        {step===3&&<><Field label="New Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="Min 8 characters"/><Field label="Confirm Password" type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="Repeat"/><Btn variant="primary" full onClick={resetPw} disabled={loading}>{loading?"UPDATINGΓÇª":"RESET PASSWORD ΓåÆ"}</Btn></>}
         <Rule my={18}/>
-        <div style={{ textAlign:"center" }}><span onClick={onBack} style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--amber-text)",cursor:"pointer",textDecoration:"underline",textUnderlineOffset:3 }}>← Back to Sign In</span></div>
+        <div style={{ textAlign:"center" }}><span onClick={onBack} style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--amber-text)",cursor:"pointer",textDecoration:"underline",textUnderlineOffset:3 }}>ΓåÉ Back to Sign In</span></div>
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  APP DETAIL MODAL
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function AppDetailModal({ app, onClose, onApprove, onReject }) {
   if(!app) return null;
   return (
@@ -1014,7 +984,7 @@ function AppDetailModal({ app, onClose, onApprove, onReject }) {
           </div>
           <div style={{ display:"flex",alignItems:"center",gap:12 }}>
             <Pill s={app.status}/>
-            <button onClick={onClose} style={{ background:"none",border:"none",color:"var(--muted-on-ink)",fontFamily:"var(--font-display)",fontSize:22,lineHeight:1,cursor:"pointer" }}>✕</button>
+            <button onClick={onClose} style={{ background:"none",border:"none",color:"var(--muted-on-ink)",fontFamily:"var(--font-display)",fontSize:22,lineHeight:1,cursor:"pointer" }}>Γ£ò</button>
           </div>
         </div>
         <div style={{ padding:"24px 28px" }}>
@@ -1033,7 +1003,7 @@ function AppDetailModal({ app, onClose, onApprove, onReject }) {
           <Rule my={20}/>
           <Tag>Pass Details</Tag>
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 24px" }}>
-            {[["Route",app.route],["Boarding Stop",app.stop],["Pass Type",app.type],["Amount",`₹${app.amt.toLocaleString()}`],["Applied On",app.date]].map(([l,v])=>(
+            {[["Route",app.route],["Boarding Stop",app.stop],["Pass Type",app.type],["Amount",`Γé╣${app.amt.toLocaleString()}`],["Applied On",app.date]].map(([l,v])=>(
               <div key={l} style={{ padding:"9px 0",borderBottom:"1px solid var(--rule)",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
                 <div>
                   <div style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:2,color:"var(--muted)" }}>{l}</div>
@@ -1048,8 +1018,8 @@ function AppDetailModal({ app, onClose, onApprove, onReject }) {
           <div style={{ fontFamily:"var(--font-sans)",fontSize:13,color:"var(--ink)",lineHeight:1.65,background:"var(--surface)",padding:"12px 14px",border:"1px solid var(--rule)",marginBottom:24 }}>{app.reason}</div>
           {app.status==="PENDING"?(
             <div style={{ display:"flex",gap:10 }}>
-              <Btn variant="success" size="md" onClick={()=>{onApprove(app.id);onClose();}}>✓ APPROVE</Btn>
-              <Btn variant="danger"  size="md" onClick={()=>{onReject(app.id);onClose();}}>✕ REJECT</Btn>
+              <Btn variant="success" size="md" onClick={()=>{onApprove(app.id);onClose();}}>Γ£ô APPROVE</Btn>
+              <Btn variant="danger"  size="md" onClick={()=>{onReject(app.id);onClose();}}>Γ£ò REJECT</Btn>
               <Btn variant="ghost"   size="md" onClick={onClose}>CANCEL</Btn>
             </div>
           ):<Btn variant="secondary" size="sm" onClick={onClose}>CLOSE</Btn>}
@@ -1059,9 +1029,9 @@ function AppDetailModal({ app, onClose, onApprove, onReject }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  ADMIN APPLICATIONS  (with passenger types + route line badges)
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function AdminApplications() {
   const [apps,setApps]=useState(MOCK_APPS);
   const [filter,setFilter]=useState("ALL");
@@ -1082,7 +1052,7 @@ function AdminApplications() {
         {[["TOTAL",apps.length,"var(--ink)"],["PENDING",counts.PENDING,"var(--amber-text)"],["APPROVED",counts.APPROVED,"var(--green)"],["REJECTED",counts.REJECTED,"var(--red)"]].map(([l,n,c],i)=>(
           <div key={l} style={{ padding:"18px 22px",textAlign:"center",borderRight:i<3?"1px solid var(--rule)":"none" }}>
             <div style={{ fontFamily:"var(--font-display)",fontSize:36,letterSpacing:1,color:c,lineHeight:1 }}>{n}</div>
-            <div style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:3,color:"var(--muted)",marginTop:6 }}>REQUESTS — {l}</div>
+            <div style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:3,color:"var(--muted)",marginTop:6 }}>REQUESTS ΓÇö {l}</div>
           </div>
         ))}
       </div>
@@ -1126,7 +1096,7 @@ function AdminApplications() {
           <LineBadge name={app.route} small/>
           <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:1,color:"var(--muted)" }}>{app.type}</div>
           <div style={{ fontFamily:"var(--font-mono)",fontSize:9,color:"var(--muted)" }}>{app.date.slice(0,6)}</div>
-          <div style={{ fontFamily:"var(--font-display)",fontSize:app.amt>=1000?20:16,color:"var(--ink)",letterSpacing:1,fontWeight:app.amt>=1000?700:400 }}>₹{app.amt.toLocaleString()}</div>
+          <div style={{ fontFamily:"var(--font-display)",fontSize:app.amt>=1000?20:16,color:"var(--ink)",letterSpacing:1,fontWeight:app.amt>=1000?700:400 }}>Γé╣{app.amt.toLocaleString()}</div>
           <div style={{ display:"flex",gap:4 }}>
             <div style={{ position:"relative" }}>
               <button onClick={()=>setDetail(app)}
@@ -1138,13 +1108,13 @@ function AdminApplications() {
                   background:"var(--ink)",color:"var(--amber-on-ink)",padding:"8px 10px",minWidth:190,
                   border:"1px solid var(--amber-text)",zIndex:5,boxShadow:"0 6px 18px rgba(26,18,8,.2)" }}>
                   <div style={{ fontFamily:"var(--font-sans)",fontSize:11,lineHeight:1.4 }}>{app.passenger}</div>
-                  <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:1,opacity:.9 }}>{app.route} · ₹{app.amt.toLocaleString()}</div>
+                  <div style={{ fontFamily:"var(--font-mono)",fontSize:8,letterSpacing:1,opacity:.9 }}>{app.route} ┬╖ Γé╣{app.amt.toLocaleString()}</div>
                 </div>
               )}
             </div>
             {app.status==="PENDING"&&(<>
-              <button onClick={()=>approve(app.id)} style={{ padding:"4px 8px",background:"var(--green)",border:"none",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--cream-on-ink)",cursor:"pointer" }}>✓</button>
-              <button onClick={()=>reject(app.id)}  style={{ padding:"4px 8px",background:"none",border:"1px solid var(--red)",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--red)",cursor:"pointer" }}>✕</button>
+              <button onClick={()=>approve(app.id)} style={{ padding:"4px 8px",background:"var(--green)",border:"none",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--cream-on-ink)",cursor:"pointer" }}>Γ£ô</button>
+              <button onClick={()=>reject(app.id)}  style={{ padding:"4px 8px",background:"none",border:"1px solid var(--red)",fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:1,color:"var(--red)",cursor:"pointer" }}>Γ£ò</button>
             </>)}
             {app.status!=="PENDING"&&<Pill s={app.status}/>}
           </div>
@@ -1167,9 +1137,9 @@ function AdminApplications() {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  NOT FOUND
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function NotFoundScreen({ onGoHome }) {
   return (
     <div style={{ minHeight:"calc(100vh - 62px)",background:"var(--cream)",display:"flex",alignItems:"center",justifyContent:"center",padding:"60px 44px" }}>
@@ -1185,7 +1155,7 @@ function NotFoundScreen({ onGoHome }) {
           The page you're looking for boarded the wrong bus.<br/>Let's get you back on route.
         </div>
         <div style={{ display:"flex",gap:12,justifyContent:"center" }}>
-          <Btn variant="primary"   size="md" onClick={onGoHome}>← GO HOME</Btn>
+          <Btn variant="primary"   size="md" onClick={onGoHome}>ΓåÉ GO HOME</Btn>
           <Btn variant="secondary" size="md" onClick={()=>window.history.back()}>GO BACK</Btn>
         </div>
       </div>
@@ -1193,26 +1163,26 @@ function NotFoundScreen({ onGoHome }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  PLACEHOLDER
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function Placeholder({ name }) {
   return (
     <div style={{ minHeight:420,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:14,border:"2px dashed var(--rule)",margin:"24px 0",animation:"fadeIn .3s ease",background:"var(--surface)" }}>
       <div style={{ fontFamily:"var(--font-display)",fontSize:28,letterSpacing:2,color:"var(--muted)" }}>{name.toUpperCase()}</div>
       <div style={{ fontFamily:"var(--font-sans)",fontSize:13,color:"var(--muted)" }}>Import this screen from the appropriate file</div>
-      <div style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:3,color:"var(--rule)" }}>PLACEHOLDER · REPLACE WITH REAL COMPONENT</div>
+      <div style={{ fontFamily:"var(--font-mono)",fontSize:7,letterSpacing:3,color:"var(--rule)" }}>PLACEHOLDER ┬╖ REPLACE WITH REAL COMPONENT</div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  SCREENS REGISTRY
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 const SCREENS = {
-  dashboard:     PassengerDashboard,
+  dashboard:     StudentDashboard,
   apply:         ApplyPass,
-  profile:       PassengerProfile,
+  profile:       StudentProfile,
   renew:         RenewalFlow,
   busmap:        BusRouteMap,
   tickets:       TicketBooking,
@@ -1229,9 +1199,9 @@ const SCREENS = {
   lookup:        ManualLookup,
 };
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  FOOTER  (premium public transit branding)
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 function Footer() {
   const [time, setTime] = useState(new Date());
   const [routeStatuses] = useState([
@@ -1251,7 +1221,7 @@ function Footer() {
   return (
     <footer style={{ background:"var(--ink)", borderTop:"3px solid var(--amber)" }}>
 
-      {/* ── Live route status bar ── */}
+      {/* ΓöÇΓöÇ Live route status bar ΓöÇΓöÇ */}
       <div style={{ borderBottom:"1px solid rgba(255,255,255,.06)",
         padding:"12px 44px", maxWidth:1200, margin:"0 auto" }}>
         <div style={{ display:"flex", gap:0, alignItems:"center", flexWrap:"wrap" }}>
@@ -1285,12 +1255,12 @@ function Footer() {
         </div>
       </div>
 
-      {/* ── Main footer body ── */}
+      {/* ΓöÇΓöÇ Main footer body ΓöÇΓöÇ */}
       <div style={{ maxWidth:1200, margin:"0 auto", padding:"40px 44px 32px",
         display:"grid", gridTemplateColumns:"1.6fr 1fr 1fr 1fr 1.2fr",
         gap:40, alignItems:"start" }}>
 
-        {/* Col 1 — Brand */}
+        {/* Col 1 ΓÇö Brand */}
         <div>
           <div style={{ display:"flex", alignItems:"baseline", gap:0, marginBottom:12 }}>
             <span style={{ fontFamily:"var(--font-display)", fontSize:26, letterSpacing:2, color:"var(--cream-on-ink)" }}>BUSP</span>
@@ -1300,12 +1270,12 @@ function Footer() {
           <div style={{ fontFamily:"var(--font-serif)", fontSize:13,
             color:"var(--muted-on-ink)", lineHeight:1.8, marginBottom:20,
             fontStyle:"italic", maxWidth:220 }}>
-            Public City Transit Pass System. Serving <em>everyone</em> — students, seniors, daily commuters.
+            Public City Transit Pass System. Serving <em>everyone</em> ΓÇö students, seniors, daily commuters.
           </div>
           {/* Passenger type icons */}
           <div style={{ display:"flex", gap:8, marginBottom:20 }}>
             {PASSENGER_TYPES.map(p => (
-              <div key={p.id} title={`${p.label}${p.disc>0?" — "+p.disc+"% off":""}`}
+              <div key={p.id} title={`${p.label}${p.disc>0?" ΓÇö "+p.disc+"% off":""}`}
                 style={{ width:28, height:28, borderRadius:"50%",
                   background:p.color, display:"flex", alignItems:"center",
                   justifyContent:"center", fontSize:12,
@@ -1336,13 +1306,13 @@ function Footer() {
                 transition:"background .18s" }}
                 onMouseEnter={e=>e.currentTarget.style.background="#F0A830"}
                 onMouseLeave={e=>e.currentTarget.style.background="var(--amber)"}>
-                →
+                ΓåÆ
               </button>
             </div>
           </div>
         </div>
 
-        {/* Col 2 — Transit Lines */}
+        {/* Col 2 ΓÇö Transit Lines */}
         <div>
           <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:4,
             color:"var(--amber-on-ink)", marginBottom:16,
@@ -1358,14 +1328,14 @@ function Footer() {
               </div>
               <div style={{ fontFamily:"var(--font-mono)", fontSize:6, letterSpacing:1,
                 color:"var(--muted-on-ink)", lineHeight:1.9, paddingLeft:28 }}>
-                {r.src} → {r.dst}<br/>
-                {r.km}km · ~{r.min}min · ₹{r.fare}/mo
+                {r.src} ΓåÆ {r.dst}<br/>
+                {r.km}km ┬╖ ~{r.min}min ┬╖ Γé╣{r.fare}/mo
               </div>
             </div>
           ))}
         </div>
 
-        {/* Col 3 — Pass Types */}
+        {/* Col 3 ΓÇö Pass Types */}
         <div>
           <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:4,
             color:"var(--amber-on-ink)", marginBottom:16,
@@ -1391,7 +1361,7 @@ function Footer() {
           ))}
         </div>
 
-        {/* Col 4 — Discounts */}
+        {/* Col 4 ΓÇö Discounts */}
         <div>
           <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:4,
             color:"var(--amber-on-ink)", marginBottom:16,
@@ -1412,7 +1382,7 @@ function Footer() {
           ))}
         </div>
 
-        {/* Col 5 — Tech stack + links */}
+        {/* Col 5 ΓÇö Tech stack + links */}
         <div>
           <div style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:4,
             color:"var(--amber-on-ink)", marginBottom:16,
@@ -1437,14 +1407,14 @@ function Footer() {
         </div>
       </div>
 
-      {/* ── Bottom bar ── */}
+      {/* ΓöÇΓöÇ Bottom bar ΓöÇΓöÇ */}
       <div style={{ borderTop:"1px solid rgba(255,255,255,.06)",
         padding:"14px 44px", maxWidth:1200, margin:"0 auto",
         display:"flex", justifyContent:"space-between", alignItems:"center",
         flexWrap:"wrap", gap:12 }}>
         <div style={{ fontFamily:"var(--font-mono)", fontSize:6, letterSpacing:3,
           color:"var(--muted-on-ink)" }}>
-          © 2024 BUSPASSPRO · ALL RIGHTS RESERVED · PUBLIC CITY TRANSIT SYSTEM
+          ┬⌐ 2024 BUSPASSPRO ┬╖ ALL RIGHTS RESERVED ┬╖ PUBLIC CITY TRANSIT SYSTEM
         </div>
         <div style={{ display:"flex", gap:16 }}>
           {["TERMS","PRIVACY","SUPPORT","ACCESSIBILITY","CONTACT"].map(l => (
@@ -1458,16 +1428,16 @@ function Footer() {
         </div>
         <div style={{ fontFamily:"var(--font-mono)", fontSize:6, letterSpacing:2,
           color:"var(--muted-on-ink)" }}>
-          DJANGO + REACT · WEBSOCKET · AI POWERED
+          DJANGO + REACT ┬╖ WEBSOCKET ┬╖ AI POWERED
         </div>
       </div>
     </footer>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 //  MAIN APP
-// ══════════════════════════════════════════════════════════════════════
+// ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 export default function App() {
   const [auth,setAuth]=useState({ loggedIn:false, role:"passenger" });
   const [authView,setAuthView]=useState("login");

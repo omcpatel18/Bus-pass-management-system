@@ -1,0 +1,251 @@
+.layout {
+  min-height: 100vh;
+  background: var(--clr-cream);
+}
+
+.tickerStrip {
+  background: var(--clr-parchment);
+  border-bottom: 0.5px solid var(--clr-rule);
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 12px 0;
+}
+
+.tickerContent {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--clr-ink-muted);
+  animation: tickerScroll 18s linear infinite;
+}
+
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.tickerItem {
+  margin-right: 60px;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.radarSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 60px;
+}
+
+.radarContainer {
+  width: 220px;
+  height: 220px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.radarRing {
+  fill: none;
+  stroke: var(--clr-amber);
+  stroke-opacity: 0.15;
+  stroke-width: 1;
+}
+
+.radarSweep {
+  animation: radarSpin 1.8s linear infinite;
+  transform-origin: 110px 110px;
+}
+
+@keyframes radarSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.taxiMarker {
+  fill: var(--clr-amber);
+  opacity: 0;
+  animation: markerIn 300ms ease forwards;
+}
+
+@keyframes markerIn {
+  to { opacity: 1; }
+}
+
+.radarLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--clr-ink-faint);
+  letter-spacing: 2px;
+}
+
+.deckSection {
+  margin-bottom: 60px;
+}
+
+.deckScroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 10px 0;
+  scrollbar-width: none;
+}
+
+.deckScroll::-webkit-scrollbar { display: none; }
+
+.serviceCard {
+  flex: 0 0 160px; /* Exact Width */
+  height: 220px;   /* Exact Height */
+  background: var(--clr-cream);
+  border: 0.5px solid var(--clr-ink);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.serviceCardSelected {
+  border-left: 3px solid var(--clr-amber);
+}
+
+.serviceName {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--clr-ink);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.servicePrice {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--clr-amber);
+  font-weight: 700;
+}
+
+.checkBadge {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 20px; height: 20px;
+  background: var(--clr-amber);
+  color: var(--clr-cream);
+  border-radius: var(--r-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.cardInner {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 50%;
+  background: rgba(26, 24, 20, 0.88); /* Exact Background */
+  color: var(--clr-cream);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  transform: translateY(100%);
+  transition: transform 250ms ease;
+}
+
+.serviceCard:hover .cardInner {
+  transform: translateY(0%);
+}
+
+.innerData {
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.serviceTag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--clr-amber-light);
+  margin-top: 4px;
+}
+
+.mapBox {
+  background: var(--clr-parchment);
+  border: 0.5px solid var(--clr-rule);
+  border-radius: var(--r-lg);
+  padding: 32px;
+}
+
+.userDot {
+  /* Exact: scale(1) -> scale(1.4) -> scale(1) */
+  animation: pulseUser 1.2s ease-in-out infinite;
+  transform-origin: 200px 170px;
+}
+
+@keyframes pulseUser {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.enRoutePath {
+  animation: pathDash 2s linear infinite;
+}
+
+@keyframes pathDash {
+  from { stroke-dashoffset: 20; }
+  to { stroke-dashoffset: 0; }
+}
+
+.driverMeta {
+  background: var(--clr-cream);
+  border: 0.5px solid var(--clr-ink);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  margin-top: 32px;
+}
+
+.metaHeader {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.driverAvatar {
+  width: 44px; height: 44px;
+  background: var(--clr-ink);
+  color: var(--clr-cream);
+  border-radius: var(--r-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+
+.driverName {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.badgeList {
+  display: flex;
+  gap: 8px;
+}
+
+.meritBadge {
+  background: var(--clr-cream);
+  border: 0.5px solid var(--clr-amber);
+  color: var(--clr-ink);
+  font-family: var(--font-body);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+}

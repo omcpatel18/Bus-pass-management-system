@@ -1,0 +1,303 @@
+.layout {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  min-height: 100vh;
+  background: var(--clr-cream);
+  position: relative;
+  overflow-x: hidden;
+}
+
+@media (max-width: 767px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grainLayer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+.grainLayer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  filter: url(#grainFilter);
+}
+
+.formCol {
+  padding: 80px 60px;
+  background: var(--clr-cream);
+}
+
+.formSticky {
+  position: sticky;
+  top: 80px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 48px;
+}
+
+.preTitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--clr-amber);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 56px;
+  color: var(--clr-ink);
+  margin: 8px 0 16px;
+}
+
+.titleRule {
+  width: 60px;
+  height: 3px;
+  background: var(--clr-amber);
+}
+
+.bookingForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--clr-ink-muted);
+}
+
+.input {
+  width: 100%;
+  padding: 14px 18px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  border: 1px solid var(--clr-rule);
+  border-radius: var(--r-sm);
+  background: transparent;
+  transition: all 200ms ease;
+  outline: none;
+}
+
+/* Precision focus: background shift to --clr-cream */
+.input:focus {
+  background: var(--clr-cream);
+  border-left: 2px solid var(--clr-amber);
+}
+
+.ticketCol {
+  background: var(--clr-parchment);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.draftTicket {
+  width: 100%;
+  max-width: 320px;
+  background: var(--clr-cream);
+  border-left: 4px solid var(--clr-amber);
+  border-radius: var(--r-sm);
+  padding: 32px;
+  position: relative;
+  box-shadow: var(--shadow-float);
+}
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed var(--clr-rule);
+  padding-bottom: 16px;
+  margin-bottom: 32px;
+}
+
+.brandMain {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--clr-ink);
+}
+
+.brandSub {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--clr-ink-faint);
+  letter-spacing: 1px;
+}
+
+.ticketSerial {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.ticketBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tRow {
+  display: flex;
+  flex-direction: column;
+}
+
+.tLabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--clr-ink-faint);
+}
+
+.tVal {
+  font-family: var(--font-display);
+  font-size: 30px;
+}
+
+.tValSmall {
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+
+.tEmpty {
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: var(--clr-ink-faint);
+}
+
+.tEmptySmall {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--clr-ink-faint);
+}
+
+.ticketMeta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-top: 16px;
+  border-top: 1px solid var(--clr-rule);
+}
+
+.animIn {
+  animation: fieldIn 150ms ease-out forwards;
+}
+
+@keyframes fieldIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.routePath {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: drawLine 600ms ease-in-out forwards;
+}
+
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+
+.fareOverlay {
+  margin-top: 32px;
+  padding: 20px;
+  /* Precision: background rgba from --clr-amber-light at 0.15 opacity */
+  background: rgba(245, 200, 122, 0.15); 
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 0.5px solid var(--clr-amber);
+  border-radius: var(--r-md);
+}
+
+.fareItem {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-body);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.fareTotal {
+  display: flex;
+  justify-content: space-between;
+  border-top: 0.5px solid var(--clr-amber);
+  padding-top: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.fareAmount {
+  font-family: var(--font-display);
+  font-size: 24px;
+}
+
+.perforation {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 6px;
+  background-image: repeating-radial-gradient(
+    circle at 6px 6px,
+    var(--clr-parchment) 0px,
+    var(--clr-parchment) 3px,
+    transparent 3px,
+    transparent 12px
+  );
+  background-size: 12px 6px;
+}
+
+.stampContainer {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.stampSvg {
+  /* Precision: scale(2.5) rotate(-15deg) → scale(1) rotate(0deg) */
+  animation: stampImpact 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes stampImpact {
+  0% { transform: scale(2.5) rotate(-15deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 0.85; }
+}
+
+.btnWrap {
+  overflow: hidden;
+  border-radius: var(--r-xs);
+  display: inline-block;
+}
+
+.btn {
+  background: var(--clr-ink);
+  color: var(--clr-amber-light);
+  padding: 16px 36px;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 18px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.btnArrow {
+  position: absolute;
+  left: 12px;
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.btnLabel {
+  transition: transform 220ms ease;
+}

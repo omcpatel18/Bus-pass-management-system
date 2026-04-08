@@ -68,13 +68,13 @@ const G = `
 // ── Campus locations (shared with rest of app) ────────────────────────
 const CAMPUS_STOPS = [
   "College Gate", "North Campus", "Library Sq",
-  "Main Market",  "City Centre",  "Tech Park",
-  "Ring Road",    "IT Hub",       "Railway Station",
-  "East Campus",  "Airport Road", "Bus Terminal",
+  "Main Market", "City Centre", "Tech Park",
+  "Ring Road", "IT Hub", "Railway Station",
+  "East Campus", "Airport Road", "Bus Terminal",
 ];
 
 const QUICK_PICKUP = ["College Gate", "Library Sq", "North Campus", "Tech Park"];
-const QUICK_DEST   = ["Railway Station", "City Centre", "Airport Road", "Main Market", "IT Hub"];
+const QUICK_DEST = ["Railway Station", "City Centre", "Airport Road", "Main Market", "IT Hub"];
 
 // ── Ride types ────────────────────────────────────────────────────────
 const RIDE_TYPES = [
@@ -134,30 +134,30 @@ const RIDE_TYPES = [
 
 // ── Payment methods ───────────────────────────────────────────────────
 const PAYMENT_METHODS = [
-  { id: "upi",     label: "UPI",          icon: "⚡", sub: "Google Pay / PhonePe / BHIM" },
-  { id: "card",    label: "CARD",         icon: "💳", sub: "Debit or Credit card"          },
-  { id: "cash",    label: "CASH",         icon: "💵", sub: "Pay driver directly"            },
-  { id: "wallet",  label: "BPP WALLET",   icon: "👝", sub: "Balance: ₹320"                  },
+  { id: "upi", label: "UPI", icon: "⚡", sub: "Google Pay / PhonePe / BHIM" },
+  { id: "card", label: "CARD", icon: "💳", sub: "Debit or Credit card" },
+  { id: "cash", label: "CASH", icon: "💵", sub: "Pay driver directly" },
+  { id: "wallet", label: "BPP WALLET", icon: "👝", sub: "Balance: ₹320" },
 ];
 
 // ── Mock ride history ─────────────────────────────────────────────────
 const MOCK_HISTORY = [
-  { id: "TXN-8821", date: "02 Mar 2024", time: "08:12", from: "College Gate", to: "Railway Station", type: "economy",  fare: 182, km: 8.2,  status: "COMPLETED", rating: 5, driver: "Vikram S.",    vehicle: "Hyundai i20 · KA-05-MN-2234" },
-  { id: "TXN-8810", date: "01 Mar 2024", time: "17:45", from: "Library Sq",   to: "City Centre",     type: "auto",     fare: 86,  km: 4.7,  status: "COMPLETED", rating: 4, driver: "Rajan A.",      vehicle: "Auto · KA-02-TN-9901"         },
-  { id: "TXN-8795", date: "28 Feb 2024", time: "09:00", from: "College Gate", to: "Airport Road",    type: "premium",  fare: 340, km: 11.5, status: "COMPLETED", rating: 5, driver: "Anand M.",      vehicle: "Toyota Innova · KA-04-AB-1122" },
-  { id: "TXN-8781", date: "26 Feb 2024", time: "11:30", from: "Tech Park",    to: "Main Market",     type: "shared",   fare: 52,  km: 3.8,  status: "COMPLETED", rating: 3, driver: "Suresh K.",     vehicle: "Maruti Swift · KA-09-QR-5566"  },
-  { id: "TXN-8762", date: "24 Feb 2024", time: "18:22", from: "IT Hub",       to: "Ring Road",       type: "auto",     fare: 48,  km: 2.9,  status: "CANCELLED", rating: 0, driver: "—",             vehicle: "—"                             },
+  { id: "TXN-8821", date: "02 Mar 2024", time: "08:12", from: "College Gate", to: "Railway Station", type: "economy", fare: 182, km: 8.2, status: "COMPLETED", rating: 5, driver: "Vikram S.", vehicle: "Hyundai i20 · KA-05-MN-2234" },
+  { id: "TXN-8810", date: "01 Mar 2024", time: "17:45", from: "Library Sq", to: "City Centre", type: "auto", fare: 86, km: 4.7, status: "COMPLETED", rating: 4, driver: "Rajan A.", vehicle: "Auto · KA-02-TN-9901" },
+  { id: "TXN-8795", date: "28 Feb 2024", time: "09:00", from: "College Gate", to: "Airport Road", type: "premium", fare: 340, km: 11.5, status: "COMPLETED", rating: 5, driver: "Anand M.", vehicle: "Toyota Innova · KA-04-AB-1122" },
+  { id: "TXN-8781", date: "26 Feb 2024", time: "11:30", from: "Tech Park", to: "Main Market", type: "shared", fare: 52, km: 3.8, status: "COMPLETED", rating: 3, driver: "Suresh K.", vehicle: "Maruti Swift · KA-09-QR-5566" },
+  { id: "TXN-8762", date: "24 Feb 2024", time: "18:22", from: "IT Hub", to: "Ring Road", type: "auto", fare: 48, km: 2.9, status: "CANCELLED", rating: 0, driver: "—", vehicle: "—" },
 ];
 
 // ── Mock nearby drivers (for schematic view) ─────────────────────────
 const NEARBY_DRIVERS = [
-  { id: 1, name: "Vikram",   type: "economy", x: 32,  y: 28,  eta: 3,  rating: 4.9 },
-  { id: 2, name: "Rajan",    type: "auto",    x: 58,  y: 45,  eta: 5,  rating: 4.7 },
-  { id: 3, name: "Anand",    type: "premium", x: 18,  y: 62,  eta: 7,  rating: 5.0 },
-  { id: 4, name: "Suresh",   type: "economy", x: 72,  y: 30,  eta: 6,  rating: 4.5 },
-  { id: 5, name: "Mohan",    type: "auto",    x: 44,  y: 72,  eta: 4,  rating: 4.8 },
-  { id: 6, name: "Pradeep",  type: "shared",  x: 82,  y: 58,  eta: 9,  rating: 4.6 },
-  { id: 7, name: "Kiran",    type: "economy", x: 22,  y: 40,  eta: 8,  rating: 4.4 },
+  { id: 1, name: "Vikram", type: "economy", x: 32, y: 28, eta: 3, rating: 4.9 },
+  { id: 2, name: "Rajan", type: "auto", x: 58, y: 45, eta: 5, rating: 4.7 },
+  { id: 3, name: "Anand", type: "premium", x: 18, y: 62, eta: 7, rating: 5.0 },
+  { id: 4, name: "Suresh", type: "economy", x: 72, y: 30, eta: 6, rating: 4.5 },
+  { id: 5, name: "Mohan", type: "auto", x: 44, y: 72, eta: 4, rating: 4.8 },
+  { id: 6, name: "Pradeep", type: "shared", x: 82, y: 58, eta: 9, rating: 4.6 },
+  { id: 7, name: "Kiran", type: "economy", x: 22, y: 40, eta: 8, rating: 4.4 },
 ];
 
 // ── Shared atoms ──────────────────────────────────────────────────────
@@ -175,14 +175,14 @@ const Pill = ({ s, small }) => {
 const Btn = ({ children, onClick, variant = "primary", size = "md", full = false, disabled = false }) => {
   const [h, setH] = useState(false);
   const pad = { sm: "7px 16px", md: "11px 26px", lg: "14px 36px" }[size] || "11px 26px";
-  const fs  = { sm: 11, md: 13, lg: 16 }[size] || 13;
+  const fs = { sm: 11, md: 13, lg: 16 }[size] || 13;
   const s = {
-    primary:   { bg: h && !disabled ? "#2C1E0A" : "var(--ink)",          c: "var(--amber-on-ink)", b: "none"                           },
-    secondary: { bg: h && !disabled ? "var(--parchment)" : "transparent", c: "var(--ink)",          b: "1.5px solid var(--ink)"         },
-    danger:    { bg: h && !disabled ? "#8A1818" : "var(--red)",           c: "var(--cream-on-ink)", b: "none"                           },
-    success:   { bg: h && !disabled ? "#155230" : "var(--green)",         c: "var(--cream-on-ink)", b: "none"                           },
-    ghost:     { bg: h && !disabled ? "var(--parchment)" : "transparent", c: "var(--amber-text)",   b: "1.5px solid var(--rule)"        },
-    amber:     { bg: h && !disabled ? "#7A4206" : "var(--amber-text)",    c: "var(--cream-on-ink)", b: "none"                           },
+    primary: { bg: h && !disabled ? "#2C1E0A" : "var(--ink)", c: "var(--amber-on-ink)", b: "none" },
+    secondary: { bg: h && !disabled ? "var(--parchment)" : "transparent", c: "var(--ink)", b: "1.5px solid var(--ink)" },
+    danger: { bg: h && !disabled ? "#8A1818" : "var(--red)", c: "var(--cream-on-ink)", b: "none" },
+    success: { bg: h && !disabled ? "#155230" : "var(--green)", c: "var(--cream-on-ink)", b: "none" },
+    ghost: { bg: h && !disabled ? "var(--parchment)" : "transparent", c: "var(--amber-text)", b: "1.5px solid var(--rule)" },
+    amber: { bg: h && !disabled ? "#7A4206" : "var(--amber-text)", c: "var(--cream-on-ink)", b: "none" },
   }[variant] || {};
   return <button onClick={onClick} disabled={disabled} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
     style={{ padding: pad, background: s.bg, color: s.c, border: s.b || "none", fontFamily: "var(--font-display)", fontSize: fs, letterSpacing: 2, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, width: full ? "100%" : "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "background .18s" }}
@@ -201,7 +201,7 @@ function useToast() {
     setTs(t => [...t, { id, msg, type }]);
     setTimeout(() => setTs(t => t.filter(x => x.id !== id)), type === "error" ? 6000 : 3500);
   }, []);
-  const C = { success: { bg: "var(--success-bg)", b: "var(--green)",      t: "var(--green)",      i: "✓" }, error: { bg: "var(--error-bg)", b: "var(--red)", t: "var(--red)", i: "✕" }, info: { bg: "var(--surface)", b: "var(--ink)", t: "var(--ink)", i: "◆" }, warn: { bg: "var(--warn-bg)", b: "var(--amber-text)", t: "var(--amber-text)", i: "⚠" } };
+  const C = { success: { bg: "var(--success-bg)", b: "var(--green)", t: "var(--green)", i: "✓" }, error: { bg: "var(--error-bg)", b: "var(--red)", t: "var(--red)", i: "✕" }, info: { bg: "var(--surface)", b: "var(--ink)", t: "var(--ink)", i: "◆" }, warn: { bg: "var(--warn-bg)", b: "var(--amber-text)", t: "var(--amber-text)", i: "⚠" } };
   const Toaster = () => (
     <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, display: "flex", flexDirection: "column", gap: 8 }}>
       {ts.map(t => { const c = C[t.type] || C.info; return <div key={t.id} style={{ background: c.bg, border: `2px solid ${c.b}`, padding: "11px 16px", minWidth: 280, display: "flex", gap: 10, alignItems: "center", animation: "slideDown .3s ease", boxShadow: "0 4px 20px rgba(26,18,8,.12)" }}><span style={{ fontFamily: "var(--font-display)", fontSize: 18, color: c.t }}>{c.i}</span><span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: c.t }}>{t.msg}</span></div>; })}
@@ -214,10 +214,10 @@ function useToast() {
 //  STOP SEARCH — typeahead input replacing <select> dropdowns
 // ══════════════════════════════════════════════════════════════════════
 function StopSearch({ value, onChange, placeholder, exclude = [], label, labelColor = "var(--muted)" }) {
-  const [query,  setQuery]  = useState(value || "");
-  const [open,   setOpen]   = useState(false);
+  const [query, setQuery] = useState(value || "");
+  const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState(-1);
-  const wrapRef  = useRef(null);
+  const wrapRef = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => { setQuery(value || ""); }, [value]);
@@ -236,10 +236,10 @@ function StopSearch({ value, onChange, placeholder, exclude = [], label, labelCo
   const select = stop => { setQuery(stop); setOpen(false); setCursor(-1); onChange(stop); };
 
   const handleKey = e => {
-    if (e.key === "ArrowDown")  { e.preventDefault(); setOpen(true); setCursor(c => Math.min(c + 1, filtered.length - 1)); }
-    else if (e.key === "ArrowUp")   { e.preventDefault(); setCursor(c => Math.max(c - 1, 0)); }
-    else if (e.key === "Enter"  && cursor >= 0 && filtered[cursor]) { select(filtered[cursor]); }
-    else if (e.key === "Escape")    { setOpen(false); }
+    if (e.key === "ArrowDown") { e.preventDefault(); setOpen(true); setCursor(c => Math.min(c + 1, filtered.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setCursor(c => Math.max(c - 1, 0)); }
+    else if (e.key === "Enter" && cursor >= 0 && filtered[cursor]) { select(filtered[cursor]); }
+    else if (e.key === "Escape") { setOpen(false); }
   };
 
   const highlight = text => {
@@ -268,7 +268,7 @@ function StopSearch({ value, onChange, placeholder, exclude = [], label, labelCo
           style={{ flex: 1, background: "transparent", border: "none", fontFamily: "var(--font-sans)", fontSize: 15, color: "var(--ink)", outline: "none", fontWeight: value ? 500 : 400, minWidth: 0 }} />
         {query
           ? <button onClick={() => { setQuery(""); onChange(""); inputRef.current?.focus(); setOpen(true); }}
-              style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 16, lineHeight: 1, cursor: "pointer", flexShrink: 0, padding: 0 }}>×</button>
+            style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 16, lineHeight: 1, cursor: "pointer", flexShrink: 0, padding: 0 }}>×</button>
           : <span style={{ color: "var(--muted)", fontSize: 10, flexShrink: 0, pointerEvents: "none" }}>▾</span>
         }
       </div>
@@ -352,12 +352,12 @@ function CarIcon({ size = 28, color = "#1A1208" }) {
 //  Pickup, destination, ride type, schedule
 // ═══════════════════════════════════════════════════════════════════════
 function SearchPhase({ onConfirm }) {
-  const [pickup,   setPickup]   = useState("College Gate");
-  const [dest,     setDest]     = useState("");
+  const [pickup, setPickup] = useState("College Gate");
+  const [dest, setDest] = useState("");
   const [rideType, setRideType] = useState("economy");
   const [schedMode, setSchedMode] = useState("now"); // "now" | "later"
   const [schedTime, setSchedTime] = useState("");
-  const [destErr,  setDestErr]  = useState("");
+  const [destErr, setDestErr] = useState("");
 
   const sel = RIDE_TYPES.find(r => r.id === rideType);
   const canCalc = pickup && dest && pickup !== dest;
@@ -497,10 +497,10 @@ function SearchPhase({ onConfirm }) {
 
               {/* Breakdown */}
               {[
-                ["Base fare",           `₹${sel.base}`],
+                ["Base fare", `₹${sel.base}`],
                 [`Distance (${calc.km} km × ₹${sel.rate})`, `₹${Math.round(parseFloat(calc.km) * sel.rate)}`],
                 calc.surge > 1 && ["Surge (1.2×)", `+₹${Math.round(calc.fare * 0.17)}`],
-                ["Estimated ETA",       `${calc.eta} min`],
+                ["Estimated ETA", `${calc.eta} min`],
               ].filter(Boolean).map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--rule)" }}>
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 1, color: "var(--muted)" }}>{k}</span>
@@ -529,7 +529,7 @@ function SearchPhase({ onConfirm }) {
 
         {/* Schedule indicator */}
         {schedMode === "later" && schedTime && (
-          <div style={{ padding: "10px 14px", background: "var(--parchment)", border: "1.5px solid var(--ink)", marginBottom: 14, fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--ink)" }}>
+          <div style={{ padding: "10px 14px", background: "var(--info-bg)", border: "1.5px solid var(--ink)", marginBottom: 14, fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--ink)" }}>
             ◷ SCHEDULED FOR: {new Date(schedTime).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
           </div>
         )}
@@ -647,17 +647,17 @@ function ConfirmPhase({ booking, onBack, onConfirm }) {
 //  Driver assigned, live ETA, OTP, cancel
 // ═══════════════════════════════════════════════════════════════════════
 const MOCK_DRIVERS = [
-  { name: "Vikram Singh",  initials: "VS", phone: "+91 98765 43210", rating: 4.9, trips: 1248, vehicle: "Hyundai i20", plate: "KA-05-MN-2234", color: "#C8832A" },
-  { name: "Rajan Kumar",   initials: "RK", phone: "+91 87654 32109", rating: 4.7, trips: 876,  vehicle: "Maruti Swift",  plate: "KA-02-QR-8871", color: "#1E6641" },
-  { name: "Anand Murthy",  initials: "AM", phone: "+91 76543 21098", rating: 5.0, trips: 2103, vehicle: "Toyota Innova", plate: "KA-04-AB-1122", color: "#1A1208" },
+  { name: "Vikram Singh", initials: "VS", phone: "+91 98765 43210", rating: 4.9, trips: 1248, vehicle: "Hyundai i20", plate: "KA-05-MN-2234", color: "#C8832A" },
+  { name: "Rajan Kumar", initials: "RK", phone: "+91 87654 32109", rating: 4.7, trips: 876, vehicle: "Maruti Swift", plate: "KA-02-QR-8871", color: "#1E6641" },
+  { name: "Anand Murthy", initials: "AM", phone: "+91 76543 21098", rating: 5.0, trips: 2103, vehicle: "Toyota Innova", plate: "KA-04-AB-1122", color: "#1A1208" },
 ];
 
 const TRIP_STAGES = ["DRIVER ASSIGNED", "EN ROUTE TO YOU", "DRIVER ARRIVED", "IN TRIP", "COMPLETED"];
 
 function TrackingPhase({ booking, onComplete, onCancel }) {
   const driver = MOCK_DRIVERS.find(d => d.name.includes(booking.rideType === "premium" ? "Anand" : booking.rideType === "auto" ? "Rajan" : "Vikram")) || MOCK_DRIVERS[0];
-  const [stage, setStage]     = useState(0);
-  const [eta,   setEta]       = useState(booking.calc.eta);
+  const [stage, setStage] = useState(0);
+  const [eta, setEta] = useState(booking.calc.eta);
   const [elapsed, setElapsed] = useState(0);
   const [cancelling, setCancelling] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
@@ -769,7 +769,7 @@ function TrackingPhase({ booking, onComplete, onCancel }) {
               <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--red)", marginBottom: 12 }}>Cancellation fee of ₹20 may apply. Are you sure?</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <Btn variant="danger" size="sm" onClick={cancelRide} disabled={cancelling}>{cancelling ? "CANCELLING…" : "YES, CANCEL"}</Btn>
-                <Btn variant="ghost"  size="sm" onClick={() => setShowCancel(false)}>KEEP RIDE</Btn>
+                <Btn variant="ghost" size="sm" onClick={() => setShowCancel(false)}>KEEP RIDE</Btn>
               </div>
             </div>
           )}
@@ -793,7 +793,7 @@ function TrackingPhase({ booking, onComplete, onCancel }) {
 // ═══════════════════════════════════════════════════════════════════════
 function CompletedPhase({ booking, driver, onNewRide, toast }) {
   const [rating, setRating] = useState(0);
-  const [rated, setRated]   = useState(false);
+  const [rated, setRated] = useState(false);
   const [comment, setComment] = useState("");
 
   const submitRating = async () => {
@@ -828,11 +828,11 @@ function CompletedPhase({ booking, driver, onNewRide, toast }) {
         {/* Body */}
         <div style={{ padding: "18px 20px" }}>
           {[
-            ["Route",     `${booking.pickup} → ${booking.dest}`],
+            ["Route", `${booking.pickup} → ${booking.dest}`],
             ["Ride type", booking.sel.label + " · " + booking.sel.desc],
-            ["Distance",  booking.calc.km + " km"],
-            ["Driver",    driver.name + " · " + driver.plate],
-            ["Payment",   PAYMENT_METHODS.find(m => m.id === booking.payment)?.label || "—"],
+            ["Distance", booking.calc.km + " km"],
+            ["Driver", driver.name + " · " + driver.plate],
+            ["Payment", PAYMENT_METHODS.find(m => m.id === booking.payment)?.label || "—"],
             ["Date/Time", new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })],
           ].map(([l, v]) => (
             <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--rule)" }}>
@@ -880,7 +880,7 @@ function CompletedPhase({ booking, driver, onNewRide, toast }) {
       {/* Actions */}
       <div style={{ display: "flex", gap: 10 }}>
         <Btn variant="primary" size="md" full onClick={onNewRide}>BOOK ANOTHER RIDE →</Btn>
-        <Btn variant="ghost"   size="sm" onClick={() => toast.info("Receipt will be emailed to you.")}>⬇ RECEIPT</Btn>
+        <Btn variant="ghost" size="sm" onClick={() => toast.info("Receipt will be emailed to you.")}>⬇ RECEIPT</Btn>
       </div>
     </div>
   );
@@ -912,7 +912,7 @@ function MyRides({ onRebook }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", borderTop: "3px solid var(--ink)", borderBottom: "1px solid var(--rule)", marginBottom: 24 }}>
         {[
           [MOCK_HISTORY.filter(r => r.status === "COMPLETED").length, "COMPLETED", "var(--green)"],
-          [MOCK_HISTORY.filter(r => r.status === "CANCELLED").length, "CANCELLED",  "var(--red)"],
+          [MOCK_HISTORY.filter(r => r.status === "CANCELLED").length, "CANCELLED", "var(--red)"],
           [(MOCK_HISTORY.reduce((s, r) => s + r.km, 0)).toFixed(1) + " KM", "TOTAL DISTANCE", "var(--ink)"],
         ].map(([v, l, c], i) => (
           <div key={l} style={{ padding: "16px 20px", textAlign: "center", borderRight: i < 2 ? "1px solid var(--rule)" : "none" }}>
@@ -964,7 +964,7 @@ function MyRides({ onRebook }) {
                   )}
                   <div style={{ display: "flex", gap: 8 }}>
                     <Btn variant="secondary" size="sm" onClick={() => onRebook(ride)}>REBOOK →</Btn>
-                    <Btn variant="ghost"     size="sm" onClick={() => {}}>⬇ RECEIPT</Btn>
+                    <Btn variant="ghost" size="sm" onClick={() => { }}>⬇ RECEIPT</Btn>
                   </div>
                 </div>
               )}
@@ -1092,18 +1092,18 @@ function NearbyView() {
 //  MAIN EXPORT — TAXI BOOKING
 // ═══════════════════════════════════════════════════════════════════════
 const TABS = [
-  { id: "book",   label: "BOOK RIDE"  },
-  { id: "rides",  label: "MY RIDES"   },
-  { id: "nearby", label: "NEARBY"     },
+  { id: "book", label: "BOOK RIDE" },
+  { id: "rides", label: "MY RIDES" },
+  { id: "nearby", label: "NEARBY" },
 ];
 
 export default function TaxiBooking() {
   const [tab, setTab] = useState("book");
 
   // Booking flow phases: "search" | "confirm" | "tracking" | "completed"
-  const [phase,   setPhase]   = useState("search");
+  const [phase, setPhase] = useState("search");
   const [booking, setBooking] = useState(null);
-  const [driver,  setDriver]  = useState(null);
+  const [driver, setDriver] = useState(null);
 
   const toast = useToast();
 
@@ -1181,13 +1181,13 @@ export default function TaxiBooking() {
       {/* Tab content */}
       {tab === "book" && (
         <>
-          {phase === "search"    && <SearchPhase   onConfirm={handleConfirm} />}
-          {phase === "confirm"   && <ConfirmPhase  booking={booking} onBack={() => setPhase("search")} onConfirm={handleBooked} />}
-          {phase === "tracking"  && <TrackingPhase booking={booking} onComplete={handleComplete} onCancel={handleCancel} />}
+          {phase === "search" && <SearchPhase onConfirm={handleConfirm} />}
+          {phase === "confirm" && <ConfirmPhase booking={booking} onBack={() => setPhase("search")} onConfirm={handleBooked} />}
+          {phase === "tracking" && <TrackingPhase booking={booking} onComplete={handleComplete} onCancel={handleCancel} />}
           {phase === "completed" && <CompletedPhase booking={booking} driver={driver} onNewRide={handleNewRide} toast={toast} />}
         </>
       )}
-      {tab === "rides"  && <MyRides onRebook={handleRebook} />}
+      {tab === "rides" && <MyRides onRebook={handleRebook} />}
       {tab === "nearby" && <NearbyView />}
 
       <toast.Toaster />

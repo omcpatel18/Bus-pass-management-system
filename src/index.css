@@ -24,7 +24,7 @@
   --shadow-lg:0 16px 48px rgba(26,18,8,.18);
 }
 
-body { background:var(--cream); color:var(--ink); font-family:var(--font-sans); -webkit-font-smoothing:antialiased; }
+body { background:radial-gradient(circle at 12% 12%, rgba(200,131,42,0.12) 0, transparent 28%), radial-gradient(circle at 88% 16%, rgba(30,102,65,0.11) 0, transparent 24%), radial-gradient(circle at 82% 88%, rgba(176,32,32,0.10) 0, transparent 26%), linear-gradient(180deg, #F8F3E8 0%, #F6F0E4 48%, #F0E6D4 100%); color:var(--ink); font-family:var(--font-sans); -webkit-font-smoothing:antialiased; }
 button { cursor:pointer; }
 input,select,textarea { font-family:var(--font-sans); }
 

@@ -212,71 +212,41 @@ const Pill = ({ s }) => {
   return <span style={{ background:p.bg,color:p.c,fontFamily:"var(--font-mono)",fontSize:9,fontWeight:700,letterSpacing:2,padding:"3px 12px",borderRadius:"var(--r-full)",display:"inline-block",lineHeight:1.7 }}>{(s||"").toUpperCase()}</span>;
 };
 
-const Btn = ({ children, onClick, variant="primary", size="md", full=false, disabled=false, type="button" }) => {
+const Btn = ({ children, onClick, variant="primary", size="md", full=false, disabled=false }) => {
   const [h,setH]=useState(false);
-  const pad={sm:"7px 16px",md:"12px 28px",lg:"16px 40px"}[size]||"12px 28px";
-  const fs={sm:11,md:14,lg:18}[size]||14;
+  const pad={sm:"7px 16px",md:"11px 26px",lg:"14px 36px"}[size]||"11px 26px";
+  const fs={sm:11,md:13,lg:16}[size]||13;
+  const s={
+    primary:  {bg:h&&!disabled?"#2C1E0A":"var(--ink)",          c:"var(--amber-on-ink)", b:"none"},
+    secondary:{bg:h&&!disabled?"var(--parchment)":"transparent", c:"var(--ink)",          b:"1.5px solid var(--ink)"},
+    danger:   {bg:h&&!disabled?"#8A1818":"var(--red)",           c:"var(--cream-on-ink)", b:"none"},
+    success:  {bg:h&&!disabled?"#155230":"var(--green)",         c:"var(--cream-on-ink)", b:"none"},
+    ghost:    {bg:h&&!disabled?"var(--parchment)":"transparent", c:"var(--amber-text)",   b:"1.5px solid var(--rule)"},
+  }[variant]||{};
   
-  const themes = {
-    primary:   { bg: "var(--ink)",          c: "var(--amber-on-ink)", b: "none" },
-    secondary: { bg: "transparent",        c: "var(--ink)",          b: "1.5px solid var(--ink)" },
-    danger:    { bg: "var(--red)",           c: "white",               b: "none" },
-    success:   { bg: "var(--green)",         c: "white",               b: "none" },
-    ghost:     { bg: "transparent",        c: "var(--ink)",          b: "1.5px solid var(--rule)" },
+  // Helper to apply hover styles to arrow spans
+  const applyArrowHover = (child) => {
+    if (!child) return child;
+    if (typeof child === "string") return child;
+    if (child.type === "span" && child.props.style?.transition?.includes("transform")) {
+      return React.cloneElement(child, {
+        style: {
+          ...child.props.style,
+          transform: h && !disabled ? "translateX(4px)" : "translateX(0)"
+        }
+      });
+    }
+    if (Array.isArray(child)) {
+      return child.map(c => applyArrowHover(c));
+    }
+    return child;
   };
-  const s = themes[variant] || themes.primary;
-
-  return (
-    <div style={{ 
-      display: full ? "block" : "inline-block",
-      overflow: "hidden", 
-      borderRadius: "var(--r-xs)",
-      width: full ? "100%" : "auto"
-    }}>
-      <button 
-        type={type}
-        onClick={onClick} 
-        disabled={disabled}
-        onMouseEnter={() => setH(true)} 
-        onMouseLeave={() => setH(false)}
-        style={{ 
-          width: "100%",
-          padding: pad,
-          background: s.bg,
-          color: s.c,
-          border: s.b,
-          fontFamily: "var(--font-display)",
-          fontSize: fs,
-          letterSpacing: 2,
-          cursor: disabled ? "not-allowed" : "pointer",
-          opacity: disabled ? 0.45 : 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 0,
-          position: "relative",
-          transition: "background 200ms ease, transform 200ms ease",
-          transform: h && !disabled ? "translateY(-1px)" : "none"
-        }}
-      >
-        <span style={{ 
-          position: "absolute",
-          left: 12,
-          opacity: h ? 1 : 0,
-          transform: h ? "translateX(0)" : "translateX(-100%)",
-          transition: "transform 220ms ease, opacity 220ms ease",
-          fontSize: "1.2em"
-        }}>→</span>
-        <span style={{ 
-          display: "inline-block",
-          transform: h ? "translateX(6px)" : "translateX(0)",
-          transition: "transform 220ms ease"
-        }}>
-          {children}
-        </span>
-      </button>
-    </div>
-  );
+  
+  const processedChildren = React.Children.map(children, applyArrowHover);
+  
+  return <button onClick={onClick} disabled={disabled}
+    onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+    style={{ padding:pad,background:s.bg,color:s.c,border:s.b||"none",fontFamily:"var(--font-display)",fontSize:fs,letterSpacing:2,cursor:disabled?"not-allowed":"pointer",opacity:disabled?.45:1,width:full?"100%":"auto",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:8,borderRadius:"var(--r-sm)",transition:"background .18s, transform .1s",transform:h&&!disabled?"translateY(-1px)":"none" }}>{processedChildren}</button>;
 };
 
 const Field = ({ label, type="text", value, onChange, placeholder, error, readOnly, hint, required }) => {

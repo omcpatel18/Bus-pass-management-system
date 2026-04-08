@@ -30,6 +30,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { getRoleAwareReply, normalizeRole } from "../services/chatbotEngine";
 
 // ── Design tokens (identical to DesignSystem.jsx) ─────────────────────
 const G = `
@@ -194,38 +195,38 @@ TONE
 // ══════════════════════════════════════════════════════════════════════
 const QUICK_CHIPS = {
   student: [
-    { label: "How do I apply for a pass?",     q: "How do I apply for a bus pass? Walk me through it." },
-    { label: "Book a single ticket",            q: "How do I book a single journey ticket without a pass?" },
+    { label: "How do I apply for a pass?", q: "How do I apply for a bus pass? Walk me through it." },
+    { label: "Book a single ticket", q: "How do I book a single journey ticket without a pass?" },
     { label: "My pass is pending — what now?", q: "My pass application is pending. How long does it take?" },
-    { label: "Book a taxi",                     q: "How do I book a taxi from the app?" },
-    { label: "Payment failed help",             q: "My payment failed but money was deducted. What should I do?" },
-    { label: "Track my bus",                    q: "How do I see where my bus is right now?" },
-    { label: "Renew my pass",                   q: "How do I renew my existing bus pass?" },
-    { label: "Route fares & timings",           q: "What are the available routes, fares, and timings?" },
+    { label: "Book a taxi", q: "How do I book a taxi from the app?" },
+    { label: "Payment failed help", q: "My payment failed but money was deducted. What should I do?" },
+    { label: "Track my bus", q: "How do I see where my bus is right now?" },
+    { label: "Renew my pass", q: "How do I renew my existing bus pass?" },
+    { label: "Route fares & timings", q: "What are the available routes, fares, and timings?" },
   ],
   admin: [
-    { label: "Approve applications",            q: "How do I approve student pass applications?" },
-    { label: "Add a new route",                 q: "How do I add a new bus route?" },
-    { label: "Send an announcement",            q: "How do I broadcast a message to all students?" },
-    { label: "Create a discount voucher",       q: "How do I create a discount for specific students?" },
-    { label: "Download reports",                q: "How do I download daily/weekly/monthly reports?" },
-    { label: "Respond to a student query",      q: "How do I respond to and resolve student support queries?" },
-    { label: "View analytics",                  q: "Where can I see ridership and revenue analytics?" },
-    { label: "Suspend a student account",       q: "How do I suspend a student account?" },
+    { label: "Approve applications", q: "How do I approve student pass applications?" },
+    { label: "Add a new route", q: "How do I add a new bus route?" },
+    { label: "Send an announcement", q: "How do I broadcast a message to all students?" },
+    { label: "Create a discount voucher", q: "How do I create a discount for specific students?" },
+    { label: "Download reports", q: "How do I download daily/weekly/monthly reports?" },
+    { label: "Respond to a student query", q: "How do I respond to and resolve student support queries?" },
+    { label: "View analytics", q: "Where can I see ridership and revenue analytics?" },
+    { label: "Suspend a student account", q: "How do I suspend a student account?" },
   ],
   conductor: [
-    { label: "Scan a QR pass",                  q: "How do I scan a student's QR pass?" },
-    { label: "Handle an invalid QR",            q: "What do I do if a student's QR shows INVALID?" },
-    { label: "Use camera scanning",             q: "How does the camera QR scanner work?" },
-    { label: "Look up a student manually",      q: "How do I manually look up a student without scanning?" },
-    { label: "View today's trip log",           q: "How do I see today's scan log and trip report?" },
-    { label: "Export my daily report",          q: "How do I export my daily trip report as PDF?" },
+    { label: "Scan a QR pass", q: "How do I scan a student's QR pass?" },
+    { label: "Handle an invalid QR", q: "What do I do if a student's QR shows INVALID?" },
+    { label: "Use camera scanning", q: "How does the camera QR scanner work?" },
+    { label: "Look up a student manually", q: "How do I manually look up a student without scanning?" },
+    { label: "View today's trip log", q: "How do I see today's scan log and trip report?" },
+    { label: "Export my daily report", q: "How do I export my daily trip report as PDF?" },
   ],
 };
 
 const WELCOME_MSG = {
-  student:   "Hi! I'm your BusPassPro guide. I can help you apply for a pass, book tickets or taxis, track your bus, and more. What do you need?",
-  admin:     "Welcome, Admin. I can walk you through managing applications, routes, students, analytics, and the admin hub. What would you like to do?",
+  student: "Hi! I'm your BusPassPro guide. I can help you apply for a pass, book tickets or taxis, track your bus, and more. What do you need?",
+  admin: "Welcome, Admin. I can walk you through managing applications, routes, students, analytics, and the admin hub. What would you like to do?",
   conductor: "Hey! I can help you with scanning passes, handling invalid QRs, looking up students, and your trip log. What do you need?",
 };
 
@@ -233,14 +234,22 @@ const WELCOME_MSG = {
 //  PARSE RESPONSE — extract [navigate:xxx] deep links
 // ══════════════════════════════════════════════════════════════════════
 const PAGE_LABELS = {
-  dashboard:"Dashboard", apply:"Apply Pass", tickets:"Tickets",
-  taxi:"Taxi Booking", profile:"My Profile", renew:"Renew Pass",
-  busmap:"Bus Map", notifications:"Notifications",
-  admin:"Applications", routes:"Route Manager", users:"Student Manager",
-  analytics:"Analytics", announce:"Announcements", hub:"Admin Hub",
-  conductor:"QR Scanner", camera:"Camera Scan", triplog:"Trip Log",
-  lookup:"Manual Lookup",
+  dashboard: "Dashboard", apply: "Apply Pass", tickets: "Tickets",
+  taxi: "Taxi Booking", profile: "My Profile", renew: "Renew Pass",
+  busmap: "Bus Map", notifications: "Notifications",
+  admin: "Applications", routes: "Route Manager", users: "Student Manager",
+  analytics: "Analytics", announce: "Announcements", hub: "Admin Hub",
+  conductor: "QR Scanner", camera: "Camera Scan", triplog: "Trip Log",
+  lookup: "Manual Lookup",
 };
+
+const ASSIST_MODES = [
+  { key: "smart", label: "Smart" },
+  { key: "steps", label: "Step-by-step" },
+  { key: "troubleshoot", label: "Fix Issue" },
+];
+
+const COMPACT_CHIP_COUNT = 4;
 
 function parseMessage(text) {
   const parts = [];
@@ -260,9 +269,9 @@ function parseMessage(text) {
 // ══════════════════════════════════════════════════════════════════════
 function TypingDots() {
   return (
-    <div style={{ display:"flex", gap:4, alignItems:"center", padding:"12px 16px" }}>
-      {[0,1,2].map(i => (
-        <div key={i} style={{ width:7, height:7, borderRadius:"50%", background:"var(--amber)", animation:`dotBounce 1.2s ease infinite`, animationDelay:`${i*0.18}s` }}/>
+    <div style={{ display: "flex", gap: 4, alignItems: "center", padding: "12px 16px" }}>
+      {[0, 1, 2].map(i => (
+        <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--amber)", animation: `dotBounce 1.2s ease infinite`, animationDelay: `${i * 0.18}s` }} />
       ))}
     </div>
   );
@@ -273,44 +282,52 @@ function TypingDots() {
 // ══════════════════════════════════════════════════════════════════════
 function MessageBubble({ msg, onNavigate }) {
   const isUser = msg.role === "user";
-  const parts  = isUser ? [{ type:"text", content:msg.content }] : parseMessage(msg.content);
+  const parts = isUser ? [{ type: "text", content: msg.content }] : parseMessage(msg.content);
 
   return (
-    <div style={{ display:"flex", flexDirection:"column",
+    <div style={{
+      display: "flex", flexDirection: "column",
       alignItems: isUser ? "flex-end" : "flex-start",
-      marginBottom:12, animation:"fadeUp .25s ease" }}>
+      marginBottom: 12, animation: "fadeUp .25s ease"
+    }}>
 
       {/* Role label */}
       {!isUser && (
-        <div style={{ fontFamily:"var(--font-mono)", fontSize:6, letterSpacing:3,
-          color:"var(--amber-text)", marginBottom:4, paddingLeft:2 }}>BUSPASSPRO AI</div>
+        <div style={{
+          fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 3,
+          color: "var(--amber-text)", marginBottom: 4, paddingLeft: 2
+        }}>BUSPASSPRO AI</div>
       )}
 
       {/* Bubble */}
       <div style={{
-        maxWidth:"88%",
+        maxWidth: "88%",
         background: isUser ? "var(--ink)" : "var(--surface)",
         border: isUser ? "none" : "1.5px solid var(--rule)",
-        padding:"11px 14px",
+        padding: "11px 14px",
         borderRadius: isUser ? "12px 12px 2px 12px" : "2px 12px 12px 12px",
       }}>
         {parts.map((p, i) => {
           if (p.type === "text") return (
-            <span key={i} style={{ fontFamily:"var(--font-sans)", fontSize:13,
+            <span key={i} style={{
+              fontFamily: "var(--font-sans)", fontSize: 13,
               color: isUser ? "var(--cream-on-ink)" : "var(--ink)",
-              lineHeight:1.65, whiteSpace:"pre-wrap" }}>{p.content}</span>
+              lineHeight: 1.65, whiteSpace: "pre-wrap"
+            }}>{p.content}</span>
           );
           if (p.type === "nav") return (
             <button key={i} onClick={() => onNavigate(p.page)}
-              style={{ display:"inline-flex", alignItems:"center", gap:6,
-                margin:"6px 4px 2px 0", padding:"5px 12px",
-                background:"var(--amber)", border:"none",
-                fontFamily:"var(--font-display)", fontSize:11, letterSpacing:2,
-                color:"var(--ink)", cursor:"pointer",
-                borderRadius:2, transition:"background .15s" }}
-              onMouseEnter={e=>e.target.style.background="#7A4206"}
-              onMouseLeave={e=>e.target.style.background="var(--amber)"}>
-              → {(p.label||p.page).toUpperCase()}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                margin: "6px 4px 2px 0", padding: "5px 12px",
+                background: "var(--amber)", border: "none",
+                fontFamily: "var(--font-display)", fontSize: 11, letterSpacing: 2,
+                color: "var(--ink)", cursor: "pointer",
+                borderRadius: 2, transition: "background .15s"
+              }}
+              onMouseEnter={e => e.target.style.background = "#7A4206"}
+              onMouseLeave={e => e.target.style.background = "var(--amber)"}>
+              → {(p.label || p.page).toUpperCase()}
             </button>
           );
           return null;
@@ -318,9 +335,11 @@ function MessageBubble({ msg, onNavigate }) {
       </div>
 
       {/* Timestamp */}
-      <div style={{ fontFamily:"var(--font-mono)", fontSize:6, letterSpacing:1,
-        color:"var(--muted)", marginTop:3,
-        paddingRight: isUser ? 2 : 0, paddingLeft: isUser ? 0 : 2 }}>
+      <div style={{
+        fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 1,
+        color: "var(--muted)", marginTop: 3,
+        paddingRight: isUser ? 2 : 0, paddingLeft: isUser ? 0 : 2
+      }}>
         {msg.time}
       </div>
     </div>
@@ -330,27 +349,33 @@ function MessageBubble({ msg, onNavigate }) {
 // ══════════════════════════════════════════════════════════════════════
 //  MAIN CHATBOT COMPONENT
 // ══════════════════════════════════════════════════════════════════════
-export default function AIChatbot({ role = "student", onNavigate = () => {} }) {
-  const [open,     setOpen]     = useState(false);
+export default function AIChatbot({ role = "student", onNavigate = () => { } }) {
+  const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [input,    setInput]    = useState("");
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState("");
-  const [unread,   setUnread]   = useState(0);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [unread, setUnread] = useState(0);
   const [showChips, setShowChips] = useState(true);
+  const [assistMode, setAssistMode] = useState("smart");
+  const [chipsExpanded, setChipsExpanded] = useState(false);
 
   const messagesEndRef = useRef(null);
-  const inputRef       = useRef(null);
-  const chips          = QUICK_CHIPS[role] || QUICK_CHIPS.student;
+  const inputRef = useRef(null);
+  const roleKey = normalizeRole(role);
+  const chips = QUICK_CHIPS[roleKey] || QUICK_CHIPS.student;
+  const assistModeLabel = ASSIST_MODES.find(m => m.key === assistMode)?.label || "Smart";
+  const visibleChips = chipsExpanded ? chips : chips.slice(0, COMPACT_CHIP_COUNT);
+  const hiddenChipCount = Math.max(0, chips.length - visibleChips.length);
 
   // ── Scroll to bottom on new message ────────────────────────────────
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior:"smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
   // ── Focus input when opened ─────────────────────────────────────────
   useEffect(() => {
-    if (open) { setTimeout(()=> inputRef.current?.focus(), 180); }
+    if (open) { setTimeout(() => inputRef.current?.focus(), 180); }
   }, [open]);
 
   // ── Esc to close ────────────────────────────────────────────────────
@@ -363,11 +388,12 @@ export default function AIChatbot({ role = "student", onNavigate = () => {} }) {
   // ── Init welcome message ────────────────────────────────────────────
   useEffect(() => {
     setMessages([{
-      role:"assistant",
-      content: WELCOME_MSG[role] || WELCOME_MSG.student,
-      time: new Date().toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }),
+      role: "assistant",
+      content: WELCOME_MSG[roleKey] || WELCOME_MSG.student,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     }]);
-  }, [role]);
+    setChipsExpanded(false);
+  }, [roleKey]);
 
   // ── Toggle open ─────────────────────────────────────────────────────
   const toggle = () => {
@@ -384,8 +410,8 @@ export default function AIChatbot({ role = "student", onNavigate = () => {} }) {
     setShowChips(false);
 
     const userMsg = {
-      role:"user", content:q,
-      time: new Date().toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }),
+      role: "user", content: q,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
     setMessages(m => [...m, userMsg]);
     setLoading(true);
@@ -395,24 +421,17 @@ export default function AIChatbot({ role = "student", onNavigate = () => {} }) {
         .filter(m => m.role === "user" || m.role === "assistant")
         .map(m => ({ role: m.role, content: m.content }));
 
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model:      "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system:     SYSTEM_PROMPT + `\n\nCurrent user role: ${role.toUpperCase()}`,
-          messages:   [...history, { role:"user", content:q }],
-        }),
+      // Local role-aware engine keeps chat reliable even without third-party API keys.
+      const { reply } = getRoleAwareReply({
+        message: q,
+        role: roleKey,
+        history,
+        mode: assistMode,
       });
 
-      if (!res.ok) throw new Error(`API error ${res.status}`);
-      const data = await res.json();
-      const reply = data.content?.find(b => b.type === "text")?.text || "Sorry, I couldn't get a response. Please try again.";
-
       const aiMsg = {
-        role:"assistant", content:reply,
-        time: new Date().toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }),
+        role: "assistant", content: reply,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
       setMessages(m => [...m, aiMsg]);
 
@@ -420,11 +439,19 @@ export default function AIChatbot({ role = "student", onNavigate = () => {} }) {
       if (!open) setUnread(n => n + 1);
 
     } catch (e) {
-      setError("Couldn't reach the AI. Check your connection and try again.");
+      setError("Could not generate a response right now. Please try again.");
     } finally {
       setLoading(false);
+      // Always bring menu back so users can pick more preset questions.
+      setShowChips(true);
+      setChipsExpanded(false);
     }
-  }, [input, loading, messages, open, role]);
+  }, [assistMode, input, loading, messages, open, roleKey]);
+
+  const handleChipSend = (question) => {
+    send(question);
+    setChipsExpanded(false);
+  };
 
   const handleKey = e => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
@@ -432,11 +459,13 @@ export default function AIChatbot({ role = "student", onNavigate = () => {} }) {
 
   const clearChat = () => {
     setMessages([{
-      role:"assistant",
-      content: WELCOME_MSG[role] || WELCOME_MSG.student,
-      time: new Date().toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }),
+      role: "assistant",
+      content: WELCOME_MSG[roleKey] || WELCOME_MSG.student,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     }]);
     setShowChips(true);
+    setAssistMode("smart");
+    setChipsExpanded(false);
     setError("");
     setInput("");
   };
@@ -452,149 +481,211 @@ export default function AIChatbot({ role = "student", onNavigate = () => {} }) {
       <style>{G}</style>
 
       {/* ── Floating button ── */}
-      <div style={{ position:"fixed", bottom:28, right:28, zIndex:8000 }}>
+      <div style={{ position: "fixed", bottom: 28, right: 28, zIndex: 8000 }}>
 
         {/* Ripple ring when unread */}
         {unread > 0 && !open && (
-          <div style={{ position:"absolute", inset:-6, borderRadius:"50%",
-            border:"2px solid var(--amber)", animation:"ripple 1.5s ease-out infinite",
-            pointerEvents:"none" }}/>
+          <div style={{
+            position: "absolute", inset: -6, borderRadius: "50%",
+            border: "2px solid var(--amber)", animation: "ripple 1.5s ease-out infinite",
+            pointerEvents: "none"
+          }} />
         )}
 
         <button onClick={toggle}
-          style={{ width:56, height:56, borderRadius:"50%",
+          style={{
+            width: 56, height: 56, borderRadius: "50%",
             background: open ? "var(--red)" : "var(--ink)",
-            border:`3px solid ${open ? "var(--red)" : "var(--amber)"}`,
-            boxShadow:"0 6px 24px rgba(26,18,8,.28)",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            cursor:"pointer", transition:"all .22s",
-            position:"relative" }}>
+            border: `3px solid ${open ? "var(--red)" : "var(--amber)"}`,
+            boxShadow: "0 6px 24px rgba(26,18,8,.28)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", transition: "all .22s",
+            position: "relative"
+          }}>
 
           {/* Icon */}
           {open
-            ? <span style={{ fontFamily:"var(--font-display)", fontSize:20,
-                color:"white", lineHeight:1 }}>✕</span>
+            ? <span style={{
+              fontFamily: "var(--font-display)", fontSize: 20,
+              color: "white", lineHeight: 1
+            }}>✕</span>
             : <svg width={24} height={24} viewBox="0 0 24 24" fill="none"
-                stroke="var(--amber-on-ink)" strokeWidth={1.8}
-                strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
+              stroke="var(--amber-on-ink)" strokeWidth={1.8}
+              strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
           }
 
           {/* Unread badge */}
           {unread > 0 && !open && (
-            <div style={{ position:"absolute", top:-4, right:-4,
-              width:18, height:18, borderRadius:"50%",
-              background:"var(--red)", border:"2px solid var(--cream)",
-              fontFamily:"var(--font-mono)", fontSize:8, fontWeight:700,
-              color:"white", display:"flex", alignItems:"center", justifyContent:"center",
-              lineHeight:1 }}>{unread > 9 ? "9+" : unread}</div>
+            <div style={{
+              position: "absolute", top: -4, right: -4,
+              width: 18, height: 18, borderRadius: "50%",
+              background: "var(--red)", border: "2px solid var(--cream)",
+              fontFamily: "var(--font-mono)", fontSize: 8, fontWeight: 700,
+              color: "white", display: "flex", alignItems: "center", justifyContent: "center",
+              lineHeight: 1
+            }}>{unread > 9 ? "9+" : unread}</div>
           )}
         </button>
       </div>
 
       {/* ── Chat panel ── */}
       {open && (
-        <div style={{ position:"fixed", bottom:96, right:28, zIndex:7999,
-          width:380, maxHeight:"72vh",
-          display:"flex", flexDirection:"column",
-          border:"2px solid var(--ink)",
-          boxShadow:"0 16px 48px rgba(26,18,8,.22)",
-          animation:"slideUp .28s cubic-bezier(.34,1.28,.64,1)",
-          background:"var(--cream)" }}>
+        <div style={{
+          position: "fixed", bottom: 96, right: 28, zIndex: 7999,
+          width: 380, maxHeight: "72vh",
+          display: "flex", flexDirection: "column",
+          border: "2px solid var(--ink)",
+          boxShadow: "0 16px 48px rgba(26,18,8,.22)",
+          animation: "slideUp .28s cubic-bezier(.34,1.28,.64,1)",
+          background: "var(--cream)"
+        }}>
 
           {/* Header */}
-          <div style={{ background:"var(--ink)", padding:"14px 18px",
-            display:"flex", justifyContent:"space-between", alignItems:"center",
-            flexShrink:0 }}>
+          <div style={{
+            background: "var(--ink)", padding: "14px 18px",
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            flexShrink: 0
+          }}>
             <div>
-              <div style={{ fontFamily:"var(--font-mono)", fontSize:7,
-                letterSpacing:4, color:"var(--muted-on-ink)", marginBottom:3 }}>
+              <div style={{
+                fontFamily: "var(--font-mono)", fontSize: 7,
+                letterSpacing: 4, color: "var(--muted-on-ink)", marginBottom: 3
+              }}>
                 BUSPASSPRO · AI GUIDE
               </div>
-              <div style={{ fontFamily:"var(--font-display)", fontSize:18,
-                letterSpacing:2, color:"var(--amber-on-ink)", lineHeight:1 }}>
+              <div style={{
+                fontFamily: "var(--font-display)", fontSize: 18,
+                letterSpacing: 2, color: "var(--amber-on-ink)", lineHeight: 1
+              }}>
                 SMART ASSISTANT
               </div>
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {/* Live dot */}
-              <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-                <div style={{ width:6, height:6, borderRadius:"50%",
-                  background:"var(--green-on-ink)",
-                  animation:"pulse 2s ease-in-out infinite" }}/>
-                <span style={{ fontFamily:"var(--font-mono)", fontSize:6,
-                  letterSpacing:3, color:"var(--muted-on-ink)" }}>ONLINE</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: "var(--green-on-ink)",
+                  animation: "pulse 2s ease-in-out infinite"
+                }} />
+                <span style={{
+                  fontFamily: "var(--font-mono)", fontSize: 6,
+                  letterSpacing: 3, color: "var(--muted-on-ink)"
+                }}>ONLINE</span>
               </div>
               {/* Clear button */}
               <button onClick={clearChat}
-                style={{ background:"none", border:"1px solid rgba(255,255,255,.15)",
-                  padding:"4px 10px", fontFamily:"var(--font-mono)", fontSize:7,
-                  letterSpacing:2, color:"var(--muted-on-ink)", cursor:"pointer",
-                  transition:"border-color .18s" }}
-                onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(255,255,255,.4)"}
-                onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,.15)"}>
+                style={{
+                  background: "none", border: "1px solid rgba(255,255,255,.15)",
+                  padding: "4px 10px", fontFamily: "var(--font-mono)", fontSize: 7,
+                  letterSpacing: 2, color: "var(--muted-on-ink)", cursor: "pointer",
+                  transition: "border-color .18s"
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,255,255,.4)"}
+                onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,.15)"}>
                 CLEAR
               </button>
             </div>
           </div>
 
           {/* Role badge */}
-          <div style={{ padding:"6px 18px", background:"var(--parchment)",
-            borderBottom:"1px solid var(--rule)", flexShrink:0,
-            display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{ fontFamily:"var(--font-mono)", fontSize:7,
-              letterSpacing:3, color:"var(--muted)" }}>LOGGED IN AS</div>
-            <div style={{ fontFamily:"var(--font-display)", fontSize:13,
-              letterSpacing:2, color:"var(--amber-text)" }}>{role.toUpperCase()}</div>
+          <div style={{
+            padding: "6px 18px", background: "var(--parchment)",
+            borderBottom: "1px solid var(--rule)", flexShrink: 0,
+            display: "flex", alignItems: "center", gap: 8
+          }}>
+            <div style={{
+              fontFamily: "var(--font-mono)", fontSize: 7,
+              letterSpacing: 3, color: "var(--muted)"
+            }}>LOGGED IN AS</div>
+            <div style={{
+              fontFamily: "var(--font-display)", fontSize: 13,
+              letterSpacing: 2, color: "var(--amber-text)"
+            }}>{roleKey.toUpperCase()}</div>
           </div>
 
           {/* Messages */}
-          <div style={{ flex:1, overflowY:"auto", padding:"16px 14px",
-            display:"flex", flexDirection:"column" }}>
+          <div style={{
+            flex: 1, overflowY: "auto", padding: "16px 14px",
+            display: "flex", flexDirection: "column"
+          }}>
 
             {messages.map((msg, i) => (
-              <MessageBubble key={i} msg={msg} onNavigate={handleNavigate}/>
+              <MessageBubble key={i} msg={msg} onNavigate={handleNavigate} />
             ))}
 
             {loading && (
-              <div style={{ display:"flex", alignItems:"flex-start",
-                marginBottom:12, animation:"fadeIn .2s ease" }}>
-                <div style={{ background:"var(--surface)", border:"1.5px solid var(--rule)",
-                  borderRadius:"2px 12px 12px 12px" }}>
-                  <TypingDots/>
+              <div style={{
+                display: "flex", alignItems: "flex-start",
+                marginBottom: 12, animation: "fadeIn .2s ease"
+              }}>
+                <div style={{
+                  background: "var(--surface)", border: "1.5px solid var(--rule)",
+                  borderRadius: "2px 12px 12px 12px"
+                }}>
+                  <TypingDots />
                 </div>
               </div>
             )}
 
             {error && (
-              <div style={{ padding:"10px 12px", background:"var(--error-bg)",
-                border:"1.5px solid var(--red)", marginBottom:10,
-                fontFamily:"var(--font-sans)", fontSize:12, color:"var(--red)",
-                animation:"fadeUp .3s ease" }}>{error}</div>
+              <div style={{
+                padding: "10px 12px", background: "var(--error-bg)",
+                border: "1.5px solid var(--red)", marginBottom: 10,
+                fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--red)",
+                animation: "fadeUp .3s ease"
+              }}>{error}</div>
             )}
 
-            <div ref={messagesEndRef}/>
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick chips — shown on fresh start */}
+          {/* Quick chips — compact dock */}
           {showChips && (
-            <div style={{ padding:"10px 14px 6px", borderTop:"1px solid var(--rule)",
-              background:"var(--parchment)", flexShrink:0 }}>
-              <div style={{ fontFamily:"var(--font-mono)", fontSize:6,
-                letterSpacing:3, color:"var(--muted)", marginBottom:8 }}>QUICK QUESTIONS</div>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:5,
-                maxHeight:100, overflowY:"auto" }}>
-                {chips.map((c, i) => (
-                  <button key={i} onClick={() => send(c.q)}
-                    style={{ padding:"5px 10px", background:"var(--cream)",
-                      border:"1.5px solid var(--rule)",
-                      fontFamily:"var(--font-sans)", fontSize:11,
-                      color:"var(--ink)", cursor:"pointer",
-                      borderRadius:2, lineHeight:1.4, textAlign:"left",
-                      transition:"border-color .15s, background .15s" }}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--amber)";e.currentTarget.style.background="var(--amber-light)"}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--rule)";e.currentTarget.style.background="var(--cream)"}}>
+            <div style={{
+              padding: "10px 14px 6px", borderTop: "1px solid var(--rule)",
+              background: "var(--parchment)", flexShrink: 0
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
+                <div style={{
+                  fontFamily: "var(--font-mono)", fontSize: 6,
+                  letterSpacing: 3, color: "var(--muted)"
+                }}>
+                  QUICK QUESTIONS {chipsExpanded ? "(ALL)" : "(COMPACT)"}
+                </div>
+                <button
+                  onClick={() => setChipsExpanded(v => !v)}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--rule)",
+                    padding: "2px 8px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 8,
+                    letterSpacing: 1,
+                    color: "var(--muted)",
+                    borderRadius: 999,
+                    cursor: "pointer",
+                  }}
+                >
+                  {chipsExpanded ? "Hide" : `More${hiddenChipCount > 0 ? ` +${hiddenChipCount}` : ""}`}
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
+                {visibleChips.map((c, i) => (
+                  <button key={i} onClick={() => handleChipSend(c.q)}
+                    style={{
+                      padding: "5px 10px", background: "var(--cream)",
+                      border: "1.5px solid var(--rule)",
+                      fontFamily: "var(--font-sans)", fontSize: 11,
+                      color: "var(--ink)", cursor: "pointer",
+                      borderRadius: 999, lineHeight: 1.4, textAlign: "left",
+                      whiteSpace: "nowrap", flexShrink: 0,
+                      transition: "border-color .15s, background .15s"
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--amber)"; e.currentTarget.style.background = "var(--amber-light)" }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--rule)"; e.currentTarget.style.background = "var(--cream)" }}>
                     {c.label}
                   </button>
                 ))}
@@ -603,52 +694,95 @@ export default function AIChatbot({ role = "student", onNavigate = () => {} }) {
           )}
 
           {/* Input area */}
-          <div style={{ padding:"12px 14px", borderTop:"2px solid var(--ink)",
-            background:"var(--surface)", flexShrink:0,
-            display:"flex", gap:8, alignItems:"flex-end" }}>
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKey}
-              placeholder="Ask me anything about BusPassPro…"
-              rows={1}
-              style={{ flex:1, padding:"9px 12px",
-                border:"1.5px solid var(--rule)",
-                background:"var(--cream)",
-                fontFamily:"var(--font-sans)", fontSize:13,
-                color:"var(--ink)", outline:"none", resize:"none",
-                lineHeight:1.5, maxHeight:80, overflowY:"auto",
-                transition:"border-color .18s",
-                borderRadius:2 }}
-              onFocus={e=>e.target.style.borderColor="var(--amber)"}
-              onBlur={e=>e.target.style.borderColor="var(--rule)"}
-            />
-            <button onClick={() => send()}
-              disabled={!input.trim() || loading}
-              style={{ width:38, height:38, background:!input.trim()||loading?"var(--parchment)":"var(--ink)",
-                border:"none", display:"flex", alignItems:"center",
-                justifyContent:"center", cursor:!input.trim()||loading?"not-allowed":"pointer",
-                transition:"background .18s", flexShrink:0, borderRadius:2 }}>
-              {loading
-                ? <div style={{ width:14, height:14, border:"2px solid rgba(200,131,42,.3)",
-                    borderTop:"2px solid var(--amber)", borderRadius:"50%",
-                    animation:"spin .7s linear infinite" }}/>
-                : <svg width={16} height={16} viewBox="0 0 24 24" fill="none"
-                    stroke={!input.trim()?"var(--muted)":"var(--amber-on-ink)"}
+          <div style={{
+            padding: "8px 14px 10px", borderTop: "2px solid var(--ink)",
+            background: "var(--surface)", flexShrink: 0
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 2, color: "var(--muted)" }}>
+                RESPONSE STYLE · {assistModeLabel.toUpperCase()}
+              </div>
+              <select
+                value={assistMode}
+                onChange={(e) => setAssistMode(e.target.value)}
+                style={{
+                  border: "1.5px solid var(--rule)",
+                  background: "var(--cream)",
+                  color: "var(--ink)",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 11,
+                  padding: "3px 8px",
+                  borderRadius: 8,
+                  outline: "none",
+                  maxWidth: 140,
+                }}
+              >
+                {ASSIST_MODES.map(mode => (
+                  <option key={mode.key} value={mode.key}>{mode.label}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKey}
+                placeholder={
+                  assistMode === "steps"
+                    ? "Ask your task and I will give step-by-step guidance..."
+                    : assistMode === "troubleshoot"
+                      ? "Describe your issue and I will troubleshoot it..."
+                      : "Ask me anything about BusPassPro..."
+                }
+                rows={1}
+                style={{
+                  flex: 1, padding: "9px 12px",
+                  border: "1.5px solid var(--rule)",
+                  background: "var(--cream)",
+                  fontFamily: "var(--font-sans)", fontSize: 13,
+                  color: "var(--ink)", outline: "none", resize: "none",
+                  lineHeight: 1.5, maxHeight: 80, overflowY: "auto",
+                  transition: "border-color .18s",
+                  borderRadius: 2
+                }}
+                onFocus={e => e.target.style.borderColor = "var(--amber)"}
+                onBlur={e => e.target.style.borderColor = "var(--rule)"}
+              />
+              <button onClick={() => send()}
+                disabled={!input.trim() || loading}
+                style={{
+                  width: 38, height: 38, background: !input.trim() || loading ? "var(--parchment)" : "var(--ink)",
+                  border: "none", display: "flex", alignItems: "center",
+                  justifyContent: "center", cursor: !input.trim() || loading ? "not-allowed" : "pointer",
+                  transition: "background .18s", flexShrink: 0, borderRadius: 2
+                }}>
+                {loading
+                  ? <div style={{
+                    width: 14, height: 14, border: "2px solid rgba(200,131,42,.3)",
+                    borderTop: "2px solid var(--amber)", borderRadius: "50%",
+                    animation: "spin .7s linear infinite"
+                  }} />
+                  : <svg width={16} height={16} viewBox="0 0 24 24" fill="none"
+                    stroke={!input.trim() ? "var(--muted)" : "var(--amber-on-ink)"}
                     strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"/>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
                   </svg>
-              }
-            </button>
+                }
+              </button>
+            </div>
           </div>
 
           {/* Footer hint */}
-          <div style={{ padding:"5px 14px 8px", background:"var(--surface)",
-            borderTop:"1px solid var(--rule)", flexShrink:0 }}>
-            <div style={{ fontFamily:"var(--font-mono)", fontSize:6,
-              letterSpacing:2, color:"var(--muted)" }}>
+          <div style={{
+            padding: "5px 14px 8px", background: "var(--surface)",
+            borderTop: "1px solid var(--rule)", flexShrink: 0
+          }}>
+            <div style={{
+              fontFamily: "var(--font-mono)", fontSize: 6,
+              letterSpacing: 2, color: "var(--muted)"
+            }}>
               ENTER TO SEND · SHIFT+ENTER FOR NEW LINE · ESC TO CLOSE
             </div>
           </div>
