@@ -889,6 +889,35 @@ function SectionReports({ toast }) {
   ];
   const maxV = Math.max(...CHART_DATA.map(c=>c.v));
 
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  const emailReport = async () => {
+    setIsSendingEmail(true);
+    toast.info("Preparing and sending email...");
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/v1/notifications/email-summary/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          period: period,
+          data: d,
+          email_to: "xyzmnb96@gmail.com"
+        })
+      });
+      
+      if (response.ok) {
+        toast.success(`Summary report sent to xyzmnb96@gmail.com`);
+      } else {
+        const errorData = await response.json();
+        toast.error(`Email failed: ${errorData.error || "Server error"}`);
+      }
+    } catch (err) {
+      toast.error(`Error sending email: ${err.message}`);
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   const download = () => {
     const rows = [
       ["Metric","Value"],
@@ -924,9 +953,13 @@ function SectionReports({ toast }) {
                 cursor:"pointer", transition:"all .18s", textTransform:"uppercase" }}>{p}</button>
           ))}
         </div>
-        <Btn variant="primary" size="md" onClick={download}>⬇ DOWNLOAD CSV →</Btn>
+          <div style={{ display:"flex", gap:12 }}>
+            <Btn variant="secondary" size="md" onClick={emailReport} disabled={isSendingEmail}>
+              {isSendingEmail ? "SENDING..." : "✉ EMAIL ADMIN"}
+            </Btn>
+            <Btn variant="primary" size="md" onClick={download}>⬇ DOWNLOAD CSV →</Btn>
+          </div>
       </div>
-
       {/* Newspaper brief layout */}
       <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr", gap:24 }}>
 
