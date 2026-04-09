@@ -11,8 +11,8 @@ const PaymentService = {
    * Step 1: Create a Razorpay order on the backend
    * Returns: { order_id, amount, currency, key_id, payment_id }
    */
-  createOrder: async (application_id) => {
-    const { data } = await api.post("/payments/create-order/", { application_id });
+  createOrder: async (amount, purpose, metadata = {}) => {
+    const { data } = await api.post("/payments/create-order/", { amount, purpose, metadata });
     return data;
   },
 
@@ -40,7 +40,7 @@ const PaymentService = {
    * Returns: { message: "Payment verified!" }
    */
   verifyPayment: async (razorpay_order_id, razorpay_payment_id, razorpay_signature) => {
-    const { data } = await api.post("/payments/verify/", {
+    const { data } = await api.post("/payments/verify-payment/", {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
@@ -76,11 +76,11 @@ function launchCheckout(orderData, userInfo, resolve, reject) {
 /**
  * Full payment flow — call this from your component
  * Usage:
- *   const result = await PaymentService.pay(application_id, { name, email, phone });
+ *   const result = await PaymentService.pay(amount, purpose, metadata, { name, email, phone });
  */
-PaymentService.pay = async (application_id, userInfo) => {
+PaymentService.pay = async (amount, purpose, metadata, userInfo) => {
   // 1. Create order
-  const orderData = await PaymentService.createOrder(application_id);
+  const orderData = await PaymentService.createOrder(amount, purpose, metadata);
   // 2. Open Razorpay modal
   const response = await PaymentService.openCheckout(orderData, userInfo);
   // 3. Verify on backend

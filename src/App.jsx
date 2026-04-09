@@ -42,6 +42,7 @@ import {
   AdminHubClone
 } from "./screens/AdminScreensClone";
 import AdminHub from "./screens/AdminHub";
+import AuthService from "./services/authService";
 // import AdminPaymentDashboard from "./screens/AdminPaymentDashboard";
 
 // ══════════════════════════════════════════════════════════════════════
@@ -111,7 +112,7 @@ body::after {
 //  TRANSIT DATA
 // ══════════════════════════════════════════════════════════════════════
 
-import { User, GraduationCap, Leaf, Accessibility, Briefcase } from "lucide-react";
+import { User, GraduationCap, Leaf, Accessibility, Briefcase, Eye, EyeOff } from "lucide-react";
 
 const PASSENGER_TYPES = [
   { id: "general", label: "GENERAL", sub: "Standard full fare", disc: 0, color: "#1A1208", icon: <User size={20} color="#E8DFD5" /> },
@@ -300,21 +301,51 @@ const Btn = ({ children, onClick, variant = "primary", size = "md", full = false
 
 const Field = ({ label, type = "text", value, onChange, placeholder, error, readOnly, hint, required }) => {
   const [foc, setFoc] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
+  const resolvedType = isPassword && showPassword ? "text" : type;
+
   return (
     <div style={{ marginBottom: 16 }}>
       {label && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 3, color: "var(--muted)", textTransform: "uppercase", marginBottom: 7 }}>
         {label}{required && <span style={{ color: "var(--red)", marginLeft: 4 }}>*</span>}</div>}
-      <input type={type} value={value} onChange={onChange} placeholder={placeholder} readOnly={readOnly}
-        onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
-        style={{
-          width: "100%", padding: "11px 14px",
-          border: `1.5px solid ${error ? "var(--red)" : foc ? "var(--amber)" : "var(--rule)"}`,
-          background: readOnly ? "var(--parchment)" : foc ? "var(--surface)" : "var(--cream)",
-          fontFamily: "var(--font-sans)", fontSize: 14, color: readOnly ? "var(--muted)" : "var(--ink)", outline: "none",
-          transition: "border-color .18s, background .18s",
-          borderRadius: "var(--r-sm)",
-          boxShadow: foc && !error ? "0 0 0 3px rgba(200,131,42,.08)" : "none"
-        }} />
+      <div style={{ position: "relative" }}>
+        <input type={resolvedType} value={value} onChange={onChange} placeholder={placeholder} readOnly={readOnly}
+          onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
+          style={{
+            width: "100%", padding: isPassword ? "11px 42px 11px 14px" : "11px 14px",
+            border: `1.5px solid ${error ? "var(--red)" : foc ? "var(--amber)" : "var(--rule)"}`,
+            background: readOnly ? "var(--parchment)" : foc ? "var(--surface)" : "var(--cream)",
+            fontFamily: "var(--font-sans)", fontSize: 14, color: readOnly ? "var(--muted)" : "var(--ink)", outline: "none",
+            transition: "border-color .18s, background .18s",
+            borderRadius: "var(--r-sm)",
+            boxShadow: foc && !error ? "0 0 0 3px rgba(200,131,42,.08)" : "none"
+          }} />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(s => !s)}
+            style={{
+              position: "absolute",
+              right: 10,
+              top: "50%",
+              transform: "translateY(-50%)",
+              border: "none",
+              background: "transparent",
+              color: "var(--muted)",
+              cursor: "pointer",
+              padding: 0,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            title={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        )}
+      </div>
       {error && <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--red)", marginTop: 4 }}>{error}</div>}
       {hint && !error && <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{hint}</div>}
     </div>
@@ -562,8 +593,24 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
   const STOP_Y = [12, 28, 44, 60, 76, 90];
 
   const submit = async () => {
-    setErr(""); if (!email.trim()) { setErr("Email is required."); return; }
-    setLoading(true); await new Promise(r => setTimeout(r, 700)); setLoading(false); onLogin(role);
+    setErr("");
+    if (!email.trim()) { setErr("Email is required."); return; }
+    if (!pw.trim()) { setErr("Password is required."); return; }
+
+    setLoading(true);
+    try {
+      const data = await AuthService.login(email, pw);
+      const serverRole = data?.user?.role || role;
+      onLogin(serverRole);
+    } catch (e) {
+      const msg = e?.response?.data?.non_field_errors?.[0]
+        || e?.response?.data?.detail
+        || e?.response?.data?.error
+        || "Login failed. Please check your credentials.";
+      setErr(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -858,7 +905,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
               fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 3,
               color: "var(--muted)", marginTop: 12, textAlign: "center", opacity: .7
             }}>
-              DEMO MODE · ANY CREDENTIALS WORK
+              LIVE AUTH MODE · USE VALID ACCOUNT
             </div>
           </div>
         </div>
@@ -891,7 +938,44 @@ function RegisterScreen({ onDone, onBack }) {
   const next = async () => {
     if (!validate()) return;
     if (step < 4) { setStep(s => s + 1); return; }
-    setLoading(true); await new Promise(r => setTimeout(r, 1000)); setLoading(false); setDone(true);
+
+    if (role !== "passenger") {
+      setErrs(e => ({ ...e, role: "Self-registration is enabled for passenger accounts only." }));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await AuthService.register({
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        password: form.password,
+        confirm_password: form.confirm,
+        student_profile: {
+          student_id: form.pid.trim(),
+          full_name: form.name.trim(),
+          gender: "O",
+          date_of_birth: "2000-01-01",
+          department: (form.org || "General").trim(),
+          year_of_study: 1,
+          college_name: (form.org || "BusPassPro").trim(),
+          home_address: "Not provided",
+        }
+      });
+      setDone(true);
+    } catch (err) {
+      const data = err?.response?.data;
+      if (typeof data === "object" && data !== null) {
+        const msg = Object.entries(data)
+          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(" ") : v}`)
+          .join(" | ");
+        setErrs(e => ({ ...e, submit: msg || "Registration failed." }));
+      } else {
+        setErrs(e => ({ ...e, submit: "Registration failed." }));
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const STEPS = ["PORTAL", "PERSONAL", "IDENTITY", "SECURE"];
@@ -949,6 +1033,11 @@ function RegisterScreen({ onDone, onBack }) {
                   </div>
                 ))}
               </div>
+              {errs.role && (
+                <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--red)", marginBottom: 10, padding: "8px 12px", background: "var(--error-bg)", border: "1px solid var(--red)" }}>
+                  {errs.role}
+                </div>
+              )}
               {role === "passenger" && (
                 <>
                   <Tag color="var(--muted)">Passenger Category</Tag>
@@ -1029,6 +1118,11 @@ function RegisterScreen({ onDone, onBack }) {
               {loading ? <><Spinner size={16} /> CREATING…</> : step < 4 ? "CONTINUE →" : "CREATE ACCOUNT →"}
             </Btn>
           </div>
+          {errs.submit && (
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--red)", marginTop: 10, padding: "8px 12px", background: "var(--error-bg)", border: "1px solid var(--red)" }}>
+              {errs.submit}
+            </div>
+          )}
           <Rule my={18} />
           <div style={{ textAlign: "center" }}>
             <span onClick={onBack} style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--amber-text)", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3 }}>← Already registered? Sign in</span>
@@ -1629,7 +1723,12 @@ export default function App() {
   const [notifs, setNotifs] = useState(INITIAL_NOTIFS);
   const toast = useToast();
 
-  const handleLogin = role => { setAuth({ loggedIn: true, role }); setPage(DEFAULT_PAGE[role] || "dashboard"); toast.success(`Welcome! Signed in as ${role}.`); };
+  const handleLogin = role => {
+    const uiRole = role === "student" ? "passenger" : role;
+    setAuth({ loggedIn: true, role: uiRole });
+    setPage(DEFAULT_PAGE[uiRole] || "dashboard");
+    toast.success(`Welcome! Signed in as ${uiRole}.`);
+  };
   const handleLogout = () => { setAuth({ loggedIn: false, role: "passenger" }); setAuthView("login"); setPage("dashboard"); toast.info("Signed out."); };
   const navItems = NAV_CONFIG[auth.role] || NAV_CONFIG.passenger;
 
@@ -1664,8 +1763,8 @@ export default function App() {
 
           {/* Logo */}
           <div style={{ padding: "15px 0", display: "flex", alignItems: "baseline", gap: 0, flexShrink: 0, cursor: "pointer" }} onClick={() => setPage(DEFAULT_PAGE[auth.role] || "dashboard")}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: 2, color: "var(--ink)" }}>BUSP</span>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: 2, color: "var(--amber)" }}>ASS</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: 2, color: "var(--ink)" }}>BUS</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: 2, color: "var(--amber)" }}>PASS</span>
             <span style={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: 2, color: "var(--ink)" }}>PRO</span>
           </div>
 

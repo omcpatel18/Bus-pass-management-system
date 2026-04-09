@@ -34,7 +34,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { User, GraduationCap, Leaf, Accessibility, Briefcase } from "lucide-react";
+import { User, GraduationCap, Leaf, Accessibility, Briefcase, Eye, EyeOff } from "lucide-react";
 
 // ══════════════════════════════════════════════════════════════════════
 //  DESIGN TOKENS  (identical to DesignSystem.jsx)
@@ -190,8 +190,12 @@ const Btn = ({ children, onClick, variant="primary", full=false, size="md", disa
 
 const Field = ({ label, type="text", value, onChange, placeholder, readOnly, error, hint, required, rows, style={} }) => {
   const [foc,setFoc]=useState(false);
+  const [showPassword,setShowPassword]=useState(false);
+  const isPassword = type === "password" && !rows;
+  const resolvedType = isPassword && showPassword ? "text" : type;
+
   const inputStyle = {
-    ...style, width:"100%", padding:"12px 16px",
+    width:"100%", padding:isPassword?"12px 46px 12px 16px":"12px 16px",
     border:`1.5px solid ${error?"var(--red)":foc?"var(--amber)":"var(--rule)"}`,
     background:readOnly?"var(--parchment)":foc?"var(--surface)":"var(--cream)",
     fontFamily:"var(--font-sans)", fontSize:15,
@@ -200,6 +204,7 @@ const Field = ({ label, type="text", value, onChange, placeholder, readOnly, err
     borderRadius:"8px",
     boxShadow:foc&&!error?"0 0 0 4px rgba(200,131,42,.12)":error?"0 0 0 4px rgba(176,32,32,.12)":"0 2px 4px rgba(26,18,8,.02)",
     resize:"vertical",
+    ...style,
   };
   return (
     <div style={{ marginBottom:18 }}>
@@ -210,8 +215,34 @@ const Field = ({ label, type="text", value, onChange, placeholder, readOnly, err
       {rows
         ? <textarea value={value} onChange={onChange} placeholder={placeholder} rows={rows} readOnly={readOnly}
             onFocus={()=>setFoc(true)} onBlur={()=>setFoc(false)} style={inputStyle}/>
-        : <input type={type} value={value} onChange={onChange} placeholder={placeholder} readOnly={readOnly}
-            onFocus={()=>setFoc(true)} onBlur={()=>setFoc(false)} style={inputStyle}/>
+        : <div style={{ position:"relative" }}>
+            <input type={resolvedType} value={value} onChange={onChange} placeholder={placeholder} readOnly={readOnly}
+              onFocus={()=>setFoc(true)} onBlur={()=>setFoc(false)} style={inputStyle}/>
+            {isPassword && (
+              <button
+                type="button"
+                onClick={()=>setShowPassword(s=>!s)}
+                style={{
+                  position:"absolute",
+                  right:12,
+                  top:"50%",
+                  transform:"translateY(-50%)",
+                  border:"none",
+                  background:"transparent",
+                  color:"var(--muted)",
+                  cursor:"pointer",
+                  padding:0,
+                  display:"inline-flex",
+                  alignItems:"center",
+                  justifyContent:"center"
+                }}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            )}
+          </div>
       }
       {error&&<div style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--red)",marginTop:6,display:"flex",alignItems:"center",gap:4 }}><span style={{fontSize:10}}>✕</span> {error}</div>}
       {hint&&!error&&<div style={{ fontFamily:"var(--font-sans)",fontSize:12,color:"var(--muted)",marginTop:6 }}>{hint}</div>}

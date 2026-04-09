@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, CheckCircle, XCircle, Clock, RefreshCw, Download, FileText, ChevronRight } from 'lucide-react';
 import { useRazorpay } from '../hooks/useRazorpay';
-import api from '../services/api';
+import api, { TokenService } from '../services/api';
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;700&family=Instrument+Sans:wght@400;500;600&display=swap');
@@ -94,12 +94,44 @@ export const PaymentButton = ({
   useEffect(() => { loadScript(); }, [loadScript]);
 
   const handlePayment = async () => {
+    if (!TokenService.getAccess() && !TokenService.getRefresh()) {
+      if (onFailure) onFailure('Please login first to continue payment.');
+      return;
+    }
+
     setProcessing(true);
     try {
       const orderRes = await api.post('/payments/create-order/', { amount, purpose, metadata });
       const { order_id, key_id, amount: orderAmount, currency } = orderRes.data;
+      let isFinalized = false;
+      let checkoutEventSeen = false;
 
-      const profileRes = await api.get('/auth/me/');
+      const failPayment = async (message, failurePayload = null) => {
+        if (isFinalized) return;
+        isFinalized = true;
+        setProcessing(false);
+
+        try {
+          await api.post('/payments/mark-failed/', {
+            razorpay_order_id: order_id,
+            reason: message,
+            failure_payload: failurePayload || {},
+          });
+        } catch {
+          // Best effort only; user-facing error should still be shown.
+        }
+
+        if (onFailure) onFailure(message);
+      };
+
+      const succeedPayment = (data) => {
+        if (isFinalized) return;
+        isFinalized = true;
+        setProcessing(false);
+        if (onSuccess) onSuccess(data);
+      };
+
+      const profileRes = await api.get('/auth/profile/');
       const { full_name, email, phone_number } = profileRes.data || {};
 
       const options = {
@@ -117,31 +149,47 @@ export const PaymentButton = ({
         theme: { color: "#F59E0B" },
         modal: {
           ondismiss: () => {
-            setProcessing(false);
-            if(onFailure) onFailure("Payment cancelled by user.");
+            // Razorpay can emit dismiss around success/failure transitions.
+            // Delay and only mark cancelled if no checkout event was seen.
+            setTimeout(() => {
+              if (!checkoutEventSeen && !isFinalized) {
+                failPayment('Payment cancelled by user.');
+              }
+            }, 1200);
           }
         },
+        onPaymentFailed: (response) => {
+          checkoutEventSeen = true;
+          const message = response?.error?.description
+            || response?.error?.reason
+            || response?.error?.code
+            || 'Payment could not be completed by Razorpay/bank.';
+          failPayment(message, response);
+        },
         handler: async (response) => {
+          checkoutEventSeen = true;
           try {
             const verifyRes = await api.post('/payments/verify-payment/', {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature
             });
-            setProcessing(false);
-            if(onSuccess) onSuccess(verifyRes.data);
+            succeedPayment(verifyRes.data);
           } catch (err) {
-            setProcessing(false);
-            if(onFailure) onFailure("Signature verification failed.");
+            const verifyMessage = err?.response?.data?.error || 'Signature verification failed.';
+            failPayment(verifyMessage, err?.response?.data || {});
           }
         }
       };
 
-      openCheckout(options);
+      await openCheckout(options);
     } catch (err) {
       setProcessing(false);
       console.error("Order creation failed", err);
-      if(onFailure) onFailure("Failed to initialize payment gateway.");
+      const message = err?.response?.status === 401
+        ? 'Session expired or not logged in. Please login again.'
+        : err?.response?.data?.error || 'Failed to initialize payment gateway.';
+      if(onFailure) onFailure(message);
     }
   };
 

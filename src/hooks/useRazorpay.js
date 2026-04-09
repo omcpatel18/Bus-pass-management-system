@@ -28,23 +28,52 @@ export const useRazorpay = () => {
   const openCheckout = useCallback(async (options) => {
     const res = await loadScript();
     if (!res) {
-      alert('Razorpay SDK failed to load. Are you offline?');
-      return;
+      if (typeof options?.onPaymentFailed === 'function') {
+        options.onPaymentFailed({
+          error: {
+            code: 'SDK_LOAD_FAILED',
+            description: 'Razorpay SDK failed to load. Please check your internet connection.',
+          },
+        });
+      }
+      return false;
     }
     
     if (window.Razorpay) {
       const rzp = new window.Razorpay(options);
-      
-      // Override default modal dismissal behavior if provided
-      if (options.modal && options.modal.ondismiss) {
-          rzp.on('payment.failed', function (response) {
-             // Handle generic failures that aren't user closure
-             console.error("Payment failed", response.error);
-          });
-      }
 
-      rzp.open();
+      rzp.on('payment.failed', function (response) {
+        console.error('Payment failed', response?.error || response);
+        if (typeof options?.onPaymentFailed === 'function') {
+          options.onPaymentFailed(response);
+        }
+      });
+
+      try {
+        rzp.open();
+        return true;
+      } catch (e) {
+        if (typeof options?.onPaymentFailed === 'function') {
+          options.onPaymentFailed({
+            error: {
+              code: 'CHECKOUT_OPEN_FAILED',
+              description: e?.message || 'Unable to open Razorpay checkout.',
+            },
+          });
+        }
+        return false;
+      }
     }
+
+    if (typeof options?.onPaymentFailed === 'function') {
+      options.onPaymentFailed({
+        error: {
+          code: 'RAZORPAY_UNAVAILABLE',
+          description: 'Razorpay is unavailable in this browser context.',
+        },
+      });
+    }
+    return false;
   }, [loadScript]);
 
   return { openCheckout, isLoaded, loadScript };
