@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import PassService from "../services/passService";
 
 // ══════════════════════════════════════════════════════════════════════
 //  DESIGN TOKENS (Standard Light Theme)
@@ -143,6 +144,29 @@ const PageHeader = ({ tag, title, subtitle, actions }) => (
   </div>
 );
 
+const makeRouteCode = (name, fallbackIndex = 0) => {
+  const cleaned = String(name || "").replace(/[^a-z0-9]+/gi, " ").trim();
+  if (!cleaned) return `R${String(fallbackIndex + 1).padStart(2, "0")}`;
+  const initials = cleaned
+    .split(/\s+/)
+    .map(word => word.charAt(0))
+    .join("")
+    .slice(0, 3)
+    .toUpperCase();
+  return `R${initials || String(fallbackIndex + 1).padStart(2, "0")}`;
+};
+
+const normalizeRoute = (route, fallbackIndex = 0) => ({
+  id: route.id ?? Date.now() + fallbackIndex,
+  name: route.name || "Unnamed Route",
+  code: route.code || makeRouteCode(route.name, fallbackIndex),
+  fare: Number(route.fare ?? route.route_fare ?? 0),
+  km: Number(route.distance_km ?? route.km ?? 0),
+  stops: Array.isArray(route.stops) ? route.stops.length : Number(route.stops ?? 0),
+  buses: Number(route.buses ?? 0),
+  active: route.is_active ?? route.active ?? true,
+});
+
 // ══════════════════════════════════════════════════════════════════════
 //  SCREENS CLONE COMPONENTS
 // ══════════════════════════════════════════════════════════════════════
@@ -260,6 +284,98 @@ export function RouteManagerClone({ onNavigate, toast }) {
     { id: 3, name: "Green Line", code: "R3", fare: 280, km: 8.5, stops: 12, buses: 4, active: false },
     { id: 4, name: "Route Alpha", code: "Rα", fare: 500, km: 22.0, stops: 30, buses: 10, active: true },
   ]);
+  const [showCreateRoute, setShowCreateRoute] = useState(false);
+  const [savingRoute, setSavingRoute] = useState(false);
+  const [routeForm, setRouteForm] = useState({
+    name: "",
+    source: "",
+    destination: "",
+    stops: "",
+    distance_km: "",
+    duration_min: "",
+    fare: "",
+    is_active: true,
+  });
+  const [routeErrors, setRouteErrors] = useState({});
+
+  const updateRouteField = (field, value) => {
+    setRouteForm(prev => ({ ...prev, [field]: value }));
+    setRouteErrors(prev => ({ ...prev, [field]: undefined }));
+  };
+
+  const resetRouteForm = () => {
+    setRouteForm({
+      name: "",
+      source: "",
+      destination: "",
+      stops: "",
+      distance_km: "",
+      duration_min: "",
+      fare: "",
+      is_active: true,
+    });
+    setRouteErrors({});
+  };
+
+  const validateRouteForm = () => {
+    const errors = {};
+    const stopsList = routeForm.stops.split(",").map(stop => stop.trim()).filter(Boolean);
+    const distance = Number(routeForm.distance_km);
+    const duration = Number(routeForm.duration_min);
+    const fare = Number(routeForm.fare);
+
+    if (!routeForm.name.trim()) errors.name = "Route name is required.";
+    if (!routeForm.source.trim()) errors.source = "Source stop is required.";
+    if (!routeForm.destination.trim()) errors.destination = "Destination stop is required.";
+    if (!stopsList.length) errors.stops = "Enter at least one intermediate stop.";
+    if (!Number.isFinite(distance) || distance <= 0) errors.distance_km = "Distance must be greater than zero.";
+    if (!Number.isFinite(duration) || duration <= 0) errors.duration_min = "Duration must be greater than zero.";
+    if (!Number.isFinite(fare) || fare <= 0) errors.fare = "Fare must be greater than zero.";
+
+    setRouteErrors(errors);
+    return { ok: Object.keys(errors).length === 0, stopsList, distance, duration, fare };
+  };
+
+  const createRoute = async () => {
+    const validation = validateRouteForm();
+    if (!validation.ok) return;
+
+    setSavingRoute(true);
+    try {
+      const payload = {
+        name: routeForm.name.trim(),
+        source: routeForm.source.trim(),
+        destination: routeForm.destination.trim(),
+        stops: validation.stopsList,
+        distance_km: validation.distance,
+        duration_min: validation.duration,
+        fare: validation.fare,
+        is_active: routeForm.is_active,
+      };
+
+      const created = await PassService.createRoute(payload);
+      const newRoute = normalizeRoute({
+        ...created,
+        stops: created.stops || validation.stopsList,
+        distance_km: created.distance_km ?? validation.distance,
+        fare: created.fare ?? validation.fare,
+        buses: created.buses ?? 0,
+      }, routes.length);
+
+      setRoutes(prev => [newRoute, ...prev]);
+      toast.success(`${newRoute.name} created successfully.`);
+      setShowCreateRoute(false);
+      resetRouteForm();
+    } catch (error) {
+      const detail = error?.response?.data;
+      const message = typeof detail === "string"
+        ? detail
+        : detail?.detail || detail?.error || "Unable to create route.";
+      toast.error(message);
+    } finally {
+      setSavingRoute(false);
+    }
+  };
 
   const toggleRoute = (id) => {
     setRoutes(prev => prev.map(r => r.id === id ? { ...r, active: !r.active } : r));
@@ -273,7 +389,7 @@ export function RouteManagerClone({ onNavigate, toast }) {
   return (
     <div>
       <PageHeader tag="Admin · Routes" title="ROUTE MANAGER" subtitle="Configure and deploy transit lines across the city" 
-        actions={<Btn variant="primary" onClick={() => toast.info("Route Designer is in read-only mode for this build.")}>+ ADD NEW ROUTE</Btn>} />
+        actions={<Btn variant="primary" onClick={() => { resetRouteForm(); setShowCreateRoute(true); }}>+ ADD NEW ROUTE</Btn>} />
       
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20, marginBottom:32 }}>
         {[
@@ -323,6 +439,68 @@ export function RouteManagerClone({ onNavigate, toast }) {
           </div>
         ))}
       </div>
+
+      {showCreateRoute && (
+        <div style={{ position:"fixed", inset:0, zIndex:3000, background:"rgba(26,18,8,.72)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }} onClick={() => setShowCreateRoute(false)}>
+          <div style={{ width:"min(980px, 100%)", maxHeight:"90vh", overflowY:"auto", background:"var(--surface)", border:"2px solid var(--ink)", borderRadius:16, boxShadow:"0 24px 80px rgba(26,18,8,.35)" }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding:"18px 24px", background:"var(--ink)", color:"var(--cream-on-ink)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div>
+                <div style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:4, color:"var(--muted-on-ink)", marginBottom:4 }}>ROUTE DESIGNER</div>
+                <div style={{ fontFamily:"var(--font-display)", fontSize:24, letterSpacing:2, color:"var(--amber-on-ink)" }}>CREATE NEW ROUTE</div>
+              </div>
+              <button onClick={() => setShowCreateRoute(false)} style={{ background:"none", border:"none", color:"var(--muted-on-ink)", fontFamily:"var(--font-display)", fontSize:20, cursor:"pointer" }}>✕</button>
+            </div>
+
+            <div style={{ padding:24, display:"grid", gridTemplateColumns:"1.2fr .8fr", gap:24 }}>
+              <div>
+                <Field label="Route Name" value={routeForm.name} onChange={e => updateRouteField("name", e.target.value)} placeholder="Route Delta" error={routeErrors.name} required />
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                  <Field label="Source" value={routeForm.source} onChange={e => updateRouteField("source", e.target.value)} placeholder="Central Station" error={routeErrors.source} required />
+                  <Field label="Destination" value={routeForm.destination} onChange={e => updateRouteField("destination", e.target.value)} placeholder="City Mall" error={routeErrors.destination} required />
+                </div>
+                <Field label="Intermediate Stops" type="textarea" rows={4} value={routeForm.stops} onChange={e => updateRouteField("stops", e.target.value)} placeholder="Old Market, Hospital Gate, Library Square" error={routeErrors.stops} hint="Separate stops with commas." required />
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+                  <Field label="Distance (km)" type="number" value={routeForm.distance_km} onChange={e => updateRouteField("distance_km", e.target.value)} placeholder="12.5" error={routeErrors.distance_km} required />
+                  <Field label="Duration (min)" type="number" value={routeForm.duration_min} onChange={e => updateRouteField("duration_min", e.target.value)} placeholder="42" error={routeErrors.duration_min} required />
+                  <Field label="Fare" type="number" value={routeForm.fare} onChange={e => updateRouteField("fare", e.target.value)} placeholder="450" error={routeErrors.fare} required />
+                </div>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px", background:"var(--parchment)", border:"1.5px solid var(--rule)", borderRadius:12, marginBottom:20 }}>
+                  <div>
+                    <div style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)", marginBottom:4 }}>START ACTIVE</div>
+                    <div style={{ fontFamily:"var(--font-sans)", fontSize:13, color:"var(--ink)" }}>Make the route available immediately</div>
+                  </div>
+                  <Toggle on={routeForm.is_active} onChange={(next) => updateRouteField("is_active", next)} />
+                </div>
+                <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+                  <Btn variant="ghost" onClick={() => setShowCreateRoute(false)}>Cancel</Btn>
+                  <Btn variant="primary" onClick={createRoute} disabled={savingRoute}>{savingRoute ? "CREATING…" : "CREATE ROUTE"}</Btn>
+                </div>
+              </div>
+
+              <div style={{ border:"1.5px solid var(--rule)", borderRadius:16, background:"var(--cream)", padding:20 }}>
+                <Tag color="var(--amber-text)">Preview</Tag>
+                <div style={{ fontFamily:"var(--font-display)", fontSize:28, letterSpacing:1, color:"var(--ink)", marginBottom:12 }}>{routeForm.name || "NEW ROUTE"}</div>
+                <div style={{ display:"grid", gap:10 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>SOURCE</span><span style={{ fontFamily:"var(--font-sans)", fontSize:13, color:"var(--ink)" }}>{routeForm.source || "—"}</span></div>
+                  <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>DESTINATION</span><span style={{ fontFamily:"var(--font-sans)", fontSize:13, color:"var(--ink)" }}>{routeForm.destination || "—"}</span></div>
+                  <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>DISTANCE</span><span style={{ fontFamily:"var(--font-sans)", fontSize:13, color:"var(--ink)" }}>{routeForm.distance_km || "0"} km</span></div>
+                  <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>DURATION</span><span style={{ fontFamily:"var(--font-sans)", fontSize:13, color:"var(--ink)" }}>{routeForm.duration_min || "0"} min</span></div>
+                  <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>FARE</span><span style={{ fontFamily:"var(--font-display)", fontSize:22, color:"var(--amber-text)" }}>₹{routeForm.fare || "0"}</span></div>
+                  <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>STATUS</span><Pill s={routeForm.is_active ? "ACTIVE" : "INACTIVE"}/></div>
+                  <div style={{ marginTop:10 }}>
+                    <div style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)", marginBottom:6 }}>STOPS</div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                      {routeForm.stops.split(",").map(stop => stop.trim()).filter(Boolean).length ? routeForm.stops.split(",").map(stop => stop.trim()).filter(Boolean).map(stop => (
+                        <span key={stop} style={{ fontFamily:"var(--font-mono)", fontSize:7, letterSpacing:1, color:"var(--amber-text)", background:"var(--parchment)", padding:"3px 8px", border:"1px solid var(--rule)" }}>{stop}</span>
+                      )) : <span style={{ fontFamily:"var(--font-sans)", fontSize:12, color:"var(--muted)", fontStyle:"italic" }}>No stops entered yet.</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
