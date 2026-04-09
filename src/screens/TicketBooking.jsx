@@ -29,6 +29,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { PaymentButton } from "../components/PaymentUI";
 
 // ── Design tokens ─────────────────────────────────────────────────────
 const G = `
@@ -753,7 +754,7 @@ function StopSearch({ value, onChange, placeholder, exclude = [], label, labelCo
 // ══════════════════════════════════════════════════════════════════════
 //  MAIN SCREEN
 // ══════════════════════════════════════════════════════════════════════
-export default function TicketBooking() {
+export default function TicketBooking({ onNavigate }) {
   const toast = useToast();
   const [tab, setTab] = useState("book");
   const [step, setStep] = useState(1);
@@ -786,29 +787,26 @@ export default function TicketBooking() {
     setTimeout(() => { setLoading(false); setStep(2); }, 800);
   };
 
-  const handleConfirm = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const t = {
-        id: `TKT-${Math.floor(Math.random() * 9000) + 1000}`,
-        passenger: "Aryan Sharma",
-        pid: "STU-10042",
-        from: pickup,
-        to: dest,
-        type: busType,
-        fare,
-        km: parseFloat(dist),
-        date: dateStr,
-        time: timeStr,
-        bus: `BUS-${Math.floor(Math.random() * 400) + 100}`,
-        status: "VALID",
-        rating: 0,
-      };
-      setTicket(t);
-      setLoading(false);
-      setStep(3);
-      toast.success("Ticket issued! Show the QR to your conductor.");
-    }, 1800);
+  const handleConfirm = (paymentDetails) => {
+    const t = {
+      id: paymentDetails?.razorpay_order_id || `TKT-${Math.floor(Math.random() * 9000) + 1000}`,
+      passenger: "Aryan Sharma",
+      pid: "STU-10042",
+      from: pickup,
+      to: dest,
+      type: busType,
+      fare,
+      km: parseFloat(dist),
+      date: dateStr,
+      time: timeStr,
+      bus: `BUS-${Math.floor(Math.random() * 400) + 100}`,
+      status: "VALID",
+      rating: 0,
+    };
+    setTicket(t);
+    setLoading(false);
+    setStep(3);
+    toast.success("Ticket issued! Show the QR to your conductor.");
   };
 
   const reset = () => {
@@ -1267,9 +1265,16 @@ export default function TicketBooking() {
                   </div>
                 </div>
 
-                <Btn variant="primary" full size="lg" onClick={handleConfirm} disabled={loading}>
-                  {loading ? <><Spinner size={16} color="var(--amber-on-ink)" /> ISSUING TICKET…</> : "CONFIRM & PAY →"}
-                </Btn>
+                <PaymentButton 
+                  amount={fare + 4.5} 
+                  purpose="TICKET" 
+                  metadata={{ from: pickup, to: dest, type: busType }}
+                  btnText="CONFIRM & PAY →" 
+                  full 
+                  size="lg" 
+                  onSuccess={handleConfirm} 
+                  onFailure={(msg) => toast.error(msg)} 
+                />
                 <div style={{
                   fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 2,
                   color: "var(--muted)", textAlign: "center", marginTop: 8
@@ -1344,7 +1349,7 @@ export default function TicketBooking() {
                       </Btn>
                       <button
                         onClick={() => {
-                          window.location.hash = "#renew";
+                          onNavigate("renew");
                           toast.info("Opening renewal flow.");
                         }}
                         onMouseEnter={e => {

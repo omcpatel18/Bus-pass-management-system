@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { PaymentButton, PaymentStatusModal } from "../components/PaymentUI";
 
 // ══════════════════════════════════════════════════════════════════════
 //  MOCK DATA — CONSISTENT WITH StudentProfile.jsx
@@ -176,7 +177,9 @@ const Btn = ({ children, onClick, variant = "primary", size = "md", full = false
   );
 };
 
-export default function PassengerDashboard() {
+export default function PassengerDashboard({ onNavigate }) {
+  const [paymentStatus, setPaymentStatus] = useState(null); // 'SUCCESS', 'FAILED', null
+
   const [currentPass, setCurrentPass] = useState({
     id: MOCK_PASS.pass_number,
     type: MOCK_PASS.type.charAt(0).toUpperCase() + MOCK_PASS.type.slice(1).toLowerCase(),
@@ -274,8 +277,22 @@ export default function PassengerDashboard() {
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                   <div style={{ display: "flex", gap: 12 }}>
-                    <Btn variant="primary" size="md">QR TICKET ✚</Btn>
-                    <Btn variant="ghost" size="md">RENEW →</Btn>
+                    {currentPass.status === "ACTIVE" && (
+                      <>
+                        <Btn variant="primary" size="md" onClick={() => onNavigate("tickets")}>QR TICKET ✚</Btn>
+                        <Btn variant="ghost" size="md" onClick={() => onNavigate("renew")}>RENEW <span style={{ transition: "transform .25s", display: "inline-block" }}>→</span></Btn>
+                      </>
+                    )}
+                    {currentPass.status === "APPROVED" && (
+                      <PaymentButton 
+                        amount={MOCK_PASS.fare_total} 
+                        purpose="PASS_PURCHASE"
+                        metadata={{ application_id: MOCK_PASS.pass_number }}
+                        btnText="PAY INCURRED FARE"
+                        onSuccess={() => setPaymentStatus('SUCCESS')}
+                        onFailure={() => setPaymentStatus('FAILED')}
+                      />
+                    )}
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 4 }}>EXPIRES</div>
@@ -389,7 +406,7 @@ export default function PassengerDashboard() {
                 ].map((act, i) => (
                   <div 
                     key={i} 
-                    onClick={() => window.location.hash = `#${act.p}`}
+                    onClick={() => onNavigate(act.p)}
                     style={{ 
                       background: "rgba(255,255,255,.04)", 
                       border: "1px solid rgba(255,255,255,.08)", 
@@ -411,6 +428,10 @@ export default function PassengerDashboard() {
           </div>
         </div>
       </div>
+      <PaymentStatusModal 
+        status={paymentStatus}
+        onClose={() => { setPaymentStatus(null); if(paymentStatus === 'SUCCESS') setCurrentPass(p => ({...p, status: 'ACTIVE'})); }}
+      />
     </div>
   );
 }

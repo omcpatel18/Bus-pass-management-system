@@ -107,23 +107,33 @@ const Btn = ({ children, onClick, variant = "primary", full = false, size = "md"
   );
 };
 
-const InpField = ({ label, value, onChange, type = "text", readOnly = false }) => {
+const InpField = ({ label, value, onChange, type = "text", readOnly = false, multiline = false, rows = 3 }) => {
   const [foc, setFoc] = useState(false);
+  const commonStyle = {
+    width: "100%", padding: "12px 14px",
+    border: `1.5px solid ${foc ? "var(--amber)" : "var(--rule)"}`,
+    background: readOnly ? "rgba(0,0,0,.03)" : foc ? "var(--surface)" : "var(--cream)",
+    fontFamily: "var(--font-sans)", fontSize: 14,
+    color: "var(--ink)", outline: "none", transition: "all .2s",
+    cursor: readOnly ? "not-allowed" : "text",
+    resize: "none"
+  };
   return (
     <div style={{ marginBottom: 20 }}>
       <Tag>{label}</Tag>
-      <input
-        type={type} value={value} onChange={onChange} readOnly={readOnly}
-        onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
-        style={{
-          width: "100%", padding: "12px 14px",
-          border: `1.5px solid ${foc ? "var(--amber)" : "var(--rule)"}`,
-          background: readOnly ? "rgba(0,0,0,.03)" : foc ? "var(--surface)" : "var(--cream)",
-          fontFamily: "var(--font-sans)", fontSize: 14,
-          color: "var(--ink)", outline: "none", transition: "all .2s",
-          cursor: readOnly ? "not-allowed" : "text"
-        }}
-      />
+      {multiline ? (
+        <textarea
+          value={value} onChange={onChange} readOnly={readOnly} rows={rows}
+          onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
+          style={commonStyle}
+        />
+      ) : (
+        <input
+          type={type} value={value} onChange={onChange} readOnly={readOnly}
+          onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
+          style={commonStyle}
+        />
+      )}
     </div>
   );
 };
@@ -322,19 +332,43 @@ function StatsStrip({ pass, payments }) {
 }
 
 function PersonalInfo({ user, toast }) {
-  const [form, setForm] = useState({ name: user.name, phone: user.phone });
+  const [form, setForm] = useState({ 
+    name: user.name, 
+    phone: user.phone,
+    address: user.address || "",
+    dob: user.dob || "",
+    emergencyContact: user.emergencyContact || "",
+    aadhar: user.aadhar || "",
+    bloodGroup: user.bloodGroup || ""
+  });
   const [dirty, setDirty] = useState(false);
+
+  const updateField = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    setDirty(true);
+  };
+
   return (
     <div style={{ animation: "fadeUp .4s ease" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32 }}>
-        <div><Tag>Identification Registry</Tag><div style={{ fontFamily: "var(--font-serif)", fontSize: 32 }}>Primary Details</div></div>
-        {dirty && <Btn size="sm" onClick={() => { setDirty(false); toast.success("Registry Updated"); }}>SAVE CHANGES ✓</Btn>}
+        <div><Tag>Id Card Registry</Tag><div style={{ fontFamily: "var(--font-serif)", fontSize: 32 }}>Primary Details</div></div>
+        {dirty && <Btn size="sm" onClick={() => { setDirty(false); toast.success("Registry Updated Successfully"); }}>SAVE CHANGES ✓</Btn>}
       </div>
+      
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 32px" }}>
-        <InpField label="FULL NAME" value={form.name} onChange={e => { setForm({...form, name: e.target.value}); setDirty(true); }} />
+        <InpField label="FULL NAME" value={form.name} onChange={e => updateField("name", e.target.value)} />
         <InpField label="CONTACT EMAIL" value={user.email} readOnly />
-        <InpField label="PHONE NUMBER" value={form.phone} onChange={e => { setForm({...form, phone: e.target.value}); setDirty(true); }} />
+        <InpField label="PHONE NUMBER" value={form.phone} onChange={e => updateField("phone", e.target.value)} />
         <InpField label="REGISTRY ID" value={user.id} readOnly />
+        <InpField label="DATE OF BIRTH" value={form.dob} onChange={e => updateField("dob", e.target.value)} placeholder="DD MMM YYYY" />
+        <InpField label="BLOOD GROUP" value={form.bloodGroup} onChange={e => updateField("bloodGroup", e.target.value)} placeholder="e.g. O+ Positive" />
+        
+        <div style={{ gridColumn: "1 / -1" }}>
+          <InpField label="HOME ADDRESS (MANDATORY)" value={form.address} onChange={e => updateField("address", e.target.value)} multiline rows={3} placeholder="Full residential address" />
+        </div>
+
+        <InpField label="EMERGENCY CONTACT" value={form.emergencyContact} onChange={e => updateField("emergencyContact", e.target.value)} placeholder="Name & Number" />
+        <InpField label="AADHAR / GOVT ID" value={form.aadhar} onChange={e => updateField("aadhar", e.target.value)} placeholder="XXXX XXXX XXXX" />
       </div>
     </div>
   );
@@ -383,19 +417,69 @@ function Preferences({ toast }) {
   );
 }
 
-function AccountActions({ onLogout }) {
+function AccountActions({ onLogout, toast, user }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleExport = () => {
+    toast.info("Preparing transit archive...");
+    const data = {
+      profile: user,
+      timestamp: new Date().toISOString(),
+      export_version: "2.44"
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `BusPassPro_Export_${user.id}.json`;
+    link.click();
+    toast.success("Transit data exported successfully.");
+  };
+
+  const handleChangePassword = () => {
+    toast.info("Verification email sent to " + user.email);
+    toast.success("Password reset link is active for 15 mins.");
+  };
+
+  const handleDeactivate = () => {
+    if (!showConfirm) {
+      setShowConfirm(true);
+      toast.warn("Are you sure? This cannot be undone.");
+      return;
+    }
+    toast.error("Account Deactivated. Local session terminated.");
+    setTimeout(onLogout, 2000);
+  };
+
   return (
     <div style={{ animation: "fadeUp .4s ease" }}>
-      <Tag>Security</Tag><div style={{ fontFamily: "var(--font-serif)", fontSize: 32, marginBottom: 32 }}>Management</div>
+      <Tag>Security & Privacy</Tag><div style={{ fontFamily: "var(--font-serif)", fontSize: 32, marginBottom: 32 }}>Account Management</div>
       <div style={{ display: "flex", gap: 16, marginBottom: 48 }}>
-        <Btn variant="secondary" size="sm">CHANGE PASSWORD</Btn>
-        <Btn variant="secondary" size="sm">EXPORT DATA</Btn>
+        <Btn variant="secondary" size="sm" onClick={handleChangePassword}>CHANGE PASSWORD</Btn>
+        <Btn variant="secondary" size="sm" onClick={handleExport}>EXPORT DATA</Btn>
         <Btn variant="ghost" size="sm" onClick={onLogout}>SIGN OUT <LogOut size={14}/></Btn>
       </div>
-      <div style={{ border: "2px solid var(--red)", padding: 32, borderRadius: 12 }}>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--red)" }}>DANGER ZONE</div>
-        <div style={{ fontSize: 13, color: "var(--muted)", margin: "12px 0 20px" }}>Deleting your account is permanent and non-refundable.</div>
-        <Btn variant="danger" size="sm">DEACTIVATE ACCOUNT</Btn>
+      
+      <div style={{ 
+        border: "2px solid var(--red)", 
+        padding: 32, 
+        borderRadius: 12,
+        background: showConfirm ? "rgba(176,32,32,0.03)" : "transparent",
+        transition: "all .3s ease"
+      }}>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--red)", display: "flex", alignItems: "center", gap: 10 }}>
+          <Shield size={20} /> DANGER ZONE
+        </div>
+        <div style={{ fontSize: 13, color: "var(--muted)", margin: "12px 0 20px", lineHeight: 1.6 }}>
+          Deleting your account is a permanent action. All active passes will be revoked without refund. 
+          {showConfirm && <strong style={{ color: "var(--red)", display: "block", marginTop: 8 }}>THIS IS YOUR FINAL WARNING.</strong>}
+        </div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <Btn variant="danger" size="sm" onClick={handleDeactivate}>
+            {showConfirm ? "CONFIRM DELETION" : "DEACTIVATE ACCOUNT"}
+          </Btn>
+          {showConfirm && <Btn variant="secondary" size="sm" onClick={() => setShowConfirm(false)}>CANCEL</Btn>}
+        </div>
       </div>
     </div>
   );
@@ -405,10 +489,23 @@ function AccountActions({ onLogout }) {
 
 const TABS = [ { id: "pass", l: "MY PASS" }, { id: "info", l: "PROFILE" }, { id: "history", l: "HISTORY" }, { id: "prefs", l: "PREFS" }, { id: "security", l: "SECURITY" } ];
 
-const MOCK_USER = { id: "PID-24-001", name: "Aryan Sharma", email: "aryan@transit.net", phone: "+91 98XXX", department: "General", year: "Adult", avatar_initials: "AS" };
+const MOCK_USER = { 
+  id: "PID-24-001", 
+  name: "Aryan Sharma", 
+  email: "aryan@transit.net", 
+  phone: "+91 98765 43210", 
+  address: "Flat 402, Heritage Residency, Opposite Central Park, Metropolis East, 400101",
+  dob: "15 May 2002",
+  emergencyContact: "+91 99988 77766 (Mother)",
+  aadhar: "4455 6677 8899",
+  bloodGroup: "O+ Positive",
+  department: "General", 
+  year: "Adult", 
+  avatar_initials: "AS" 
+};
 const MOCK_PASS = { pass_number: "BP-00123", route: "Red Line Express", source: "Station A", destination: "Station B", type: "QUARTERLY", valid_from: "01 JAN", valid_until: "01 APR", days_left: 28, total_days: 90, fare_total: 1200, status: "ACTIVE", qr_seed: 42 };
 
-export default function PassengerProfile({ user = MOCK_USER, pass = MOCK_PASS, onLogout }) {
+export default function PassengerProfile({ onNavigate, user = MOCK_USER, pass = MOCK_PASS, onLogout }) {
   const [tab, setTab] = useState("pass");
   const [loading, setLoading] = useState(true);
   const toast = useLocalToast();
@@ -436,14 +533,14 @@ export default function PassengerProfile({ user = MOCK_USER, pass = MOCK_PASS, o
                 <div style={{ animation: "fadeUp .4s ease .1s both", background: "var(--surface)", padding: 32, borderRadius: 16, border: "1px solid var(--rule)" }}>
                   <Tag>Usage Analytics</Tag><div style={{ fontFamily: "var(--font-serif)", fontSize: 24, marginBottom: 24 }}>Time Allocation</div>
                   <div style={{ display: "flex", gap: 24, alignItems: "center" }}><CountdownRing daysLeft={pass.days_left} totalDays={pass.total_days} /><div><div style={{ fontFamily: "var(--font-display)", fontSize: 28 }}>{pass.days_left} DAYS ACTIVE</div><div style={{ fontSize: 13, color: "var(--muted)" }}>Expires on {pass.valid_until}</div></div></div>
-                  <Btn variant="primary" full style={{ marginTop: 24 }}>RENEW PASS →</Btn>
+                  <Btn variant="primary" full style={{ marginTop: 24 }} onClick={() => onNavigate("renew")}>RENEW PASS →</Btn>
                 </div>
               </div>
             )}
             {tab === "info" && <PersonalInfo user={user} toast={toast} />}
             {tab === "history" && <PassHistory history={[]} currentPass={pass} />}
             {tab === "prefs" && <Preferences toast={toast} />}
-            {tab === "security" && <AccountActions onLogout={onLogout} />}
+            {tab === "security" && <AccountActions onLogout={onLogout} toast={toast} user={user} />}
           </div>
           <div style={{ padding: 44, borderTop: "3px double var(--ink)", background: "var(--parchment)", display: "flex", justifyContent: "space-between" }}>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 8 }}>v2.44 · {user.id}</div><div style={{ fontFamily: "var(--font-mono)", fontSize: 8 }}>SESSION 2024–2025</div>

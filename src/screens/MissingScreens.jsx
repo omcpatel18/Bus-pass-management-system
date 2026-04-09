@@ -671,18 +671,24 @@ export function ForgotPasswordScreen({ onDone, onBackToLogin }) {
 //  3. NOTIFICATIONS SCREEN
 // ══════════════════════════════════════════════════════════════════════
 const MOCK_NOTIFS = [
-  { id:1, type:"success", title:"Pass Approved!",      body:"Your quarterly pass BPP·2024·001234 for Red Line has been approved. QR code is ready.",       time:"2 min ago",  read:false },
-  { id:2, type:"warn",    title:"Pass Expiring Soon",  body:"Your current pass expires in 7 days. Apply for renewal to avoid disruption.",                  time:"1 hr ago",   read:false },
-  { id:3, type:"info",    title:"Blue Line Delay",     body:"Blue Line (R2) running 14 minutes late today due to Ring Road congestion.",                   time:"3 hrs ago",  read:true  },
-  { id:4, type:"info",    title:"New Stop Added",      body:"Tech Hub Gate 2 has been added to Red Line from 01 March 2024.",                               time:"Yesterday",  read:true  },
-  { id:5, type:"success", title:"Payment Confirmed",   body:"₹1,215 received for pass BPP·2024·001234. Receipt sent to your email.",                       time:"2 days ago", read:true  },
-  { id:6, type:"info",    title:"Holiday Notice",      body:"No bus service on 26 Jan (Republic Day). Regular service resumes 27 Jan.",                    time:"1 week ago", read:true  },
+  { id:1, role:"passenger", type:"success", title:"Pass Approved!",      body:"Your quarterly pass BPP·2024·001234 for Red Line has been approved. QR code is ready.",       time:"2 min ago",  read:false },
+  { id:2, role:"passenger", type:"warn",    title:"Pass Expiring Soon",  body:"Your current pass expires in 7 days. Apply for renewal to avoid disruption.",                  time:"1 hr ago",   read:false },
+  { id:3, role:"all",       type:"info",    title:"Blue Line Delay",     body:"Blue Line (R2) running 14 minutes late today due to Ring Road congestion.",                   time:"3 hrs ago",  read:true  },
+  { id:4, role:"all",       type:"info",    title:"New Stop Added",      body:"Tech Hub Gate 2 has been added to Red Line from 01 March 2024.",                               time:"Yesterday",  read:true  },
+  { id:5, role:"passenger", type:"success", title:"Payment Confirmed",   body:"₹1,215 received for pass BPP·2024·001234. Receipt sent to your email.",                       time:"2 days ago", read:true  },
+  { id:6, role:"all",       type:"info",    title:"Holiday Notice",      body:"No bus service on 26 Jan (Republic Day). Regular service resumes 27 Jan.",                    time:"1 week ago", read:true  },
 ];
 
-export function NotificationsScreen() {
+export function NotificationsScreen({ auth }) {
   const [notifs,setNotifs]=useState(MOCK_NOTIFS);
   const [filter,setFilter]=useState("ALL");
-  const unread=notifs.filter(n=>!n.read).length;
+  
+  // Role-based filtering logic
+  const roleFiltered = notifs.filter(n => 
+    n.role === "all" || n.role === auth?.role
+  );
+  
+  const unread=roleFiltered.filter(n=>!n.read).length;
 
   const markRead=id=>setNotifs(n=>n.map(x=>x.id===id?{...x,read:true}:x));
   const markAll=()=>setNotifs(n=>n.map(x=>({...x,read:true})));
@@ -694,9 +700,9 @@ export function NotificationsScreen() {
     info:   {border:"var(--ink)",    bg:"var(--surface)",   icon:"◆",color:"var(--ink)"},
   };
 
-  const visible=filter==="ALL"?notifs:
-    filter==="UNREAD"?notifs.filter(n=>!n.read):
-    notifs.filter(n=>n.type===filter.toLowerCase());
+  const visible=filter==="ALL"?roleFiltered:
+    filter==="UNREAD"?roleFiltered.filter(n=>!n.read):
+    roleFiltered.filter(n=>n.type===filter.toLowerCase());
 
   return (
     <>
@@ -798,7 +804,7 @@ const MOCK_ROUTES = [
   { id:3, name:"Green Line", code:"R3", color:"#1E6641", src:"North Zone",      dst:"South End",      stops:["University Gate","Sector 4","Main Market","City Square"], km:16.8, fare:440, buses:1, active:false },
 ];
 
-export function RenewalFlow({ currentPass, onDone }) {
+export function RenewalFlow({ onNavigate, currentPass, onDone }) {
   const PASS=currentPass||{ pass_number:"BPP·2024·001234",route:"Red Line",boarding_stop:"Library Square",fare:380,type:"R1",color:"#B02020", name:"Aryan Sharma", validity:"01 APR 2024" };
   const [duration,setDuration]=useState("quarterly");
   const [done,setDone]=useState(false);
@@ -832,7 +838,7 @@ export function RenewalFlow({ currentPass, onDone }) {
             fontStyle:"italic",margin:"12px 0 28px" }}>
             Pass renewed for {sel.label.toLowerCase()} · {sel.desc}.
           </div>
-          <Btn variant="primary" size="lg" onClick={onDone||(() => {})}>VIEW NEW PASS →</Btn>
+          <Btn variant="primary" size="lg" onClick={() => onNavigate("dashboard")}>VIEW NEW PASS →</Btn>
         </div>
       </Page>
     </>
@@ -962,7 +968,7 @@ export function RenewalFlow({ currentPass, onDone }) {
 // ══════════════════════════════════════════════════════════════════════
 //  9. BUS ROUTE MAP
 // ══════════════════════════════════════════════════════════════════════
-export function BusRouteMap() {
+export function BusRouteMap({ onNavigate }) {
   const [selRoute,setSelRoute]=useState(0);
   const [busPos,setBusPos]=useState(1);
 
@@ -1003,7 +1009,8 @@ export function BusRouteMap() {
       `}</style>
       <Page>
         <PageHeader tag="Live Route Map" title="TRANSIT RADAR"
-          subtitle="Real-time stop-by-stop view with dynamic vehicle tracking"/>
+          subtitle="Real-time stop-by-stop view with dynamic vehicle tracking"
+          actions={<Btn variant="secondary" size="sm" onClick={() => onNavigate("dashboard")}>← BACK</Btn>}/>
 
         <div style={{ display:"grid",gridTemplateColumns:"1fr 340px",gap:28,alignItems:"start" }}>
 

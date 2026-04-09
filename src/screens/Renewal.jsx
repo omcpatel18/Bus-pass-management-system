@@ -7,6 +7,7 @@
 
 import React, { useState } from "react";
 import { Clock, RefreshCw, ChevronRight, CheckCircle, CreditCard, Shield, Info, ArrowRight, Bookmark } from "lucide-react";
+import { PaymentButton, PaymentStatusModal } from "../components/PaymentUI";
 
 // ── Design Tokens ─────────────────────────────────────────────────────
 const FONTS = `
@@ -79,10 +80,9 @@ const Btn = ({ children, onClick, variant = "primary", full = false, size = "md"
 
 // ── Renewal Screen ────────────────────────────────────────────────────
 
-export default function Renewal({ currentPass, onDone }) {
+export default function Renewal({ onNavigate, currentPass, onDone }) {
   const [duration, setDuration] = useState("monthly");
-  const [paying, setPaying] = useState(false);
-  const [complete, setComplete] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null);
 
   const PASS = currentPass || {
     id: "BPP-2024-001234",
@@ -113,7 +113,7 @@ export default function Renewal({ currentPass, onDone }) {
     }, 2000);
   };
 
-  if (complete) {
+  if (paymentStatus === 'SUCCESS') {
     return (
       <div style={{ minHeight: "100vh", background: "var(--cream)", display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
         <style>{FONTS + CSS_VARS}</style>
@@ -148,7 +148,9 @@ export default function Renewal({ currentPass, onDone }) {
               RENEW YOUR<br /><span style={{ color: "var(--amber)" }}>TRANSIT PASS</span>
             </div>
           </div>
-          <div style={{ textAlign: "right" }}>
+          <div style={{ textAlign: "right", display: "flex", flexDirection: "column", gap: 12, alignItems: "flex-end" }}>
+            <button onClick={() => onNavigate("dashboard")}
+              style={{ background: "none", border: "none", fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--muted)", cursor: "pointer", borderBottom: "1px solid var(--rule)", paddingBottom: 2 }}>← CANCEL & RETURN</button>
             <Tag>Current ID</Tag>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 14, color: "var(--ink)" }}>{PASS.id}</div>
           </div>
@@ -189,9 +191,16 @@ export default function Renewal({ currentPass, onDone }) {
               <div style={{ fontFamily: "var(--font-display)", fontSize: 44, color: "var(--amber-text)" }}>₹{total}</div>
             </div>
             
-            <Btn variant="primary" full size="lg" onClick={handlePay} disabled={paying}>
-              {paying ? <><RefreshCw size={18} style={{ animation: "rotateCw 1s linear infinite" }} /> SECURING...</> : `PAY & EXTEND PASS →`}
-            </Btn>
+            <PaymentButton 
+              amount={total} 
+              purpose="PASS_RENEWAL"
+              metadata={{ pass_id: PASS.id, days: sel.days }}
+              btnText="PAY & EXTEND PASS →"
+              full
+              size="lg"
+              onSuccess={() => setPaymentStatus('SUCCESS')}
+              onFailure={() => setPaymentStatus('FAILED')}
+            />
           </div>
 
           {/* Visual Pass Preview */}
@@ -246,6 +255,12 @@ export default function Renewal({ currentPass, onDone }) {
 
         </div>
       </div>
+      {(paymentStatus === 'FAILED' || paymentStatus === 'PENDING') && (
+        <PaymentStatusModal 
+          status={paymentStatus}
+          onClose={() => setPaymentStatus(null)}
+        />
+      )}
     </div>
   );
 }

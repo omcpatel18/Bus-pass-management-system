@@ -65,6 +65,13 @@ const PASS_DURATIONS = [
   { id: "quarterly", label: "QUARTERLY", days: 90, price: 3200, desc: "90-day mega pass" },
 ];
 
+const VALID_PROMOS = {
+  "CITY20": 20,
+  "SAVEMORE": 15,
+  "STUDENT50": 50,
+  "FREEDOM": 100
+};
+
 // ── Atomic Components ─────────────────────────────────────────────────
 
 const Tag = ({ children, color }) => (
@@ -106,7 +113,7 @@ const Btn = ({ children, onClick, variant = "primary", full = false, size = "md"
 
 // ── Application Form Wizard ───────────────────────────────────────────
 
-export default function ApplyPass() {
+export default function ApplyPass({ onNavigate }) {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -115,21 +122,39 @@ export default function ApplyPass() {
     durationId: "monthly",
     reason: ""
   });
+  const [promoInput, setPromoInput] = useState("");
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoError, setPromoError] = useState("");
 
   const selectedRoute = CITY_ROUTES.find(r => r.id === formData.routeId);
   const selectedType = PASSENGER_TYPES.find(p => p.id === formData.typeId);
   const selectedDur = PASS_DURATIONS.find(d => d.id === formData.durationId);
   
   const basePrice = selectedDur?.price || 0;
-  const discount = selectedType?.disc || 0;
-  const finalPrice = Math.round(basePrice * (1 - discount / 100));
+  const categoryDiscount = selectedType?.disc || 0;
+  
+  // Calculate price with both category and promo discounts
+  const discountedPrice = basePrice * (1 - categoryDiscount / 100);
+  const finalPrice = Math.round(discountedPrice * (1 - promoDiscount / 100));
+
+  const applyPromo = () => {
+    const code = promoInput.toUpperCase().trim();
+    if (VALID_PROMOS[code]) {
+      setPromoDiscount(VALID_PROMOS[code]);
+      setPromoError("");
+    } else {
+      setPromoError("Invalid or expired code");
+      setPromoDiscount(0);
+    }
+  };
 
   const handleNext = () => { if (step < 4) setStep(s => s + 1); };
   const handlePrev = () => { if (step > 1) setStep(s => s - 1); };
 
   const handleSubmit = () => {
     setSubmitted(true);
-    setTimeout(() => { window.location.hash = "#dashboard"; }, 3000);
+    // Remove hash redirect - let user click the button or auto-redirect properly
+    setTimeout(() => { if(onNavigate) onNavigate("dashboard"); }, 5000);
   };
 
   if (submitted) {
@@ -150,7 +175,7 @@ export default function ApplyPass() {
             Your application for a {selectedDur?.label} {selectedType?.label} Pass is now under review.
           </p>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 4, color: "var(--amber)", marginBottom: 40 }}>APP REGISTRY ID: BPP-APP-{Math.floor(Math.random()*90000)+10000}</div>
-          <Btn variant="primary" size="lg" onClick={() => window.location.hash = "#dashboard"}>RETURN TO DASHBOARD</Btn>
+          <Btn variant="primary" size="lg" onClick={() => onNavigate("dashboard")}>RETURN TO DASHBOARD</Btn>
         </div>
       </div>
     );
@@ -276,6 +301,21 @@ export default function ApplyPass() {
                   <div style={{ fontFamily: "var(--font-serif)", fontSize: 28, color: "var(--ink)", marginBottom: 8 }}>Final Review</div>
                   <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--muted)", marginBottom: 32 }}>Check your details before submitting for approval.</p>
                   
+                  <div style={{ marginBottom: 32 }}>
+                    <Tag>HAVE A PROMO CODE?</Tag>
+                    <div style={{ display: "flex", gap: 12 }}>
+                      <input 
+                        value={promoInput}
+                        onChange={e => setPromoInput(e.target.value)}
+                        placeholder="e.g. CITY20"
+                        style={{ flex: 1, padding: "12px 16px", background: "var(--surface)", border: `1.5px solid ${promoError ? "var(--red)" : "var(--rule)"}`, fontFamily: "var(--font-mono)", fontSize: 13, outline: "none" }}
+                      />
+                      <Btn variant="secondary" onClick={applyPromo} disabled={!promoInput}>APPLY</Btn>
+                    </div>
+                    {promoError && <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--red)", marginTop: 6 }}>{promoError}</div>}
+                    {promoDiscount > 0 && <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--green)", marginTop: 6, fontWeight: 600 }}>PROMO APPLIED: {promoDiscount}% EXTRA SAVINGS!</div>}
+                  </div>
+
                   <div style={{ marginBottom: 24 }}>
                     <Tag>REASON FOR APPLICATION</Tag>
                     <textarea 
@@ -332,8 +372,12 @@ export default function ApplyPass() {
               <div style={{ borderTop: "1px dashed rgba(255,255,255,0.2)", padding: "24px 0", marginBottom: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                   <div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--muted-on-ink)", letterSpacing: 2, marginBottom: 4 }}>ESTIMATED FARE</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--muted-on-ink)", letterSpacing: 2, marginBottom: 4 }}>ESTIMATED FARE</div>
+                      {promoDiscount > 0 && <span style={{ padding: "2px 6px", background: "var(--green)", color: "white", fontSize: 7, fontFamily: "var(--font-mono)", borderRadius: 4, marginBottom: 4 }}>PROMO APPLIED</span>}
+                    </div>
                     <div style={{ fontFamily: "var(--font-display)", fontSize: 44, color: "var(--cream)", lineHeight: 1 }}>₹{finalPrice}</div>
+                    {promoDiscount > 0 && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--green-on-ink)", marginTop: 4 }}>ADDITIONAL {promoDiscount}% OFF</div>}
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--muted-on-ink)", letterSpacing: 2, marginBottom: 4 }}>VALIDITY</div>

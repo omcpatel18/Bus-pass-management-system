@@ -33,14 +33,16 @@ import {
   TripLog,
   ManualLookup,
 } from "./screens/MissingScreens";
-import { 
-  RouteManagerClone, 
-  UserManagerClone, 
-  AnalyticsDashboardClone, 
+import {
+  RouteManagerClone,
+  UserManagerClone,
+  AnalyticsDashboardClone,
   AnnouncementSenderClone,
-  AdminApplicationsClone
+  AdminApplicationsClone,
+  AdminHubClone
 } from "./screens/AdminScreensClone";
-import AdminHub from "./screens/AdminHub.old";
+import AdminHub from "./screens/AdminHub";
+// import AdminPaymentDashboard from "./screens/AdminPaymentDashboard";
 
 // ══════════════════════════════════════════════════════════════════════
 //  DESIGN SYSTEM
@@ -164,10 +166,12 @@ const LINE_COLORS = { "Red Line": "#B02020", "Blue Line": "#1A4A8A", "Green Line
 // ══════════════════════════════════════════════════════════════════════
 
 const INITIAL_NOTIFS = [
-  { id: 1, type: "success", title: "Pass Approved!", body: "Your monthly pass BPP·2024·001234 for Red Line has been approved. QR ready.", time: "2 min ago", read: false },
-  { id: 2, type: "warn", title: "Pass Expiring Soon", body: "Your current pass expires in 7 days. Renew to avoid disruption.", time: "1 hr ago", read: false },
-  { id: 3, type: "info", title: "Blue Line Delay", body: "Blue Line (R2) running 14 minutes late near Ring Road.", time: "3 hrs ago", read: true },
-  { id: 4, type: "success", title: "Payment Confirmed", body: "₹520 received for pass BPP·2024·001234.", time: "2 days ago", read: true },
+  { id: 1, role: "passenger", type: "success", title: "Pass Approved!", body: "Your monthly pass BPP·2024·001234 for Red Line has been approved. QR ready.", time: "2 min ago", read: false },
+  { id: 2, role: "passenger", type: "warn", title: "Pass Expiring Soon", body: "Your current pass expires in 7 days. Renew to avoid disruption.", time: "1 hr ago", read: false },
+  { id: 3, role: "all", type: "info", title: "Blue Line Delay", body: "Blue Line (R2) running 14 minutes late near Ring Road.", time: "3 hrs ago", read: true },
+  { id: 4, role: "passenger", type: "success", title: "Payment Confirmed", body: "₹520 received for pass BPP·2024·001234.", time: "2 days ago", read: true },
+  { id: 5, role: "admin", type: "warn", title: "System Load Alert", body: "Server memory usage exceeded 85%. Automated optimization triggered.", time: "10 min ago", read: false },
+  { id: 6, role: "admin", type: "info", title: "New Registrations", body: "14 new passenger applications received in the last hour.", time: "45 min ago", read: false },
 ];
 
 const MOCK_APPS = [
@@ -1630,9 +1634,9 @@ export default function App() {
   const navItems = NAV_CONFIG[auth.role] || NAV_CONFIG.passenger;
 
   const renderPage = () => {
-    if (auth.role === "admin" && page === "admin") return <AdminApplicationsClone />;
+    if (auth.role === "admin" && page === "admin") return <AdminApplicationsClone onNavigate={setPage} toast={toast} />;
     const Screen = SCREENS[page];
-    if (Screen) return <div key={page} style={{ animation: "fadeUp .3s ease" }}><Screen /></div>;
+    if (Screen) return <div key={page} style={{ animation: "fadeUp .3s ease" }}><Screen onNavigate={setPage} auth={auth} toast={toast} /></div>;
     return <NotFoundScreen onGoHome={() => setPage(DEFAULT_PAGE[auth.role] || "dashboard")} />;
   };
 

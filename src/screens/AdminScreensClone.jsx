@@ -147,7 +147,7 @@ const PageHeader = ({ tag, title, subtitle, actions }) => (
 //  SCREENS CLONE COMPONENTS
 // ══════════════════════════════════════════════════════════════════════
 
-export function AdminHubClone() {
+export function AdminHubClone({ onNavigate, toast }) {
   const ACTIVITY = [
     { time:"09:14", action:"Pass approved",   detail:"BPP·2024·001567 — Priya Patel",    type:"success" },
     { time:"09:02", action:"Payment received", detail:"₹1,215 — Aryan Sharma · Quarterly",type:"success" },
@@ -189,7 +189,7 @@ export function AdminHubClone() {
           <div style={{ background:"var(--surface)", border:"1.5px solid var(--rule)", borderRadius:16, overflow:"hidden" }}>
             <div style={{ padding:"20px 24px", borderBottom:"1.5px solid var(--rule)", background:"var(--parchment)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div style={{ fontFamily:"var(--font-display)", fontSize:20, letterSpacing:2, color:"var(--ink)" }}>LIVE ACTIVITY FEED</div>
-              <Btn variant="ghost" size="sm">VIEW ALL</Btn>
+              <Btn variant="ghost" size="sm" onClick={() => onNavigate("admin")}>VIEW ALL</Btn>
             </div>
             <div>
               {ACTIVITY.map((a,i)=>(
@@ -252,27 +252,34 @@ export function AdminHubClone() {
   );
 }
 
-export function RouteManagerClone() {
+export function RouteManagerClone({ onNavigate, toast }) {
   const [filter, setFilter] = useState("ALL");
-  const MOCK_ROUTES = [
+  const [routes, setRoutes] = useState([
     { id: 1, name: "Red Line", code: "R1", fare: 350, km: 12.5, stops: 18, buses: 6, active: true },
     { id: 2, name: "Blue Line", code: "R2", fare: 420, km: 18.0, stops: 24, buses: 8, active: true },
     { id: 3, name: "Green Line", code: "R3", fare: 280, km: 8.5, stops: 12, buses: 4, active: false },
     { id: 4, name: "Route Alpha", code: "Rα", fare: 500, km: 22.0, stops: 30, buses: 10, active: true },
-  ];
+  ]);
 
-  const visible = filter === "ALL" ? MOCK_ROUTES : MOCK_ROUTES.filter(r => (filter === "ACTIVE" ? r.active : !r.active));
+  const toggleRoute = (id) => {
+    setRoutes(prev => prev.map(r => r.id === id ? { ...r, active: !r.active } : r));
+    const r = routes.find(x => x.id === id);
+    toast.info(`${r.name} status: ${!r.active ? "ACTIVE" : "INACTIVE"}`);
+  };
+
+  const sortedRoutes = [...routes].sort((a, b) => b.active - a.active);
+  const visible = filter === "ALL" ? sortedRoutes : sortedRoutes.filter(r => (filter === "ACTIVE" ? r.active : !r.active));
 
   return (
     <div>
       <PageHeader tag="Admin · Routes" title="ROUTE MANAGER" subtitle="Configure and deploy transit lines across the city" 
-        actions={<Btn variant="primary">+ ADD NEW ROUTE</Btn>} />
+        actions={<Btn variant="primary" onClick={() => toast.info("Route Designer is in read-only mode for this build.")}>+ ADD NEW ROUTE</Btn>} />
       
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20, marginBottom:32 }}>
         {[
-          ["TOTAL ROUTES", MOCK_ROUTES.length, "var(--ink)", "All registered lines"],
-          ["ACTIVE LINES", MOCK_ROUTES.filter(r=>r.active).length, "var(--green)", "Currently deployed"],
-          ["TOTAL BUSES", MOCK_ROUTES.reduce((a,b)=>a+b.buses, 0), "var(--amber-text)", "Vehicles in service"],
+          ["TOTAL ROUTES", routes.length, "var(--ink)", "All registered lines"],
+          ["ACTIVE LINES", routes.filter(r=>r.active).length, "var(--green)", "Currently deployed"],
+          ["TOTAL BUSES", routes.reduce((a,b)=>a+b.buses, 0), "var(--amber-text)", "Vehicles in service"],
         ].map(([title, val, color, sub], i) => (
           <div key={title} style={{ padding:24, background:"var(--surface)", border:"1.5px solid var(--rule)", borderRadius:16, boxShadow:"0 4px 12px rgba(26,18,8,0.02)", display:"flex", alignItems:"center", gap:20, animation:`slideRight .4s ease ${i*0.05}s both` }}>
             <div style={{ width:64, height:64, borderRadius:"50%", background:`${color}22`, color, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"var(--font-display)", fontSize:28, border:`2px solid ${color}` }}>
@@ -310,7 +317,7 @@ export function RouteManagerClone() {
             <div style={{ fontFamily:"var(--font-mono)", fontSize:11, color:"var(--muted)" }}>{r.stops} stops</div>
             <div style={{ fontFamily:"var(--font-mono)", fontSize:11, color:"var(--muted)" }}>{r.buses} buses</div>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <Toggle on={r.active} onChange={()=>{}}/>
+              <Toggle on={r.active} onChange={() => toggleRoute(r.id)}/>
               <Pill s={r.active?"ACTIVE":"INACTIVE"}/>
             </div>
           </div>
@@ -320,15 +327,27 @@ export function RouteManagerClone() {
   );
 }
 
-export function UserManagerClone() {
+export function UserManagerClone({ onNavigate, toast }) {
   const [selected, setSelected] = useState(null);
-  const MOCK_USERS = [
+  const [searchTerm, setSearchTerm] = useState("");
+  const [users, setUsers] = useState([
     { id: "STU-10042", name: "Aryan Sharma", ptype: "student", status: "ACTIVE", passes: 3, joined: "Aug 2021", email: "aryan@mail.com" },
     { id: "COR-10045", name: "Sneha Iyer", ptype: "corporate", status: "ACTIVE", passes: 1, joined: "Feb 2024", email: "sneha@corp.com" },
     { id: "GEN-10031", name: "Rahul Kumar", ptype: "general", status: "EXPIRED", passes: 5, joined: "Jan 2023", email: "rahul@mail.com" },
     { id: "SEN-10027", name: "Ramesh Sharma", ptype: "senior", status: "ACTIVE", passes: 2, joined: "Mar 2023", email: "ramesh@mail.com" },
     { id: "STU-10033", name: "Priya Patel", ptype: "student", status: "PENDING", passes: 0, joined: "Mar 2024", email: "priya@mail.com" },
-  ];
+  ]);
+
+  const suspendUser = (id) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, status: "INACTIVE" } : u));
+    if (selected?.id === id) setSelected(prev => ({ ...prev, status: "INACTIVE" }));
+    toast.warn("Account suspended for " + id);
+  };
+
+  const visible = users.filter(u => 
+    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    u.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
@@ -340,7 +359,12 @@ export function UserManagerClone() {
         {/* Left Side: Directory */}
         <div style={{ flex:1, background:"var(--surface)", border:"1.5px solid var(--rule)", borderRadius:16, overflow:"hidden", display:"flex", flexDirection:"column", minHeight:500 }}>
           <div style={{ padding:"16px 24px", borderBottom:"1.5px solid var(--rule)", background:"var(--parchment)", display:"flex", gap:12 }}>
-            <input placeholder="Search passengers..." style={{ flex:1, padding:"10px 16px", borderRadius:8, border:"1px solid var(--rule)", outline:"none", fontFamily:"var(--font-sans)" }}/>
+            <input 
+              value={searchTerm} 
+              onChange={e => setSearchTerm(e.target.value)} 
+              placeholder="Search passengers by Name or ID..." 
+              style={{ flex:1, padding:"10px 16px", borderRadius:8, border:"1px solid var(--rule)", outline:"none", fontFamily:"var(--font-sans)" }}
+            />
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"100px 1fr 100px 100px", gap:16, padding:"12px 24px", borderBottom:"2px solid var(--ink)", background:"var(--cream)" }}>
             {["ID", "NAME", "CATEGORY", "STATUS"].map(h => (
@@ -348,8 +372,8 @@ export function UserManagerClone() {
             ))}
           </div>
           <div style={{ overflowY:"auto", flex:1 }}>
-            {MOCK_USERS.map((u, i) => (
-              <div key={u.id} onClick={() => setSelected(u)} style={{ display:"grid", gridTemplateColumns:"100px 1fr 100px 100px", gap:16, padding:"18px 24px", alignItems:"center", borderBottom:i<MOCK_USERS.length-1?"1px solid var(--rule)":"none", background:selected?.id===u.id?"var(--parchment)":i%2===0?"transparent":"var(--cream)", borderLeft:selected?.id===u.id?"4px solid var(--amber)":"4px solid transparent", cursor:"pointer", transition:"all .2s" }}>
+            {visible.map((u, i) => (
+              <div key={u.id} onClick={() => setSelected(u)} style={{ display:"grid", gridTemplateColumns:"100px 1fr 100px 100px", gap:16, padding:"18px 24px", alignItems:"center", borderBottom:i<visible.length-1?"1px solid var(--rule)":"none", background:selected?.id===u.id?"var(--parchment)":i%2===0?"transparent":"var(--cream)", borderLeft:selected?.id===u.id?"4px solid var(--amber)":"4px solid transparent", cursor:"pointer", transition:"all .2s" }}>
                 <div style={{ fontFamily:"var(--font-mono)", fontSize:10, fontWeight:700, letterSpacing:1, color:"var(--amber-text)" }}>{u.id}</div>
                 <div style={{ fontFamily:"var(--font-sans)", fontSize:15, fontWeight:600, color:"var(--ink)" }}>{u.name}</div>
                 <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--muted)", textTransform:"uppercase" }}>{u.ptype}</div>
@@ -398,8 +422,8 @@ export function UserManagerClone() {
               </div>
               <Rule my={24}/>
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                <Btn full variant="secondary">VIEW PASS HISTORY</Btn>
-                <Btn full variant="danger">SUSPEND ACCOUNT</Btn>
+                <Btn full variant="secondary" onClick={() => onNavigate("triplog")}>VIEW PASS HISTORY</Btn>
+                <Btn full variant="danger" onClick={() => suspendUser(selected.id)}>SUSPEND ACCOUNT</Btn>
               </div>
             </div>
           )}
@@ -409,8 +433,63 @@ export function UserManagerClone() {
   );
 }
 
-export function AnalyticsDashboardClone() {
+export function AnalyticsDashboardClone({ onNavigate, toast }) {
   const [period, setPeriod] = useState("week");
+
+  const PERIOD_DATA = {
+    week: {
+      stats: [
+        ["ACTIVE PASSES", "243", "+12", "var(--amber-text)", true],
+        ["REVENUE (₹K)", "180.5", "+8.2%", "var(--green)", true],
+        ["WEEKLY SCANS", "4,820", "-3%", "var(--ink)", false],
+        ["SUCCESS RATE", "97.4%", "STABLE", "var(--ink)", true],
+      ],
+      ridership: [
+        { day: "MON", val: 680 }, { day: "TUE", val: 720 }, { day: "WED", val: 690 },
+        { day: "THU", val: 810 }, { day: "FRI", val: 850 }, { day: "SAT", val: 420 }, { day: "SUN", val: 210 }
+      ],
+      financials: [
+        { m: "MON", val: 24.5 }, { m: "TUE", val: 26.2 }, { m: "WED", val: 25.1 },
+        { m: "THU", val: 29.8 }, { m: "FRI", val: 31.2 }, { m: "SAT", val: 15.4 }
+      ]
+    },
+    month: {
+      stats: [
+        ["ACTIVE PASSES", "1,102", "+41", "var(--amber-text)", true],
+        ["REVENUE (₹K)", "742.8", "+15.4%", "var(--green)", true],
+        ["MONTHLY SCANS", "22,400", "+5.2%", "var(--ink)", true],
+        ["SUCCESS RATE", "98.1%", "+1.2%", "var(--green)", true],
+      ],
+      ridership: [
+        { day: "W1", val: 4800 }, { day: "W2", val: 5200 }, { day: "W3", val: 4950 },
+        { day: "W4", val: 5400 }, { day: "W5", val: 2050 }, { day: "", val: 0 }, { day: "", val: 0 }
+      ],
+      financials: [
+        { m: "W1", val: 142 }, { m: "W2", val: 158 }, { m: "W3", val: 149 },
+        { m: "W4", val: 164 }, { m: "W5", val: 72 }, { m: "AVG", val: 137 }
+      ]
+    },
+    year: {
+      stats: [
+        ["ACTIVE PASSES", "5,420", "+1,200", "var(--amber-text)", true],
+        ["REVENUE (₹M)", "8.92", "+22.5%", "var(--green)", true],
+        ["ANNUAL SCANS", "265k", "+18.4%", "var(--ink)", true],
+        ["SUCCESS RATE", "98.5%", "STABLE", "var(--green)", true],
+      ],
+      ridership: [
+        { day: "Q1", val: 62000 }, { day: "Q2", val: 68000 }, { day: "Q3", val: 64500 },
+        { day: "Q4", val: 70500 }, { day: "", val: 0 }, { day: "", val: 0 }, { day: "", val: 0 }
+      ],
+      financials: [
+        { m: "2020", val: 3.2 }, { m: "2021", val: 4.8 }, { m: "2022", val: 6.1 },
+        { m: "2023", val: 7.4 }, { m: "2024", val: 8.9 }, { m: "PROJ", val: 10.5 }
+      ]
+    }
+  };
+
+  const data = PERIOD_DATA[period];
+  const maxR = Math.max(...data.ridership.map(x => x.val)) || 1;
+  const maxF = Math.max(...data.financials.map(x => x.val)) || 1;
 
   return (
     <div>
@@ -427,12 +506,7 @@ export function AnalyticsDashboardClone() {
       
       {/* Big Stats Row */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:20, marginBottom:32 }}>
-        {[
-          ["ACTIVE PASSES", "243", "+12", "var(--amber-text)", true],
-          ["REVENUE (₹K)", "180", "+8%", "var(--green)", true],
-          ["WEEKLY SCANS", "4,820", "-3%", "var(--ink)", false],
-          ["SUCCESS RATE", "97%", "STABLE", "var(--ink)", true],
-        ].map(([title, val, delta, color, up], i) => (
+        {data.stats.map(([title, val, delta, color, up], i) => (
           <div key={title} style={{ padding:28, background:"var(--surface)", border:"1.5px solid var(--rule)", borderRadius:16, boxShadow:"0 4px 12px rgba(26,18,8,0.02)", animation:`fadeUp .4s ease ${i*0.05}s both` }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:16 }}>
               <div style={{ fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:4, color:"var(--muted)", textTransform:"uppercase" }}>{title}</div>
@@ -450,41 +524,35 @@ export function AnalyticsDashboardClone() {
         {/* Pass Registrations Timeline */}
         <div style={{ background:"var(--surface)", border:"1.5px solid var(--rule)", borderRadius:16, padding:28 }}>
           <Tag>System Load</Tag>
-          <div style={{ fontFamily:"var(--font-display)", fontSize:28, color:"var(--ink)", marginBottom:32 }}>DAILY RIDERSHIP</div>
+          <div style={{ fontFamily:"var(--font-display)", fontSize:28, color:"var(--ink)", marginBottom:32 }}>RIDERSHIP BREAKDOWN</div>
           
           <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:180, position:"relative", paddingTop:20 }}>
             {[25,50,75,100].map((pct, idx) => (
               <div key={idx} style={{ position:"absolute", left:0, right:0, bottom:`${pct}%`, borderTop:"1px dashed var(--rule)", pointerEvents:"none" }}/>
             ))}
-            {[
-              {day:"MON", val:120}, {day:"TUE", val:180}, {day:"WED", val:150},
-              {day:"THU", val:210}, {day:"FRI", val:190}, {day:"SAT", val:90}, {day:"SUN", val:40}
-            ].map((d,i) => (
-              <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
-                <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--amber-text)", fontWeight:700 }}>{d.val}</div>
-                <div style={{ width:"100%", background:"var(--amber)", height:`${(d.val/250)*160}px`, minHeight:4, borderRadius:"4px 4px 0 0", transition:"height .5s var(--ease-spring)", animation:`barGrow .6s var(--ease-spring) ${i*0.05}s both`, transformOrigin:"bottom" }}/>
+            {data.ridership.map((d,i) => (
+              <div key={i} style={{ flex:1, display:d.day?"flex":"none", flexDirection:"column", alignItems:"center", gap:8 }}>
+                <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--amber-text)", fontWeight:700 }}>{d.val > 1000 ? (d.val/1000).toFixed(1)+"k" : d.val}</div>
+                <div style={{ width:"100%", background:"var(--amber)", height:`${(d.val/maxR)*160}px`, minHeight:4, borderRadius:"4px 4px 0 0", transition:"height .5s var(--ease-spring)", animation:`barGrow .6s var(--ease-spring) ${i*0.05}s both`, transformOrigin:"bottom" }}/>
                 <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--muted)" }}>{d.day}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Revenue */}
+        {/* Financials */}
         <div style={{ background:"var(--surface)", border:"1.5px solid var(--rule)", borderRadius:16, padding:28 }}>
           <Tag>Financials</Tag>
-          <div style={{ fontFamily:"var(--font-display)", fontSize:28, color:"var(--ink)", marginBottom:32 }}>MONTHLY REVENUE</div>
+          <div style={{ fontFamily:"var(--font-display)", fontSize:28, color:"var(--ink)", marginBottom:32 }}>REVENUE TREND</div>
           
           <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:180, position:"relative", paddingTop:20 }}>
             {[25,50,75,100].map((pct, idx) => (
               <div key={idx} style={{ position:"absolute", left:0, right:0, bottom:`${pct}%`, borderTop:"1px dashed var(--rule)", pointerEvents:"none" }}/>
             ))}
-            {[
-              {m:"JAN", val:48}, {m:"FEB", val:52}, {m:"MAR", val:61},
-              {m:"APR", val:58}, {m:"MAY", val:43}, {m:"JUN", val:39}
-            ].map((d,i) => (
+            {data.financials.map((d,i) => (
               <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
-                <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--green)", fontWeight:700 }}>{d.val}k</div>
-                <div style={{ width:"100%", background:"var(--green)", height:`${(d.val/80)*160}px`, minHeight:4, borderRadius:"4px 4px 0 0", transition:"height .5s var(--ease-spring)", animation:`barGrow .6s var(--ease-spring) ${i*0.05}s both`, transformOrigin:"bottom" }}/>
+                <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--green)", fontWeight:700 }}>{d.val}{period==="year"?"M":"k"}</div>
+                <div style={{ width:"100%", background:"var(--green)", height:`${(d.val/maxF)*160}px`, minHeight:4, borderRadius:"4px 4px 0 0", transition:"height .5s var(--ease-spring)", animation:`barGrow .6s var(--ease-spring) ${i*0.05}s both`, transformOrigin:"bottom" }}/>
                 <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--muted)" }}>{d.m}</div>
               </div>
             ))}
@@ -520,10 +588,33 @@ export function AnalyticsDashboardClone() {
   );
 }
 
-export function AnnouncementSenderClone() {
+export function AnnouncementSenderClone({ onNavigate, toast }) {
   const [form, setForm] = useState({ title:"", body:"", type:"INFO" });
   const [audience, setAudience] = useState("ALL");
   const [submitting, setSubmitting] = useState(false);
+  const [history, setHistory] = useState([
+    { title:"System Maintenance", date:"12 Mar, 4:00 PM", type:"INFO", body:"Scheduled database optimization." },
+    { title:"Heavy Traffic Warning", date:"10 Mar, 8:15 AM", type:"WARN", body:"Expected delays across all Red Line routes." },
+    { title:"Service Disruption: R3", date:"05 Mar, 2:30 PM", type:"CRITICAL", body:"Power line failure at Sector 4." },
+  ]);
+
+  const dispatch = () => {
+    setSubmitting(true);
+    setTimeout(() => {
+      const now = new Date();
+      const timestamp = now.toLocaleDateString("en-IN", { day:"2-digit", month:"short" }) + ", " + now.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit" });
+      const newEntry = {
+        title: form.title,
+        date: timestamp,
+        type: form.type,
+        body: form.body
+      };
+      setHistory(prev => [newEntry, ...prev]);
+      setSubmitting(false);
+      setForm({ title:"", body:"", type:"INFO" });
+      toast.success("Broadcast Dispatched to " + audience);
+    }, 800);
+  };
 
   return (
     <div>
@@ -566,8 +657,8 @@ export function AnnouncementSenderClone() {
             </div>
 
             <Rule my={24}/>
-            <Btn variant="primary" size="lg" disabled={form.title===""||form.body===""} 
-              onClick={() => { setSubmitting(true); setTimeout(()=> { setSubmitting(false); setForm({title:"",body:"",type:"INFO"}); }, 800) }}>
+            <Btn variant="primary" size="lg" disabled={form.title===""||form.body===""||submitting} 
+              onClick={dispatch}>
               {submitting ? "SENDING..." : "DISPATCH BROADCAST →"}
             </Btn>
           </div>
@@ -578,46 +669,63 @@ export function AnnouncementSenderClone() {
            <Tag>Recent History</Tag>
            <div style={{ fontFamily:"var(--font-display)", fontSize:26, color:"var(--ink)", marginBottom:24 }}>PAST BROADCASTS</div>
            
-           <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-             {[
-               { title:"System Maintenance", date:"12 Mar, 4:00 PM", type:"INFO" },
-               { title:"Heavy Traffic Warning", date:"10 Mar, 8:15 AM", type:"WARN" },
-               { title:"Service Disruption: R3", date:"05 Mar, 2:30 PM", type:"CRITICAL" },
-             ].map((b,i) => (
+           <div style={{ display:"flex", flexDirection:"column", gap:16, maxHeight:500, overflowY:"auto" }}>
+             {history.map((b,i) => (
                <div key={i} style={{ background:"var(--surface)", border:"1px solid var(--rule)", padding:16, borderRadius:12 }}>
                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
                     <div style={{ width:10, height:10, borderRadius:"50%", background:b.type==="CRITICAL"?"var(--red)":b.type==="WARN"?"var(--amber-text)":"var(--ink)", marginTop:4 }}/>
                     <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--muted)" }}>{b.date}</div>
                  </div>
                  <div style={{ fontFamily:"var(--font-sans)", fontSize:15, fontWeight:600, color:"var(--ink)" }}>{b.title}</div>
+                 <div style={{ fontFamily:"var(--font-sans)", fontSize:12, color:"var(--muted)", marginTop:6, fontStyle:"italic" }}>{b.body}</div>
                </div>
              ))}
            </div>
            
            <Rule my={24}/>
-           <Btn variant="secondary" full>VIEW FULL LOG</Btn>
+           <Btn variant="secondary" full onClick={() => toast.info("Full log currently limited to session history.")}>VIEW FULL LOG</Btn>
         </div>
       </div>
     </div>
   );
 }
 
-export function AdminApplicationsClone() {
+export function AdminApplicationsClone({ onNavigate, toast }) {
   const [filter, setFilter] = useState("ALL");
-  const MOCK_APPS = [
+  const [apps, setApps] = useState([
     { id: "REQ-9921", passenger: "Aryan Sharma", ptype: "student", route: "Red Line", type: "Monthly", date: "16 Mar 2024", amt: 350, status: "PENDING" },
     { id: "REQ-9922", passenger: "Priya Patel", ptype: "student", route: "Blue Line", type: "Quarterly", date: "16 Mar 2024", amt: 1000, status: "PENDING" },
     { id: "REQ-9920", passenger: "Rajesh Kumar", ptype: "general", route: "Green Line", type: "Monthly", date: "15 Mar 2024", amt: 600, status: "APPROVED" },
     { id: "REQ-9919", passenger: "Sneha Iyer", ptype: "corporate", route: "Red Line", type: "Annual", date: "15 Mar 2024", amt: 6500, status: "REJECTED" },
     { id: "REQ-9918", passenger: "Amit Singh", ptype: "senior", route: "Blue Line", type: "Monthly", date: "14 Mar 2024", amt: 300, status: "APPROVED" },
-  ];
+  ]);
   
-  const visible = filter === "ALL" ? MOCK_APPS : MOCK_APPS.filter(a => a.status === filter);
+  const handleAction = (id, status) => {
+    setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+    toast.success(`Application ${id} ${status.toLowerCase()}`);
+  };
+
+  const exportLogs = () => {
+    const csv = "ID,Passenger,Type,Route,Duration,Date,Amount,Status\n" + 
+      apps.map(a => `${a.id},${a.passenger},${a.ptype},${a.route},${a.type},${a.date},${a.amt},${a.status}`).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.setAttribute("hidden", "");
+    a.setAttribute("href", url);
+    a.setAttribute("download", "pass_request_logs.csv");
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast.success("Logs exported to CSV.");
+  };
+
+  const visible = filter === "ALL" ? apps : apps.filter(a => a.status === filter);
 
   return (
     <div>
       <PageHeader tag="Admin · Passes" title="PASS REQUESTS" subtitle="Approve or decline incoming student & commuter passes" 
-        actions={<Btn variant="secondary">EXPORT LOGS</Btn>} />
+        actions={<Btn variant="secondary" onClick={exportLogs}>EXPORT LOGS</Btn>} />
       
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", margin:"16px 0 24px" }}>
         <div style={{ display:"flex", gap:4 }}>
@@ -650,8 +758,8 @@ export function AdminApplicationsClone() {
             <div>
               {app.status === "PENDING" ? (
                 <div style={{ display:"flex", gap:8 }}>
-                  <button style={{ padding:"6px 12px", background:"var(--green)", color:"white", border:"none", borderRadius:6, fontFamily:"var(--font-sans)", fontSize:12, fontWeight:600, cursor:"pointer" }}>Approve</button>
-                  <button style={{ padding:"6px 12px", background:"transparent", color:"var(--red)", border:"1px solid var(--red)", borderRadius:6, fontFamily:"var(--font-sans)", fontSize:12, fontWeight:600, cursor:"pointer" }}>Deny</button>
+                  <button onClick={() => handleAction(app.id, "APPROVED")} style={{ padding:"6px 12px", background:"var(--green)", color:"white", border:"none", borderRadius:6, fontFamily:"var(--font-sans)", fontSize:12, fontWeight:600, cursor:"pointer" }}>Approve</button>
+                  <button onClick={() => handleAction(app.id, "REJECTED")} style={{ padding:"6px 12px", background:"transparent", color:"var(--red)", border:"1px solid var(--red)", borderRadius:6, fontFamily:"var(--font-sans)", fontSize:12, fontWeight:600, cursor:"pointer" }}>Deny</button>
                 </div>
               ) : (
                 <Pill s={app.status}/>
