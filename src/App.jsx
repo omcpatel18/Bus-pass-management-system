@@ -75,9 +75,9 @@ const CSS = `
   --shadow-lg:0 16px 48px rgba(26,18,8,.18);
 }
 
-body { background:var(--cream); color:var(--ink); font-family:var(--font-sans); -webkit-font-smoothing:antialiased; }
+body { background:var(--cream); color:var(--ink); font-family:var(--font-sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing:antialiased; }
 button { cursor:pointer; }
-input,select,textarea { font-family:var(--font-sans); }
+input,select,textarea { font-family:var(--font-sans); font-size: inherit; }
 
 body::after {
   content:''; position:fixed; inset:0; pointer-events:none; z-index:9998; opacity:.018;
@@ -189,7 +189,7 @@ const MOCK_APPS = [
 
 const Tag = ({ children, color }) => (
   <div style={{
-    fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 4,
+    fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 3,
     color: color || "var(--muted)", textTransform: "uppercase", marginBottom: 8
   }}>{children}</div>
 );
@@ -201,10 +201,10 @@ const LineBadge = ({ name, small }) => {
   const r = CITY_ROUTES.find(x => x.name === name);
   return (
     <span style={{
-      display: "inline-flex", alignItems: "center", gap: 4,
+      display: "inline-flex", alignItems: "center", gap: 5,
       background: c, color: "white",
-      fontFamily: "var(--font-mono)", fontSize: small ? 7 : 9, fontWeight: 700, letterSpacing: 2,
-      padding: small ? "2px 7px" : "3px 10px", borderRadius: 2
+      fontFamily: "var(--font-mono)", fontSize: small ? 10 : 12, fontWeight: 700, letterSpacing: 2,
+      padding: small ? "4px 10px" : "6px 14px", borderRadius: 3
     }}>
       {r?.code || "?"}{!small && " " + name.toUpperCase()}
     </span>
@@ -215,10 +215,10 @@ const PassengerBadge = ({ type, small }) => {
   const p = PASSENGER_TYPES.find(x => x.id === type); if (!p) return null;
   return (
     <span style={{
-      display: "inline-flex", alignItems: "center", gap: 4,
+      display: "inline-flex", alignItems: "center", gap: 5,
       background: p.color, color: "#F6F0E4",
-      fontFamily: "var(--font-mono)", fontSize: small ? 7 : 8, fontWeight: 700, letterSpacing: 2,
-      padding: small ? "2px 7px" : "3px 10px",
+      fontFamily: "var(--font-mono)", fontSize: small ? 10 : 11, fontWeight: 700, letterSpacing: 2,
+      padding: small ? "4px 10px" : "5px 14px",
       borderRadius: "var(--r-full)"
     }}>
       {small ? p.label : `${p.icon} ${p.label}`}
@@ -229,13 +229,13 @@ const PassengerBadge = ({ type, small }) => {
 const Pill = ({ s }) => {
   const m = { ACTIVE: { bg: "#1E6641", c: "#F6F0E4" }, APPROVED: { bg: "#1E6641", c: "#F6F0E4" }, VALID: { bg: "#1E6641", c: "#F6F0E4" }, PENDING: { bg: "#C8832A", c: "#1A1208" }, REJECTED: { bg: "#B02020", c: "#F6F0E4" }, EXPIRED: { bg: "#6B5535", c: "#F6F0E4" }, INACTIVE: { bg: "#6B5535", c: "#F6F0E4" }, UPCOMING: { bg: "#C8832A", c: "#1A1208" }, CANCELLED: { bg: "#B02020", c: "#F6F0E4" } };
   const p = m[(s || "").toUpperCase()] || { bg: "#6B5535", c: "#F6F0E4" };
-  return <span style={{ background: p.bg, color: p.c, fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, letterSpacing: 2, padding: "3px 12px", borderRadius: "var(--r-full)", display: "inline-block", lineHeight: 1.7 }}>{(s || "").toUpperCase()}</span>;
+  return <span style={{ background: p.bg, color: p.c, fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: "5px 15px", borderRadius: "var(--r-full)", display: "inline-block", lineHeight: 1.7 }}>{(s || "").toUpperCase()}</span>;
 };
 
 const Btn = ({ children, onClick, variant = "primary", size = "md", full = false, disabled = false, type = "button" }) => {
   const [h, setH] = useState(false);
-  const pad = { sm: "7px 16px", md: "12px 28px", lg: "16px 40px" }[size] || "12px 28px";
-  const fs = { sm: 11, md: 14, lg: 18 }[size] || 14;
+  const pad = { sm: "10px 20px", md: "14px 32px", lg: "18px 48px" }[size] || "14px 32px";
+  const fs = { sm: 13, md: 17, lg: 21 }[size] || 17;
 
   const themes = {
     primary: { bg: "var(--ink)", c: "var(--amber-on-ink)", b: "none" },
@@ -306,20 +306,20 @@ const Field = ({ label, type = "text", value, onChange, placeholder, error, read
   const resolvedType = isPassword && showPassword ? "text" : type;
 
   return (
-    <div style={{ marginBottom: 16 }}>
-      {label && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 3, color: "var(--muted)", textTransform: "uppercase", marginBottom: 7 }}>
+    <div style={{ marginBottom: 20 }}>
+      {label && <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 3, color: "var(--muted)", textTransform: "uppercase", marginBottom: 9 }}>
         {label}{required && <span style={{ color: "var(--red)", marginLeft: 4 }}>*</span>}</div>}
       <div style={{ position: "relative" }}>
         <input type={resolvedType} value={value} onChange={onChange} placeholder={placeholder} readOnly={readOnly}
           onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
           style={{
-            width: "100%", padding: isPassword ? "11px 42px 11px 14px" : "11px 14px",
-            border: `1.5px solid ${error ? "var(--red)" : foc ? "var(--amber)" : "var(--rule)"}`,
+            width: "100%", padding: isPassword ? "14px 48px 14px 16px" : "14px 16px",
+            border: `2px solid ${error ? "var(--red)" : foc ? "var(--amber)" : "var(--rule)"}`,
             background: readOnly ? "var(--parchment)" : foc ? "var(--surface)" : "var(--cream)",
-            fontFamily: "var(--font-sans)", fontSize: 14, color: readOnly ? "var(--muted)" : "var(--ink)", outline: "none",
+            fontFamily: "var(--font-sans)", fontSize: 16, color: readOnly ? "var(--muted)" : "var(--ink)", outline: "none",
             transition: "border-color .18s, background .18s",
             borderRadius: "var(--r-sm)",
-            boxShadow: foc && !error ? "0 0 0 3px rgba(200,131,42,.08)" : "none"
+            boxShadow: foc && !error ? "0 0 0 4px rgba(200,131,42,.08)" : "none"
           }} />
         {isPassword && (
           <button
@@ -327,7 +327,7 @@ const Field = ({ label, type = "text", value, onChange, placeholder, error, read
             onClick={() => setShowPassword(s => !s)}
             style={{
               position: "absolute",
-              right: 10,
+              right: 12,
               top: "50%",
               transform: "translateY(-50%)",
               border: "none",
@@ -342,12 +342,12 @@ const Field = ({ label, type = "text", value, onChange, placeholder, error, read
             aria-label={showPassword ? "Hide password" : "Show password"}
             title={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         )}
       </div>
-      {error && <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--red)", marginTop: 4 }}>{error}</div>}
-      {hint && !error && <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{hint}</div>}
+      {error && <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--red)", marginTop: 6 }}>{error}</div>}
+      {hint && !error && <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--muted)", marginTop: 6 }}>{hint}</div>}
     </div>
   );
 };
@@ -420,7 +420,7 @@ const TICKER_MSGS = [
 function Ticker() {
   const t = [...TICKER_MSGS, ...TICKER_MSGS].join("   ◆   ");
   return (
-    <div style={{ background: "var(--ink)", color: "var(--amber-on-ink)", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 2, overflow: "hidden", padding: "6px 0", borderBottom: "2px solid var(--amber)" }}>
+    <div style={{ background: "var(--ink)", color: "var(--amber-on-ink)", fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: 2, overflow: "hidden", padding: "10px 0", borderBottom: "2px solid var(--amber)" }}>
       <div style={{ display: "flex", animation: "tickerScroll 38s linear infinite", whiteSpace: "nowrap" }}>
         <span style={{ paddingRight: 80 }}>{t}</span><span style={{ paddingRight: 80 }}>{t}</span>
       </div>
@@ -816,38 +816,38 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
         <div style={{ maxWidth: 360, animation: "fadeUp .5s ease" }}>
 
           {/* Header */}
-          <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: 32 }}>
             <div style={{
-              fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 5,
-              color: "var(--amber-text)", marginBottom: 10
+              fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 5,
+              color: "var(--amber-text)", marginBottom: 12
             }}>SIGN IN</div>
             <div style={{
-              fontFamily: "var(--font-serif)", fontSize: 40,
-              color: "var(--ink)", lineHeight: 1.05, marginBottom: 2
+              fontFamily: "var(--font-serif)", fontSize: 48,
+              color: "var(--ink)", lineHeight: 1.05, marginBottom: 4
             }}>
               Welcome<br />back.
             </div>
             {/* Animated underline */}
             <div style={{
-              height: 3, background: "var(--amber)", width: 64,
+              height: 4, background: "var(--amber)", width: 80,
               animation: "lineGrow .6s ease .3s both", transformOrigin: "left"
             }} />
           </div>
 
           {/* Portal selector */}
-          <div style={{ marginBottom: 22 }}>
+          <div style={{ marginBottom: 28 }}>
             <Tag>Portal Type</Tag>
             <div style={{ display: "flex", border: "1.5px solid var(--ink)", overflow: "hidden" }}>
-              {[["passenger", "🚌 PASSENGER"], ["admin", "⚙ ADMIN"], ["conductor", "🔍 CONDUCTOR"]].map(([r, l]) => (
+              {[["passenger", "🚌 PASSENGER"], ["admin", "⚙ ADMIN"]].map(([r, l]) => (
                 <button key={r} onClick={() => setRole(r)}
                   style={{
-                    flex: 1, padding: "11px 0",
+                    flex: 1, padding: "14px 0",
                     background: role === r ? "var(--ink)" : "transparent",
                     color: role === r ? "var(--amber-on-ink)" : "var(--muted)",
                     border: "none",
-                    borderRight: r !== "conductor" ? "1px solid var(--ink)" : "none",
+                    borderRight: r !== "admin" ? "1px solid var(--ink)" : "none",
                     borderBottom: role === r ? "3px solid var(--amber)" : "none",
-                    fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 1,
+                    fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 1,
                     cursor: "pointer", transition: "background .25s, color .25s, border-bottom .25s"
                   }}>{l}</button>
               ))}
@@ -1026,7 +1026,7 @@ function RegisterScreen({ onDone, onBack }) {
               <div style={{ fontFamily: "var(--font-serif)", fontSize: 26, color: "var(--ink)", marginBottom: 22 }}>Who are you?</div>
               <Tag color="var(--muted)">Portal Type</Tag>
               <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-                {[["passenger", "🚌 PASSENGER", "Book passes & tickets"], ["admin", "⚙ ADMIN", "Manage system"], ["conductor", "🔍 CONDUCTOR", "Scan & verify"]].map(([r, l, sub]) => (
+                {[["passenger", "🚌 PASSENGER", "Book passes & tickets"], ["admin", "⚙ ADMIN", "Manage system"]].map(([r, l, sub]) => (
                   <div key={r} onClick={() => setRole(r)} style={{ flex: 1, border: `2px solid ${role === r ? "var(--ink)" : "var(--rule)"}`, padding: "12px 10px", cursor: "pointer", background: role === r ? "var(--ink)" : "var(--surface)", textAlign: "center", transition: "all .18s" }}>
                     <div style={{ fontFamily: "var(--font-display)", fontSize: 12, letterSpacing: 2, color: role === r ? "var(--amber-on-ink)" : "var(--ink)" }}>{l}</div>
                     <div style={{ fontFamily: "var(--font-sans)", fontSize: 10, color: role === r ? "var(--muted-on-ink)" : "var(--muted)", marginTop: 3 }}>{sub}</div>
@@ -1492,27 +1492,27 @@ function Footer() {
 
         {/* Col 1 — Brand */}
         <div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 0, marginBottom: 12 }}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 26, letterSpacing: 2, color: "var(--cream-on-ink)" }}>BUSP</span>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 26, letterSpacing: 2, color: "var(--amber-on-ink)" }}>ASS</span>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 26, letterSpacing: 2, color: "var(--cream-on-ink)" }}>PRO</span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 0, marginBottom: 16 }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 32, letterSpacing: 2, color: "var(--cream-on-ink)" }}>BUSP</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 32, letterSpacing: 2, color: "var(--amber-on-ink)" }}>ASS</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 32, letterSpacing: 2, color: "var(--cream-on-ink)" }}>PRO</span>
           </div>
           <div style={{
-            fontFamily: "var(--font-serif)", fontSize: 13,
-            color: "var(--muted-on-ink)", lineHeight: 1.8, marginBottom: 20,
-            fontStyle: "italic", maxWidth: 220
+            fontFamily: "var(--font-serif)", fontSize: 16,
+            color: "var(--muted-on-ink)", lineHeight: 1.8, marginBottom: 24,
+            fontStyle: "italic", maxWidth: 260
           }}>
             Public City Transit Pass System. Serving <em>everyone</em> — students, seniors, daily commuters.
           </div>
           {/* Passenger type icons */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
             {PASSENGER_TYPES.map(p => (
               <div key={p.id} title={`${p.label}${p.disc > 0 ? " — " + p.disc + "% off" : ""}`}
                 style={{
-                  width: 28, height: 28, borderRadius: "50%",
+                  width: 36, height: 36, borderRadius: "50%",
                   background: p.color, display: "flex", alignItems: "center",
-                  justifyContent: "center", fontSize: 12,
-                  border: "1.5px solid rgba(255,255,255,.1)",
+                  justifyContent: "center", fontSize: 16,
+                  border: "2px solid rgba(255,255,255,.1)",
                   transition: "transform .18s, border-color .18s",
                   cursor: "default"
                 }}
@@ -1525,22 +1525,22 @@ function Footer() {
           {/* Newsletter */}
           <div>
             <div style={{
-              fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 4,
-              color: "var(--muted-on-ink)", marginBottom: 8
+              fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 4,
+              color: "var(--muted-on-ink)", marginBottom: 10
             }}>GET TRANSIT ALERTS</div>
             <div style={{ display: "flex", gap: 0 }}>
               <input placeholder="your@email.com"
                 style={{
-                  flex: 1, padding: "8px 12px",
-                  background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.12)",
-                  borderRight: "none", fontFamily: "var(--font-sans)", fontSize: 12,
+                  flex: 1, padding: "12px 16px",
+                  background: "rgba(255,255,255,.07)", border: "1.5px solid rgba(255,255,255,.12)",
+                  borderRight: "none", fontFamily: "var(--font-sans)", fontSize: 14,
                   color: "var(--cream-on-ink)", outline: "none",
                   "::placeholder": { color: "var(--muted-on-ink)" }
                 }} />
               <button style={{
-                padding: "8px 14px",
+                padding: "12px 20px",
                 background: "var(--amber)", border: "none",
-                fontFamily: "var(--font-display)", fontSize: 11, letterSpacing: 2,
+                fontFamily: "var(--font-display)", fontSize: 14, letterSpacing: 2,
                 color: "var(--ink)", cursor: "pointer",
                 transition: "background .18s"
               }}
@@ -1739,8 +1739,8 @@ export default function App() {
     return <NotFoundScreen onGoHome={() => setPage(DEFAULT_PAGE[auth.role] || "dashboard")} />;
   };
 
-  const ROLE_DISPLAY = { passenger: "Aryan Sharma", admin: "Administrator", conductor: "Ramesh Kumar" };
-  const ROLE_SUB = { passenger: "PASSENGER", admin: "SYSTEM ADMIN", conductor: "CONDUCTOR" };
+  const ROLE_DISPLAY = { passenger: "Aryan Sharma", admin: "Administrator" };
+  const ROLE_SUB = { passenger: "PASSENGER", admin: "SYSTEM ADMIN" };
 
   if (!auth.loggedIn) return (
     <>
@@ -1762,24 +1762,24 @@ export default function App() {
         <header style={{ borderBottom: "1px solid var(--rule)", padding: "0 44px", display: "flex", alignItems: "center", gap: 24, background: "var(--cream)", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)", boxShadow: "0 1px 0 var(--rule), 0 4px 16px rgba(26,18,8,.04)" }}>
 
           {/* Logo */}
-          <div style={{ padding: "15px 0", display: "flex", alignItems: "baseline", gap: 0, flexShrink: 0, cursor: "pointer" }} onClick={() => setPage(DEFAULT_PAGE[auth.role] || "dashboard")}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: 2, color: "var(--ink)" }}>BUS</span>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: 2, color: "var(--amber)" }}>PASS</span>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 22, letterSpacing: 2, color: "var(--ink)" }}>PRO</span>
+          <div style={{ padding: "18px 0", display: "flex", alignItems: "baseline", gap: 0, flexShrink: 0, cursor: "pointer" }} onClick={() => setPage(DEFAULT_PAGE[auth.role] || "dashboard")}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 26, letterSpacing: 2, color: "var(--ink)" }}>BUS</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 26, letterSpacing: 2, color: "var(--amber)" }}>PASS</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 26, letterSpacing: 2, color: "var(--ink)" }}>PRO</span>
           </div>
 
           {/* Role badge */}
-          <div style={{ padding: "3px 10px", background: "var(--parchment)", borderRadius: "var(--r-full)", border: "1px solid var(--rule)", flexShrink: 0 }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 3, color: "var(--amber-text)" }}>{ROLE_SUB[auth.role]}</span>
+          <div style={{ padding: "5px 12px", background: "var(--parchment)", borderRadius: "var(--r-full)", border: "1px solid var(--rule)", flexShrink: 0 }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 3, color: "var(--amber-text)" }}>{ROLE_SUB[auth.role]}</span>
           </div>
 
-          <div style={{ width: 1, height: 22, background: "var(--rule)", flexShrink: 0 }} />
+          <div style={{ width: 1, height: 28, background: "var(--rule)", flexShrink: 0 }} />
 
           {/* Nav */}
-          <div style={{ display: "flex", gap: 0, overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
             {navItems.map(({ label, page: pg }) => (
               <button key={label} onClick={() => setPage(pg)}
-                style={{ background: "none", border: "none", fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 3, color: page === pg ? "var(--ink)" : "var(--muted)", padding: "20px 12px", flexShrink: 0, borderBottom: `2px solid ${page === pg ? "var(--amber)" : "transparent"}`, transition: "color .18s, border-color .18s", position: "relative" }}>
+                style={{ background: "none", border: "none", fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: 3, color: page === pg ? "var(--ink)" : "var(--muted)", padding: "24px 16px", flexShrink: 0, borderBottom: `3px solid ${page === pg ? "var(--amber)" : "transparent"}`, transition: "color .18s, border-color .18s", position: "relative" }}>
                 {label}
               </button>
             ))}
@@ -1788,15 +1788,15 @@ export default function App() {
           <div style={{ flex: 1 }} />
 
           {/* Right cluster */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
             <NotificationBell notifs={notifs} setNotifs={setNotifs} onOpenNotifications={() => setPage("notifications")} />
-            <div style={{ width: 1, height: 22, background: "var(--rule)" }} />
+            <div style={{ width: 1, height: 28, background: "var(--rule)" }} />
             <div style={{ textAlign: "right", cursor: "pointer" }} onClick={() => setPage("profile")}>
-              <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--ink)", fontWeight: 500 }}>{ROLE_DISPLAY[auth.role]}</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 6, letterSpacing: 2, color: "var(--muted)", textTransform: "uppercase" }}>{ROLE_SUB[auth.role]}</div>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: 15, color: "var(--ink)", fontWeight: 500 }}>{ROLE_DISPLAY[auth.role]}</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: 2, color: "var(--muted)", textTransform: "uppercase" }}>{ROLE_SUB[auth.role]}</div>
             </div>
             <button onClick={handleLogout}
-              style={{ padding: "6px 14px", border: "1px solid var(--rule)", borderRadius: "var(--r-sm)", background: "none", fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 2, color: "var(--muted)", cursor: "pointer", transition: "border-color .18s, color .18s" }}
+              style={{ padding: "8px 18px", border: "1.5px solid var(--rule)", borderRadius: "var(--r-sm)", background: "none", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 2, color: "var(--muted)", cursor: "pointer", transition: "border-color .18s, color .18s" }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.color = "var(--ink)"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--rule)"; e.currentTarget.style.color = "var(--muted)"; }}>
               SIGN OUT

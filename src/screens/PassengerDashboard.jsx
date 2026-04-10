@@ -70,15 +70,15 @@ const CSS = `
 `;
 
 const Tag = ({ children, color }) => (
-  <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 4, color: color || "var(--muted)", textTransform: "uppercase", marginBottom: 8 }}>{children}</div>
+  <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 3, color: color || "var(--muted)", textTransform: "uppercase", marginBottom: 8 }}>{children}</div>
 );
 
-const Rule = ({ my = 20 }) => <div style={{ height: 1, background: "var(--rule)", margin: `${my}px 0` }} />;
+const Rule = ({ my = 20 }) => <div style={{ height: 1.5, background: "var(--rule)", margin: `${my}px 0` }} />;
 
 const Pill = ({ s }) => {
   const m = { ACTIVE: { bg: "#1E6641", c: "#F6F0E4" }, APPROVED: { bg: "#1E6641", c: "#F6F0E4" }, VALID: { bg: "#1E6641", c: "#F6F0E4" }, PENDING: { bg: "#C8832A", c: "#1A1208" }, REJECTED: { bg: "#B02020", c: "#F6F0E4" }, EXPIRED: { bg: "#6B5535", c: "#F6F0E4" } };
   const p = m[(s || "").toUpperCase()] || m.PENDING;
-  return <span style={{ background: p.bg, color: p.c, fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, letterSpacing: 2, padding: "3px 10px", clipPath: "polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%)", display: "inline-block", lineHeight: 1.7 }}>{(s || "").toUpperCase()}</span>;
+  return <span style={{ background: p.bg, color: p.c, fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, letterSpacing: 2, padding: "4px 12px", clipPath: "polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%)", display: "inline-block", lineHeight: 1.7 }}>{(s || "").toUpperCase()}</span>;
 };
 
 const AnimatedCount = ({ target, suffix = "" }) => {
@@ -140,8 +140,8 @@ const ProgressRing = ({ current, total, label, size = 120, color = "var(--amber)
 
 const Btn = ({ children, onClick, variant = "primary", size = "md", full = false, disabled = false }) => {
   const [h, setH] = useState(false);
-  const pad = { sm: "7px 16px", md: "11px 24px", lg: "14px 32px" }[size] || "11px 24px";
-  const fs = { sm: 11, md: 13, lg: 15 }[size] || 13;
+  const pad = { sm: "10px 20px", md: "14px 32px", lg: "18px 48px" }[size] || "14px 32px";
+  const fs = { sm: 13, md: 17, lg: 21 }[size] || 17;
   const s = {
     primary: { bg: h && !disabled ? "#2C1E0A" : "var(--ink)", color: "var(--amber-on-ink)", border: "none" },
     secondary: { bg: h && !disabled ? "var(--parchment)" : "transparent", color: "var(--ink)", border: "1.5px solid var(--ink)" },
@@ -211,24 +211,24 @@ export default function PassengerDashboard({ onNavigate }) {
       <div style={{ maxWidth: 1200, margin: "0 auto", animation: "fadeUp .4s ease" }}>
         
         {/* Superior Header */}
-        <div style={{ marginBottom: 48, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-          <div style={{ position: "relative", paddingLeft: 24 }}>
-            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 6, background: "var(--amber)", borderRadius: 3 }} />
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 4, color: "var(--muted)", textTransform: "uppercase", marginBottom: 8 }}>
+        <div style={{ marginBottom: 64, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+          <div style={{ position: "relative", paddingLeft: 32 }}>
+            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 8, background: "var(--amber)", borderRadius: 4 }} />
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 3, color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>
               PASSENGER PORTAL — METROPOLIS TRANSIT
             </div>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 72, letterSpacing: 1, color: "var(--ink)", lineHeight: 0.9 }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 84, letterSpacing: 1, color: "var(--ink)", lineHeight: 0.9 }}>
               HELLO, <span style={{ color: "var(--amber)" }}>{MOCK_USER.name.toUpperCase().split(" ")[0]}</span>.
             </div>
-            <div style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontStyle: "italic", color: "var(--muted)", marginTop: 12 }}>
+            <div style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontStyle: "italic", color: "var(--muted)", marginTop: 16 }}>
               Everything's running on schedule. Have a safe trip today.
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: 2, color: "var(--muted)", marginBottom: 4 }}>CURRENT STATUS</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--green)", animation: "pulseDot 2s infinite" }} />
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "var(--ink)" }}>NETWORK CLEAR</div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted)", marginBottom: 8 }}>CURRENT STATUS</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--green)", animation: "pulseDot 2s infinite" }} />
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 28, color: "var(--ink)" }}>NETWORK CLEAR</div>
             </div>
           </div>
         </div>
@@ -252,26 +252,26 @@ export default function PassengerDashboard({ onNavigate }) {
               <div style={{ position: "relative", zIndex: 2 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 40 }}>
                   <div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 4, color: "var(--muted-on-ink)", marginBottom: 8 }}>TRANSIT CREDENTIAL</div>
-                    <div style={{ fontFamily: "var(--font-display)", fontSize: 40, color: "var(--cream-on-ink)", letterSpacing: 2 }}>{currentPass.id}</div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 4, color: "var(--muted-on-ink)", marginBottom: 8 }}>TRANSIT CREDENTIAL</div>
+                    <div style={{ fontFamily: "var(--font-display)", fontSize: 48, color: "var(--cream-on-ink)", letterSpacing: 2 }}>{currentPass.id}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <Pill s={currentPass.status} />
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--muted-on-ink)", marginTop: 8 }}>V.{new Date().getFullYear()}</div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginTop: 8 }}>V.{new Date().getFullYear()}</div>
                   </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, marginBottom: 40 }}>
                   <div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 8 }}>DOMINANT LINE</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div style={{ width: 14, height: 14, borderRadius: "50%", background: MOCK_PASS.route_color, boxShadow: `0 0 12px ${MOCK_PASS.route_color}` }} />
-                      <div style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "var(--cream-on-ink)" }}>{MOCK_PASS.route_code} · {MOCK_PASS.route.toUpperCase()}</div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 8 }}>DOMINANT LINE</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                      <div style={{ width: 16, height: 16, borderRadius: "50%", background: MOCK_PASS.route_color, boxShadow: `0 0 12px ${MOCK_PASS.route_color}` }} />
+                      <div style={{ fontFamily: "var(--font-display)", fontSize: 28, color: "var(--cream-on-ink)" }}>{MOCK_PASS.route_code} · {MOCK_PASS.route.toUpperCase()}</div>
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 8 }}>CLASS</div>
-                    <div style={{ fontFamily: "var(--font-serif)", fontSize: 22, color: "var(--amber-on-ink)", fontStyle: "italic" }}>{currentPass.type}</div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 8 }}>CLASS</div>
+                    <div style={{ fontFamily: "var(--font-serif)", fontSize: 28, color: "var(--amber-on-ink)", fontStyle: "italic" }}>{currentPass.type}</div>
                   </div>
                 </div>
 
@@ -295,8 +295,8 @@ export default function PassengerDashboard({ onNavigate }) {
                     )}
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 4 }}>EXPIRES</div>
-                    <div style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--cream-on-ink)" }}>{MOCK_PASS.valid_until.toUpperCase()}</div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 4 }}>EXPIRES</div>
+                    <div style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "var(--cream-on-ink)" }}>{MOCK_PASS.valid_until.toUpperCase()}</div>
                   </div>
                 </div>
               </div>
