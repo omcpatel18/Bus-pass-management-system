@@ -30,6 +30,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { PaymentButton } from "../components/PaymentUI";
+import api from "../services/api";
+import { TokenService } from "../services/api";
 
 // ── Design tokens ─────────────────────────────────────────────────────
 const G = `
@@ -759,6 +761,9 @@ export default function TicketBooking({ onNavigate }) {
   const [tab, setTab] = useState("book");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [ticket, setTicket] = useState(null);
+  const [viewTicket, setViewTicket] = useState(null);
+  const [scanTicket, setScanTicket] = useState(null);
 
   const [pickup, setPickup] = useState("");
   const [dest, setDest] = useState("");
@@ -766,9 +771,46 @@ export default function TicketBooking({ onNavigate }) {
   const [payment, setPayment] = useState("upi");
   const [sched, setSched] = useState("now");
 
-  const [ticket, setTicket] = useState(null);
-  const [viewTicket, setViewTicket] = useState(null);
-  const [scanTicket, setScanTicket] = useState(null);
+  const [ticketHistory, setTicketHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const fetchHistory = useCallback(async () => {
+    setLoadingHistory(true);
+    try {
+      const { data } = await api.get("/payments/history/");
+      const py = data.results || data || [];
+      const user = TokenService.getUser();
+      const tkts = py.filter(p => p.purpose === "TICKET").map(p => {
+        const dt = new Date(p.created_at);
+        return {
+          id: p.id.split('-')[0],
+          date: dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+          time: dt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false }),
+          from: p.metadata?.from || "Unknown",
+          to: p.metadata?.to || "Unknown",
+          type: p.metadata?.type || "regular",
+          fare: p.amount / 100,
+          km: p.metadata?.km || 5.0,
+          status: p.status === 'PAID' ? "VALID" : p.status,
+          rating: 0,
+          passenger: user?.name || "Passenger",
+          pid: user?.student_profile?.enrollment_number || "U-000",
+          bus: `BUS-${Math.floor(Math.random() * 400) + 100}`,
+        };
+      });
+      setTicketHistory(tkts);
+    } catch(err) {
+      console.error(err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === "mytickets") {
+      fetchHistory();
+    }
+  }, [tab, fetchHistory]);
 
   const bus = BUS_TYPES.find(b => b.id === busType) || BUS_TYPES[0];
   const dist = pickup && dest
@@ -788,10 +830,11 @@ export default function TicketBooking({ onNavigate }) {
   };
 
   const handleConfirm = (paymentDetails) => {
+    const user = TokenService.getUser();
     const t = {
       id: paymentDetails?.razorpay_order_id || `TKT-${Math.floor(Math.random() * 9000) + 1000}`,
-      passenger: "Aryan Sharma",
-      pid: "STU-10042",
+      passenger: user?.name || "Passenger",
+      pid: user?.student_profile?.enrollment_number || "U-000",
       from: pickup,
       to: dest,
       type: busType,
@@ -806,6 +849,7 @@ export default function TicketBooking({ onNavigate }) {
     setTicket(t);
     setLoading(false);
     setStep(3);
+    fetchHistory();
     toast.success("Ticket issued! Show the QR to your conductor.");
   };
 
@@ -1427,34 +1471,43 @@ export default function TicketBooking({ onNavigate }) {
       {/* ════════════════════ TAB: MY TICKETS ════════════════════ */}
       {tab === "mytickets" && (
         <div style={{ animation: "fadeIn .3s ease" }}>
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(4,1fr)",
-            borderTop: "3px solid var(--ink)", borderBottom: "1px solid var(--rule)",
-            marginBottom: 24
-          }}>
-            {[["TOTAL", MOCK_HISTORY.length, "var(--ink)"],
-            ["VALID", MOCK_HISTORY.filter(t => t.status === "VALID").length, "var(--green)"],
-            ["USED", MOCK_HISTORY.filter(t => t.status === "USED").length, "var(--muted)"],
-            ["CANCELLED", MOCK_HISTORY.filter(t => t.status === "CANCELLED").length, "var(--red)"]
-            ].map(([l, n, c], i) => (
-              <div key={l} style={{
-                padding: "16px 20px", textAlign: "center",
-                borderRight: i < 3 ? "1px solid var(--rule)" : "none"
+          {loadingHistory ? (
+             <div style={{ padding: 40, textAlign: "center" }}>
+               <Spinner size={32} color="var(--amber)" />
+               <div style={{ marginTop: 16, fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--muted)" }}>FETCHING LEDGER…</div>
+             </div>
+          ) : (
+            <>
+              <div style={{
+                display: "grid", gridTemplateColumns: "repeat(4,1fr)",
+                borderTop: "3px solid var(--ink)", borderBottom: "1px solid var(--rule)",
+                marginBottom: 24
               }}>
-                <div style={{
-                  fontFamily: "var(--font-display)", fontSize: 32,
-                  color: c, letterSpacing: 1, lineHeight: 1
-                }}>{n}</div>
-                <div style={{
-                  fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 3,
-                  color: "var(--muted)", marginTop: 6
-                }}>TICKETS — {l}</div>
+                {[["TOTAL", ticketHistory.length, "var(--ink)"],
+                ["VALID", ticketHistory.filter(t => t.status === "VALID").length, "var(--green)"],
+                ["USED", ticketHistory.filter(t => t.status === "USED").length, "var(--muted)"],
+                ["CANCELLED", ticketHistory.filter(t => t.status === "CANCELLED").length, "var(--red)"]
+                ].map(([l, n, c], i) => (
+                  <div key={l} style={{
+                    padding: "16px 20px", textAlign: "center",
+                    borderRight: i < 3 ? "1px solid var(--rule)" : "none"
+                  }}>
+                    <div style={{
+                      fontFamily: "var(--font-display)", fontSize: 32,
+                      color: c, letterSpacing: 1, lineHeight: 1
+                    }}>{n}</div>
+                    <div style={{
+                      fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 3,
+                      color: "var(--muted)", marginTop: 6
+                    }}>TICKETS — {l}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {MOCK_HISTORY.map((tkt, i) => {
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {ticketHistory.length === 0 ? (
+                  <div style={{ padding: 40, textAlign: "center", color: "var(--muted)" }}>No tickets found in history.</div>
+                ) : ticketHistory.map((tkt, i) => {
               const b = BUS_TYPES.find(x => x.id === tkt.type) || BUS_TYPES[0];
               const isV = tkt.status === "VALID", isC = tkt.status === "CANCELLED";
               return (
@@ -1523,8 +1576,10 @@ export default function TicketBooking({ onNavigate }) {
                   </div>
                 </div>
               );
-            })}
-          </div>
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
 

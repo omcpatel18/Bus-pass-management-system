@@ -5,7 +5,45 @@
 
 import api from "./api";
 
+const PASS_SYNC_EVENT = "bpp:pass-sync";
+const PASS_SYNC_STORAGE_KEY = "bpp:pass-sync:last";
+
 const PassService = {
+
+  // ── Cross-screen sync helpers ───────────────────────────────────────────
+
+  broadcastPassSync: (payload = {}) => {
+    if (typeof window === "undefined") return;
+    const detail = { ts: Date.now(), ...payload };
+    window.dispatchEvent(new CustomEvent(PASS_SYNC_EVENT, { detail }));
+    try {
+      window.localStorage.setItem(PASS_SYNC_STORAGE_KEY, JSON.stringify(detail));
+    } catch {
+      // Ignore storage failures (private mode / quota).
+    }
+  },
+
+  subscribePassSync: (handler) => {
+    if (typeof window === "undefined") return () => {};
+
+    const onCustom = (event) => handler?.(event.detail || {});
+    const onStorage = (event) => {
+      if (event.key !== PASS_SYNC_STORAGE_KEY || !event.newValue) return;
+      try {
+        handler?.(JSON.parse(event.newValue));
+      } catch {
+        handler?.({ ts: Date.now() });
+      }
+    };
+
+    window.addEventListener(PASS_SYNC_EVENT, onCustom);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener(PASS_SYNC_EVENT, onCustom);
+      window.removeEventListener("storage", onStorage);
+    };
+  },
 
   // ── Routes ───────────────────────────────────────────────────────────────
 
@@ -39,6 +77,7 @@ const PassService = {
   applyForPass: async (payload) => {
     // payload: { route, boarding_stop, duration_type }
     const { data } = await api.post("/passes/applications/", payload);
+    PassService.broadcastPassSync({ type: "application_created", id: data?.id });
     return data;
   },
 
@@ -58,12 +97,14 @@ const PassService = {
   /** Admin: approve application */
   approveApplication: async (id) => {
     const { data } = await api.post(`/passes/applications/${id}/approve/`);
+    PassService.broadcastPassSync({ type: "application_approved", id });
     return data;
   },
 
   /** Admin: reject application */
   rejectApplication: async (id, note = "") => {
     const { data } = await api.post(`/passes/applications/${id}/reject/`, { note });
+    PassService.broadcastPassSync({ type: "application_rejected", id });
     return data;
   },
 

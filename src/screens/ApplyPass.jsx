@@ -5,8 +5,10 @@
  * ══════════════════════════════════════════════════════════════════════
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { User, GraduationCap, Leaf, Accessibility, Briefcase, MapPin, Navigation, CheckCircle, ArrowRight, ChevronLeft, Info, Bookmark } from "lucide-react";
+import PassService from "../services/passService";
+import { toast } from "react-hot-toast";
 
 // ── Design Tokens ─────────────────────────────────────────────────────
 const FONTS = `
@@ -59,10 +61,9 @@ const PASSENGER_TYPES = [
 ];
 
 const PASS_DURATIONS = [
-  { id: "daily", label: "DAILY", days: 1, price: 60, desc: "24-hour validity" },
-  { id: "weekly", label: "WEEKLY", days: 7, price: 350, desc: "7-day unlimited" },
   { id: "monthly", label: "MONTHLY", days: 30, price: 1200, desc: "Full calendar month" },
   { id: "quarterly", label: "QUARTERLY", days: 90, price: 3200, desc: "90-day mega pass" },
+  { id: "annual", label: "ANNUAL", days: 365, price: 12000, desc: "One year validity" },
 ];
 
 const VALID_PROMOS = {
@@ -116,6 +117,8 @@ const Btn = ({ children, onClick, variant = "primary", full = false, size = "md"
 export default function ApplyPass({ onNavigate }) {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [routes, setRoutes] = useState([]);
   const [formData, setFormData] = useState({
     routeId: null,
     typeId: "general",
@@ -126,7 +129,23 @@ export default function ApplyPass({ onNavigate }) {
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoError, setPromoError] = useState("");
 
-  const selectedRoute = CITY_ROUTES.find(r => r.id === formData.routeId);
+  useEffect(() => {
+    async function fetchRoutes() {
+      try {
+        const data = await PassService.getRoutes();
+        setRoutes(data);
+        if (data.length > 0) {
+          setFormData(prev => ({ ...prev, routeId: data[0].id }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch routes", err);
+        toast.error("Failed to load transit routes");
+      }
+    }
+    fetchRoutes();
+  }, []);
+
+  const selectedRoute = routes.find(r => r.id === formData.routeId);
   const selectedType = PASSENGER_TYPES.find(p => p.id === formData.typeId);
   const selectedDur = PASS_DURATIONS.find(d => d.id === formData.durationId);
   
@@ -151,10 +170,29 @@ export default function ApplyPass({ onNavigate }) {
   const handleNext = () => { if (step < 4) setStep(s => s + 1); };
   const handlePrev = () => { if (step > 1) setStep(s => s - 1); };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    // Remove hash redirect - let user click the button or auto-redirect properly
-    setTimeout(() => { if(onNavigate) onNavigate("dashboard"); }, 5000);
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        route: formData.routeId,
+        duration_type: formData.durationId,
+        boarding_stop: selectedRoute?.source || "Unknown",
+        metadata: {
+            passenger_type: formData.typeId,
+            reason: formData.reason,
+            promo_applied: promoDiscount > 0 ? promoInput : null
+        }
+      };
+      await PassService.applyForPass(payload);
+      setSubmitted(true);
+      toast.success("Application submitted successfully!");
+      setTimeout(() => { if(onNavigate) onNavigate("dashboard"); }, 5000);
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.response?.data?.error || "Failed to submit application");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -217,7 +255,9 @@ export default function ApplyPass({ onNavigate }) {
                   <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--muted)", marginBottom: 32 }}>Choose the primary transit line for your regular commute.</p>
                   
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    {CITY_ROUTES.map(route => (
+                    {routes.length === 0 ? (
+                      <div style={{ padding: 40, textAlign: "center", color: "var(--muted)", fontStyle: "italic" }}>Loading routes…</div>
+                    ) : routes.map(route => (
                       <div key={route.id} onClick={() => setFormData({...formData, routeId: route.id})}
                         style={{
                           display: "flex", alignItems: "center", gap: 20, padding: 24, cursor: "pointer",
@@ -225,14 +265,14 @@ export default function ApplyPass({ onNavigate }) {
                           background: formData.routeId === route.id ? "var(--surface)" : "transparent",
                           transition: "all .2s ease"
                         }}>
-                        <div style={{ width: 48, height: 48, background: route.color, color: "white", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontSize: 20 }}>{route.code}</div>
+                        <div style={{ width: 48, height: 48, background: route.color || "var(--ink)", color: "white", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontSize: 20 }}>{route.route_number || "R"}</div>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "var(--ink)" }}>{route.name}</div>
-                          <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--muted)" }}>{route.src} → {route.dst}</div>
+                          <div style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "var(--ink)" }}>{route.source} → {route.destination}</div>
+                          <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--muted)" }}>{route.route_name || "Regular Line"}</div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 1 }}>{route.km} KM</div>
-                          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 1, color: "var(--muted)" }}>{route.stops} STOPS</div>
+                          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 1 }}>{route.fare || '??'} INR</div>
+                          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 1, color: "var(--muted)" }}>BASE FARE</div>
                         </div>
                       </div>
                     ))}
@@ -343,7 +383,7 @@ export default function ApplyPass({ onNavigate }) {
               {step < 4 ? (
                 <Btn variant="primary" onClick={handleNext} disabled={step === 1 && !formData.routeId}>CONTINUE →</Btn>
               ) : (
-                <Btn variant="primary" onClick={handleSubmit}>SUBMIT APPLICATION ✓</Btn>
+                <Btn variant="primary" onClick={handleSubmit} disabled={loading}>{loading ? "SUBMITTING..." : "SUBMIT APPLICATION ✓"}</Btn>
               )}
             </div>
           </div>
@@ -357,7 +397,7 @@ export default function ApplyPass({ onNavigate }) {
               <div style={{ position: "absolute", right: -10, top: "50%", width: 20, height: 20, borderRadius: "50%", background: "var(--surface)" }} />
               
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
-                <div style={{ width: 44, height: 44, background: selectedRoute?.color || "var(--rule)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontFamily: "var(--font-display)", fontSize: 20 }}>{selectedRoute?.code || "??"}</div>
+                <div style={{ width: 44, height: 44, background: selectedRoute?.color || "#C8832A", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontFamily: "var(--font-display)", fontSize: 20 }}>{selectedRoute?.route_number?.[0] || "??"}</div>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--muted-on-ink)", letterSpacing: 2 }}>PASS STATUS</div>
                   <div style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--amber-on-ink)" }}>PROVISIONAL</div>

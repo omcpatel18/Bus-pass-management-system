@@ -6,8 +6,9 @@
  * ══════════════════════════════════════════════════════════════════════
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { PaymentButton, PaymentStatusModal } from "../components/PaymentUI";
+import PassService from "../services/passService";
 
 // ══════════════════════════════════════════════════════════════════════
 //  MOCK DATA — CONSISTENT WITH StudentProfile.jsx
@@ -177,19 +178,101 @@ const Btn = ({ children, onClick, variant = "primary", size = "md", full = false
   );
 };
 
-export default function PassengerDashboard({ onNavigate }) {
-  const [paymentStatus, setPaymentStatus] = useState(null); // 'SUCCESS', 'FAILED', null
+export default function PassengerDashboard({ onNavigate, user }) {
+  const profile = user?.student_profile || {};
+  const userName = profile.full_name || user?.email || "Traveler";
+  const initials = profile.full_name ? profile.full_name.split(" ").map(n => n[0]).join("").toUpperCase() : user?.email?.[0].toUpperCase();
 
-  const [currentPass, setCurrentPass] = useState({
-    id: MOCK_PASS.pass_number,
-    type: MOCK_PASS.type.charAt(0).toUpperCase() + MOCK_PASS.type.slice(1).toLowerCase(),
-    status: MOCK_PASS.status,
-    routeFrom: MOCK_PASS.route,
-    routeTo: MOCK_PASS.destination,
-    validFrom: MOCK_PASS.valid_from,
-    validUntil: MOCK_PASS.valid_until,
-    daysLeft: MOCK_PASS.days_left,
-  });
+  const [paymentStatus, setPaymentStatus] = useState(null); 
+  const [currentPass, setCurrentPass] = useState(null);
+  const [pendingApp, setPendingApp] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const calculateDaysLeft = (validUntil) => {
+    const end = new Date(validUntil);
+    const now = new Date();
+    const diff = end - now;
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  };
+
+  const fetchData = useCallback(async (silent = false) => {
+    try {
+      if (!silent) setLoading(true);
+      const [passes, apps] = await Promise.all([
+        PassService.getMyPasses(),
+        PassService.getApplications()
+      ]);
+
+      setCurrentPass(null);
+      setPendingApp(null);
+
+      const active = (passes || []).find(x => ["active", "valid"].includes((x.status || "").toLowerCase()));
+      const approvedApp = (apps || []).find(x => (x.status || "").toLowerCase() === "approved");
+      const pending = (apps || []).find(x => (x.status || "").toLowerCase() === "pending");
+
+      if (active) {
+        const duration = (active.duration_type || "monthly").toLowerCase();
+        setCurrentPass({
+          id: active.pass_number || `PASS-${active.id}`,
+          type: (active.duration_type || "monthly").toUpperCase(),
+          status: (active.status || "active").toUpperCase(),
+          routeCode: (active.route_name || "RT").slice(0, 2).toUpperCase(),
+          routeColor: "#B02020",
+          routeFrom: active.route_source || "Start",
+          routeTo: active.route_name || "Route",
+          validFrom: active.valid_from || "—",
+          validUntil: active.valid_until || "—",
+          daysLeft: active.valid_until ? calculateDaysLeft(active.valid_until) : 0,
+          total_days: duration === "quarterly" ? 90 : duration === "annual" ? 365 : 30,
+          fare_total: Number(active.route_fare || 1215),
+          qr_seed: active.pass_number || active.id,
+        });
+        return;
+      }
+
+      if (approvedApp) {
+        const duration = (approvedApp.duration_type || "monthly").toLowerCase();
+        setCurrentPass({
+          id: approvedApp.id,
+          type: (approvedApp.duration_type || "monthly").toUpperCase(),
+          status: "APPROVED",
+          routeCode: (approvedApp.route_name || "RT").slice(0, 2).toUpperCase(),
+          routeColor: "#B02020",
+          routeFrom: approvedApp.boarding_stop || "Boarding Stop",
+          routeTo: approvedApp.route_name || "Route",
+          validFrom: "After payment",
+          validUntil: "After payment",
+          daysLeft: 0,
+          total_days: duration === "quarterly" ? 90 : duration === "annual" ? 365 : 30,
+          fare_total: Number(approvedApp.route_fare || 1215),
+          qr_seed: approvedApp.id,
+        });
+      }
+
+      if (pending) {
+        setPendingApp({
+          id: pending.id,
+          route: pending.route_name,
+          status: "PENDING APPROVAL",
+          date: new Date(pending.applied_at || pending.created_at).toLocaleDateString("en-IN"),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch dashboard data:", err);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData(false);
+    const unsubscribe = PassService.subscribePassSync(() => fetchData(true));
+    const timer = setInterval(() => fetchData(true), 5000);
+    return () => {
+      unsubscribe();
+      clearInterval(timer);
+    };
+  }, [fetchData]);
 
   const [recentActivity] = useState([
     { date: "14 Mar 2024", time: "08:15 AM", action: "Board Red Line", route_code: "R1", route_color: "#B02020", status: "success" },
@@ -218,7 +301,7 @@ export default function PassengerDashboard({ onNavigate }) {
               PASSENGER PORTAL — METROPOLIS TRANSIT
             </div>
             <div style={{ fontFamily: "var(--font-display)", fontSize: 84, letterSpacing: 1, color: "var(--ink)", lineHeight: 0.9 }}>
-              HELLO, <span style={{ color: "var(--amber)" }}>{MOCK_USER.name.toUpperCase().split(" ")[0]}</span>.
+              HELLO, <span style={{ color: "var(--amber)" }}>{userName.toUpperCase().split(" ")[0]}</span>.
             </div>
             <div style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontStyle: "italic", color: "var(--muted)", marginTop: 16 }}>
               Everything's running on schedule. Have a safe trip today.
@@ -238,82 +321,127 @@ export default function PassengerDashboard({ onNavigate }) {
           {/* LEFT: Pass & Activity */}
           <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
             
-            {/* The "Master Pass" Card */}
-            <div style={{ 
-              background: "var(--ink)", 
-              borderRadius: 20, 
-              padding: 32, 
-              overflow: "hidden", 
-              position: "relative",
-              boxShadow: "0 24px 64px rgba(26,18,8,.22)",
-              border: "1px solid rgba(255,255,255,.05)"
-            }}>
-              {/* Internal layout */}
-              <div style={{ position: "relative", zIndex: 2 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 40 }}>
-                  <div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 4, color: "var(--muted-on-ink)", marginBottom: 8 }}>TRANSIT CREDENTIAL</div>
-                    <div style={{ fontFamily: "var(--font-display)", fontSize: 48, color: "var(--cream-on-ink)", letterSpacing: 2 }}>{currentPass.id}</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <Pill s={currentPass.status} />
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginTop: 8 }}>V.{new Date().getFullYear()}</div>
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, marginBottom: 40 }}>
-                  <div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 8 }}>DOMINANT LINE</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                      <div style={{ width: 16, height: 16, borderRadius: "50%", background: MOCK_PASS.route_color, boxShadow: `0 0 12px ${MOCK_PASS.route_color}` }} />
-                      <div style={{ fontFamily: "var(--font-display)", fontSize: 28, color: "var(--cream-on-ink)" }}>{MOCK_PASS.route_code} · {MOCK_PASS.route.toUpperCase()}</div>
+            {currentPass ? (
+              <div style={{ 
+                background: "var(--ink)", 
+                borderRadius: 20, 
+                padding: 32, 
+                overflow: "hidden", 
+                position: "relative",
+                boxShadow: "0 24px 64px rgba(26,18,8,.22)",
+                border: "1px solid rgba(255,255,255,.05)"
+              }}>
+                {/* Internal layout */}
+                <div style={{ position: "relative", zIndex: 2 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 40 }}>
+                    <div>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 4, color: "var(--muted-on-ink)", marginBottom: 8 }}>TRANSIT CREDENTIAL</div>
+                      <div style={{ fontFamily: "var(--font-display)", fontSize: 48, color: "var(--cream-on-ink)", letterSpacing: 2 }}>{currentPass.id}</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <Pill s={currentPass.status} />
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginTop: 8 }}>V.{new Date().getFullYear()}</div>
                     </div>
                   </div>
-                  <div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 8 }}>CLASS</div>
-                    <div style={{ fontFamily: "var(--font-serif)", fontSize: 28, color: "var(--amber-on-ink)", fontStyle: "italic" }}>{currentPass.type}</div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, marginBottom: 40 }}>
+                    <div>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 8 }}>DOMINANT LINE</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                        <div style={{ width: 16, height: 16, borderRadius: "50%", background: currentPass.routeColor, boxShadow: `0 0 12px ${currentPass.routeColor}` }} />
+                        <div style={{ fontFamily: "var(--font-display)", fontSize: 28, color: "var(--cream-on-ink)" }}>{currentPass.routeCode} · {currentPass.routeTo?.toUpperCase()}</div>
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 8 }}>CLASS</div>
+                      <div style={{ fontFamily: "var(--font-serif)", fontSize: 28, color: "var(--amber-on-ink)", fontStyle: "italic" }}>{currentPass.type}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                    <div style={{ display: "flex", gap: 12 }}>
+                      {currentPass.status === "ACTIVE" && (
+                        <>
+                          <Btn variant="primary" size="md" onClick={() => onNavigate("tickets")}>QR TICKET ✚</Btn>
+                          <Btn variant="ghost" size="md" onClick={() => onNavigate("renew")}>RENEW <span style={{ transition: "transform .25s", display: "inline-block" }}>→</span></Btn>
+                        </>
+                      )}
+                      {currentPass.status === "APPROVED" && (
+                        <PaymentButton 
+                          amount={currentPass.fare_total} 
+                          purpose="PASS_PURCHASE"
+                          metadata={{ application_id: currentPass.id }}
+                          btnText="PAY INCURRED FARE"
+                          onSuccess={() => { setPaymentStatus('SUCCESS'); fetchData(true); }}
+                          onFailure={() => setPaymentStatus('FAILED')}
+                        />
+                      )}
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 4 }}>EXPIRES</div>
+                      <div style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "var(--cream-on-ink)" }}>{currentPass.validUntil.toUpperCase()}</div>
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                  <div style={{ display: "flex", gap: 12 }}>
-                    {currentPass.status === "ACTIVE" && (
-                      <>
-                        <Btn variant="primary" size="md" onClick={() => onNavigate("tickets")}>QR TICKET ✚</Btn>
-                        <Btn variant="ghost" size="md" onClick={() => onNavigate("renew")}>RENEW <span style={{ transition: "transform .25s", display: "inline-block" }}>→</span></Btn>
-                      </>
-                    )}
-                    {currentPass.status === "APPROVED" && (
-                      <PaymentButton 
-                        amount={MOCK_PASS.fare_total} 
-                        purpose="PASS_PURCHASE"
-                        metadata={{ application_id: MOCK_PASS.pass_number }}
-                        btnText="PAY INCURRED FARE"
-                        onSuccess={() => setPaymentStatus('SUCCESS')}
-                        onFailure={() => setPaymentStatus('FAILED')}
-                      />
-                    )}
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: 2, color: "var(--muted-on-ink)", marginBottom: 4 }}>EXPIRES</div>
-                    <div style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "var(--cream-on-ink)" }}>{MOCK_PASS.valid_until.toUpperCase()}</div>
-                  </div>
+                {/* Graphical flair: Large faded route letter */}
+                <div style={{ 
+                  position: "absolute", 
+                  right: -20, 
+                  bottom: -40, 
+                  fontFamily: "var(--font-display)", 
+                  fontSize: 240, 
+                  color: MOCK_PASS.route_color, 
+                  opacity: 0.12, 
+                  zIndex: 1,
+                  userSelect: "none"
+                }}>{currentPass.routeCode.charAt(0)}</div>
+              </div>
+            ) : pendingApp ? (
+              <div style={{ 
+                background: "var(--info-bg)", 
+                borderRadius: 20, 
+                padding: 40, 
+                border: "2px solid var(--ink)",
+                animation: "fadeUp .5s ease",
+                position: "relative"
+              }}>
+                <div style={{ position: "absolute", top: 20, right: 30 }}><Pill s="PENDING" /></div>
+                <Tag>Active Application</Tag>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 42, color: "var(--ink)", marginBottom: 12 }}>UNDER REVIEW</div>
+                <p style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: "var(--muted)", fontStyle: "italic", marginBottom: 24 }}>
+                   Your application for <strong>{pendingApp.route}</strong> is being processed by the administration.
+                </p>
+                <div style={{ display: "flex", gap: 32 }}>
+                   <div>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2 }}>SUBMITTED ON</div>
+                      <div style={{ fontFamily: "var(--font-display)", fontSize: 20 }}>{pendingApp.date}</div>
+                   </div>
+                   <div>
+                      <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2 }}>EST. TIME</div>
+                      <div style={{ fontFamily: "var(--font-display)", fontSize: 20 }}>2-4 HOURS</div>
+                   </div>
                 </div>
               </div>
-
-              {/* Graphical flair: Large faded route letter */}
+            ) : !loading ? (
               <div style={{ 
-                position: "absolute", 
-                right: -20, 
-                bottom: -40, 
-                fontFamily: "var(--font-display)", 
-                fontSize: 240, 
-                color: MOCK_PASS.route_color, 
-                opacity: 0.12, 
-                zIndex: 1,
-                userSelect: "none"
-              }}>{MOCK_PASS.route_code.charAt(0)}</div>
-            </div>
+                background: "var(--parchment)", 
+                borderRadius: 20, 
+                padding: 48, 
+                textAlign: "center",
+                border: "2px dashed var(--amber)",
+                animation: "fadeUp .5s ease"
+              }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>🚌</div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 32, color: "var(--ink)", marginBottom: 8 }}>NO ACTIVE PASS</div>
+                <div style={{ fontFamily: "var(--font-serif)", fontSize: 16, color: "var(--muted)", fontStyle: "italic", marginBottom: 32 }}>
+                  Your journey starts here. Apply for a pass to access the transit network.
+                </div>
+                <Btn variant="primary" size="lg" onClick={() => onNavigate("apply")}>
+                  APPLY FOR DIGITAL PASS →
+                </Btn>
+              </div>
+            ) : <div style={{ height: 240, background: "var(--parchment)", borderRadius: 20, animation: "pulse 2s infinite" }} />}
 
             {/* History Ledger */}
             <div style={{ background: "var(--surface)", border: "1.5px solid var(--rule)", padding: 24, borderRadius: 12 }}>
@@ -363,7 +491,7 @@ export default function PassengerDashboard({ onNavigate }) {
                   <div style={{ textAlign: "center", flex: 1 }}>
                     <div style={{ fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 2, color: "var(--muted)", marginBottom: 8 }}>DAYS REMAINING</div>
                     <div style={{ fontFamily: "var(--font-display)", fontSize: 48, color: "var(--amber-text)", lineHeight: 1 }}>
-                      <AnimatedCount target={MOCK_PASS.days_left} />
+                      <AnimatedCount target={currentPass ? currentPass.daysLeft : 0} />
                     </div>
                   </div>
                   <div style={{ width: 1, height: 40, background: "var(--rule)" }} />
@@ -379,12 +507,12 @@ export default function PassengerDashboard({ onNavigate }) {
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                     <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--muted)" }}>QUARTERLY PROGRESS</div>
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 1, color: "var(--ink)" }}>{Math.round((MOCK_PASS.days_left / MOCK_PASS.total_days)*100)}%</div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 1, color: "var(--ink)" }}>{currentPass ? Math.round(((currentPass.total_days - currentPass.daysLeft) / currentPass.total_days)*100) : 0}%</div>
                   </div>
                   <div style={{ height: 6, background: "var(--parchment)", borderRadius: 3, overflow: "hidden" }}>
                     <div style={{ 
                       height: "100%", 
-                      width: `${(MOCK_PASS.days_left / MOCK_PASS.total_days) * 100}%`, 
+                      width: currentPass ? `${((currentPass.total_days - currentPass.daysLeft) / currentPass.total_days) * 100}%` : "0%", 
                       background: "var(--amber)", 
                       borderRadius: 3, 
                       transition: "width 1.2s cubic-bezier(0.4, 0, 0.2, 1)"
@@ -430,7 +558,7 @@ export default function PassengerDashboard({ onNavigate }) {
       </div>
       <PaymentStatusModal 
         status={paymentStatus}
-        onClose={() => { setPaymentStatus(null); if(paymentStatus === 'SUCCESS') setCurrentPass(p => ({...p, status: 'ACTIVE'})); }}
+        onClose={() => { setPaymentStatus(null); fetchData(true); }}
       />
     </div>
   );

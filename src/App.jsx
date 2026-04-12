@@ -22,7 +22,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import PassengerDashboard from "./screens/PassengerDashboard";
 import ApplyPass from "./screens/ApplyPass";
 import PassengerProfile from "./screens/PassengerProfile";
-import NearbyTaxis from "./screens/NearbyTaxis";
+import TaxiBooking from "./screens/NearbyTaxis";
 import TicketBooking from "./screens/TicketBooking";
 import AIChatbot from "./screens/Aichatbot";
 import {
@@ -601,7 +601,7 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
     try {
       const data = await AuthService.login(email, pw);
       const serverRole = data?.user?.role || role;
-      onLogin(serverRole);
+      onLogin(serverRole, data.user);
     } catch (e) {
       const msg = e?.response?.data?.non_field_errors?.[0]
         || e?.response?.data?.detail
@@ -906,6 +906,11 @@ function LoginScreen({ onLogin, onRegister, onForgot }) {
               color: "var(--muted)", marginTop: 12, textAlign: "center", opacity: .7
             }}>
               LIVE AUTH MODE · USE VALID ACCOUNT
+            </div>
+            <div style={{ marginTop: 12, padding: "10px", background: "var(--parchment)", border: "1px dashed var(--rule)", textAlign: "left" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 7, color: "var(--muted)", marginBottom: 4 }}>LOGIN CREDENTIALS</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--ink)" }}>Student: test@example.com / 12345678</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--ink)" }}>Admin: admin@admin.com / 12345678</div>
             </div>
           </div>
         </div>
@@ -1396,7 +1401,7 @@ const SCREENS = {
   renew: RenewalFlow,
   busmap: BusRouteMap,
   tickets: TicketBooking,
-  taxi: NearbyTaxis,
+  taxi: TaxiBooking,
   notifications: NotificationsScreen,
   routes: RouteManagerClone,
   users: UserManagerClone,
@@ -1717,36 +1722,50 @@ function Footer() {
 //  MAIN APP
 // ══════════════════════════════════════════════════════════════════════
 export default function App() {
-  const [auth, setAuth] = useState({ loggedIn: false, role: "passenger" });
+  const [auth, setAuth] = useState(() => {
+    const cached = AuthService.getCurrentUser();
+    return cached 
+      ? { loggedIn: true, role: cached.role === "student" ? "passenger" : cached.role, user: cached }
+      : { loggedIn: false, role: "passenger", user: null };
+  });
   const [authView, setAuthView] = useState("login");
   const [page, setPage] = useState("dashboard");
   const [notifs, setNotifs] = useState(INITIAL_NOTIFS);
   const toast = useToast();
 
-  const handleLogin = role => {
+  const handleLogin = (role, userData) => {
     const uiRole = role === "student" ? "passenger" : role;
-    setAuth({ loggedIn: true, role: uiRole });
+    const userObj = userData || AuthService.getCurrentUser();
+    setAuth({ loggedIn: true, role: uiRole, user: userObj });
     setPage(DEFAULT_PAGE[uiRole] || "dashboard");
-    toast.success(`Welcome! Signed in as ${uiRole}.`);
+    toast.success(`Welcome back, ${userObj?.student_profile?.full_name || 'User'}!`);
   };
-  const handleLogout = () => { setAuth({ loggedIn: false, role: "passenger" }); setAuthView("login"); setPage("dashboard"); toast.info("Signed out."); };
+
+  const handleLogout = () => {
+    AuthService.logout();
+    setAuth({ loggedIn: false, role: "passenger", user: null });
+    setAuthView("login");
+    setPage("dashboard");
+    toast.info("Signed out.");
+  };
+
   const navItems = NAV_CONFIG[auth.role] || NAV_CONFIG.passenger;
 
   const renderPage = () => {
     if (auth.role === "admin" && page === "admin") return <AdminApplicationsClone onNavigate={setPage} toast={toast} />;
     const Screen = SCREENS[page];
-    if (Screen) return <div key={page} style={{ animation: "fadeUp .3s ease" }}><Screen onNavigate={setPage} auth={auth} toast={toast} /></div>;
+    if (Screen) return <div key={page} style={{ animation: "fadeUp .3s ease" }}><Screen onNavigate={setPage} auth={auth} user={auth.user} toast={toast} onLogout={handleLogout} /></div>;
     return <NotFoundScreen onGoHome={() => setPage(DEFAULT_PAGE[auth.role] || "dashboard")} />;
   };
 
-  const ROLE_DISPLAY = { passenger: "Aryan Sharma", admin: "Administrator" };
+  const ROLE_DISPLAY = auth.user?.student_profile?.full_name || auth.user?.email || (auth.role === "admin" ? "Administrator" : "Passenger");
   const ROLE_SUB = { passenger: "PASSENGER", admin: "SYSTEM ADMIN" };
 
   if (!auth.loggedIn) return (
     <>
       <style>{CSS}</style>
-      {authView === "login" && <LoginScreen onLogin={handleLogin} onRegister={() => setAuthView("register")} onForgot={() => setAuthView("forgot")} />}
-      {authView === "register" && <RegisterScreen onDone={() => setAuthView("login")} onBack={() => setAuthView("login")} />}
+      {authView === "login" && <LoginScreen onLogin={(role, data) => handleLogin(role, data)} onRegister={() => setAuthView("register")} onForgot={() => setAuthView("forgot")} />}
+      {authView === "register" && <RegisterScreen onDone={() => { setAuthView("login"); toast.success("Account created! You can now sign in."); }} onBack={() => setAuthView("login")} />}
       {authView === "forgot" && <ForgotPasswordScreen onDone={() => setAuthView("login")} onBack={() => setAuthView("login")} />}
     </>
   );
@@ -1792,7 +1811,7 @@ export default function App() {
             <NotificationBell notifs={notifs} setNotifs={setNotifs} onOpenNotifications={() => setPage("notifications")} />
             <div style={{ width: 1, height: 28, background: "var(--rule)" }} />
             <div style={{ textAlign: "right", cursor: "pointer" }} onClick={() => setPage("profile")}>
-              <div style={{ fontFamily: "var(--font-sans)", fontSize: 15, color: "var(--ink)", fontWeight: 500 }}>{ROLE_DISPLAY[auth.role]}</div>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: 15, color: "var(--ink)", fontWeight: 500 }}>{ROLE_DISPLAY}</div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: 2, color: "var(--muted)", textTransform: "uppercase" }}>{ROLE_SUB[auth.role]}</div>
             </div>
             <button onClick={handleLogout}

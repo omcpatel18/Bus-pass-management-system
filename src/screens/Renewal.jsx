@@ -5,9 +5,10 @@
  * ══════════════════════════════════════════════════════════════════════
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Clock, RefreshCw, ChevronRight, CheckCircle, CreditCard, Shield, Info, ArrowRight, Bookmark } from "lucide-react";
 import { PaymentButton, PaymentStatusModal } from "../components/PaymentUI";
+import PassService from "../services/passService";
 
 // ── Design Tokens ─────────────────────────────────────────────────────
 const FONTS = `
@@ -80,20 +81,81 @@ const Btn = ({ children, onClick, variant = "primary", full = false, size = "md"
 
 // ── Renewal Screen ────────────────────────────────────────────────────
 
-export default function Renewal({ onNavigate, currentPass, onDone }) {
+export default function Renewal({ onNavigate }) {
   const [duration, setDuration] = useState("monthly");
   const [paymentStatus, setPaymentStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [passes, setPasses] = useState([]);
+  const [routes, setRoutes] = useState([]);
+  const [selectedPassId, setSelectedPassId] = useState("");
+  const [selectedRouteId, setSelectedRouteId] = useState("");
 
-  const PASS = currentPass || {
-    id: "BPP-2024-001234",
-    route: "Red Express",
-    code: "R1",
-    color: "#B02020",
-    name: "Aryan Sharma",
-    expiry: "31 Mar 2024",
-    fare: 380,
-    type: "STUDENT"
+  const normalize = (v) => String(v || "").trim().toLowerCase();
+  const toAmount = (v, fallback = 0) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
   };
+
+  const matchRouteForPass = (pass, routeList) => {
+    if (!pass || !routeList?.length) return null;
+    const byId = pass.route_id
+      ? routeList.find((r) => String(r.id) === String(pass.route_id))
+      : null;
+    if (byId) return byId;
+    return routeList.find((r) => normalize(r.name) === normalize(pass.route_name)) || null;
+  };
+
+  useEffect(() => {
+    async function loadRenewalData() {
+      try {
+        const [ps, rs] = await Promise.all([
+          PassService.getMyPasses(),
+          PassService.getRoutes(),
+        ]);
+        setPasses(ps);
+        setRoutes(rs || []);
+        if (ps.length > 0) {
+          const firstPass = ps[0];
+          setSelectedPassId(firstPass.pass_number);
+          const matched = matchRouteForPass(firstPass, rs || []);
+          if (matched) {
+            setSelectedRouteId(String(matched.id));
+          } else if (rs?.length) {
+            setSelectedRouteId(String(rs[0].id));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load passes for renewal", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadRenewalData();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedPassId || !passes.length || !routes.length) return;
+    const selectedPass = passes.find((p) => p.pass_number === selectedPassId);
+    const matched = matchRouteForPass(selectedPass, routes);
+    if (matched) {
+      setSelectedRouteId(String(matched.id));
+    }
+  }, [selectedPassId, passes, routes]);
+
+  const dpass = passes.find(p => p.pass_number === selectedPassId);
+  const selectedRoute = routes.find((r) => String(r.id) === String(selectedRouteId)) || null;
+  const PASS = dpass ? {
+    id: dpass.id,
+    passNumber: dpass.pass_number,
+    route: dpass.route_name?.slice(0, 24).toUpperCase() || "ROUTE",
+    routeName: dpass.route_name || "Route",
+    code: (selectedRoute?.name || dpass.route_name || "RT").slice(0, 2).toUpperCase(),
+    color: selectedRoute?.color || "#B02020",
+    name: dpass.student_name,
+    expiry: dpass.valid_until,
+    fare: toAmount(selectedRoute?.fare, toAmount(dpass.route_fare, 1200)),
+    type: dpass.duration_type.toUpperCase()
+  } : null;
 
   const DURS = [
     { id: "weekly", label: "WEEKLY", days: 7, mult: 0.3, disc: 0, desc: "7-day Extension" },
@@ -103,15 +165,23 @@ export default function Renewal({ onNavigate, currentPass, onDone }) {
   ];
 
   const sel = DURS.find(d => d.id === duration);
-  const total = Math.round(PASS.fare * sel.mult * (1 - sel.disc / 100));
+  const total = PASS ? Math.round(PASS.fare * sel.mult * (1 - sel.disc / 100)) : 0;
+  const isLineChanged = !!PASS && !!selectedRoute && normalize(selectedRoute.name) !== normalize(PASS.routeName);
 
-  const handlePay = () => {
-    setPaying(true);
-    setTimeout(() => {
-      setPaying(false);
-      setComplete(true);
-    }, 2000);
-  };
+  if (loading) {
+    return <div style={{ minHeight: "100vh", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading...</div>;
+  }
+
+  if (!PASS) {
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--cream)", display: "flex", flexDirection:"column", alignItems: "center", justifyContent: "center", padding: 40, fontFamily: "var(--font-sans)" }}>
+        <style>{FONTS + CSS_VARS}</style>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: 40, color: "var(--ink)", marginBottom: 20 }}>NO PAST PASSES FOUND</div>
+        <p style={{ color: "var(--muted)", marginBottom: 30 }}>You do not have any existing pass to renew. Please apply for a new one.</p>
+        <Btn variant="primary" onClick={() => onNavigate("apply")}>APPLY FOR TRANSIT PASS</Btn>
+      </div>
+    );
+  }
 
   if (paymentStatus === 'SUCCESS') {
     return (
@@ -129,8 +199,9 @@ export default function Renewal({ onNavigate, currentPass, onDone }) {
           <div style={{ fontFamily: "var(--font-display)", fontSize: 56, color: "var(--ink)", lineHeight: 1 }}>TIME ADDED</div>
           <p style={{ fontFamily: "var(--font-serif)", fontSize: 18, color: "var(--muted)", fontStyle: "italic", margin: "16px 0 40px" }}>
             Your pass validity has been extended by {sel.days} days.
+            {isLineChanged ? ` Line changed to ${selectedRoute?.name}.` : ""}
           </p>
-          <Btn variant="primary" size="lg" onClick={() => window.location.hash = "#dashboard"}>BACK TO DASHBOARD</Btn>
+          <Btn variant="primary" size="lg" onClick={() => onNavigate?.("dashboard")}>BACK TO DASHBOARD</Btn>
         </div>
       </div>
     );
@@ -152,7 +223,7 @@ export default function Renewal({ onNavigate, currentPass, onDone }) {
             <button onClick={() => onNavigate("dashboard")}
               style={{ background: "none", border: "none", fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: "var(--muted)", cursor: "pointer", borderBottom: "1px solid var(--rule)", paddingBottom: 2 }}>← CANCEL & RETURN</button>
             <Tag>Current ID</Tag>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 14, color: "var(--ink)" }}>{PASS.id}</div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 14, color: "var(--ink)" }}>{PASS.passNumber}</div>
           </div>
         </div>
 
@@ -160,6 +231,44 @@ export default function Renewal({ onNavigate, currentPass, onDone }) {
           
           {/* Options */}
           <div>
+            <Tag>Select Pass to Renew</Tag>
+            <div style={{ marginBottom: 32 }}>
+              <select 
+                value={selectedPassId} 
+                onChange={e => setSelectedPassId(e.target.value)}
+                style={{
+                  width: "100%", padding: "16px 20px", fontFamily: "var(--font-display)", fontSize: 20,
+                  border: "2.5px solid var(--ink)", background: "var(--cream)", color: "var(--ink)",
+                  outline: "none", cursor: "pointer", 
+                }}
+              >
+                {passes.map(p => (
+                  <option key={p.pass_number} value={p.pass_number}>
+                    {p.route_name.slice(0, 10).toUpperCase()} ({p.pass_number}) - Expires: {p.valid_until}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Tag>Select Line for Renewal</Tag>
+            <div style={{ marginBottom: 32 }}>
+              <select
+                value={selectedRouteId}
+                onChange={e => setSelectedRouteId(e.target.value)}
+                style={{
+                  width: "100%", padding: "14px 18px", fontFamily: "var(--font-sans)", fontSize: 15,
+                  border: "1.8px solid var(--rule)", background: "var(--surface)", color: "var(--ink)",
+                  outline: "none", cursor: "pointer"
+                }}
+              >
+                {routes.map((r) => (
+                  <option key={r.id} value={String(r.id)}>
+                    {r.name} ({r.source} {"->"} {r.destination})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <Tag>Select Duration</Tag>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 40 }}>
               {DURS.map(d => (
@@ -194,12 +303,18 @@ export default function Renewal({ onNavigate, currentPass, onDone }) {
             <PaymentButton 
               amount={total} 
               purpose="PASS_RENEWAL"
-              metadata={{ pass_id: PASS.id, days: sel.days }}
+              metadata={{
+                pass_id: PASS.id,
+                days: sel.days,
+                route_id: selectedRoute?.id,
+                boarding_stop: selectedRoute?.source,
+              }}
               btnText="PAY & EXTEND PASS →"
               full
               size="lg"
               onSuccess={() => setPaymentStatus('SUCCESS')}
               onFailure={() => setPaymentStatus('FAILED')}
+              disabled={!selectedRoute}
             />
           </div>
 
@@ -216,7 +331,7 @@ export default function Renewal({ onNavigate, currentPass, onDone }) {
                   <div style={{ width: 44, height: 44, background: PASS.color, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontSize: 18 }}>{PASS.code}</div>
                   <Tag color="var(--muted-on-ink)">{PASS.type} ACCOUNT</Tag>
                 </div>
-                <div style={{ fontFamily: "var(--font-display)", fontSize: 32, letterSpacing: 1 }}>{PASS.route.toUpperCase()}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 32, letterSpacing: 1 }}>{(selectedRoute?.name || PASS.route).toUpperCase()}</div>
                 <div style={{ fontFamily: "var(--font-serif)", fontSize: 14, fontStyle: "italic", opacity: 0.6 }}>{PASS.name}</div>
               </div>
 

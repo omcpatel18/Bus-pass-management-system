@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import PassService from "../services/passService";
 
 // ══════════════════════════════════════════════════════════════════════
@@ -17,16 +17,18 @@ const Tag = ({ children, color }) => (
 
 const Rule = ({ my=20 }) => <div style={{ height:1, background:"var(--rule)", margin:`${my}px 0` }}/>;
 
-const LineBadge = ({ name, small }) => {
-  const LINE_COLORS = { "Route Alpha":"#B02020", "Route Beta":"#1A4A8A", "Route Gamma":"#1E6641", "Red Line":"#B02020", "Blue Line":"#1A4A8A", "Green Line":"#1E6641" };
+const DEFAULT_ROUTE_COLOR = "#1A4A8A";
+const LINE_COLORS = { "Route Alpha":"#B02020", "Route Beta":"#1A4A8A", "Route Gamma":"#1E6641", "Red Line":"#B02020", "Blue Line":"#1A4A8A", "Green Line":"#1E6641" };
+
+const LineBadge = ({ name, color, code, small }) => {
   const LINE_CODES  = { "Route Alpha":"Rα","Route Beta":"Rβ","Route Gamma":"Rγ", "Red Line":"R1","Blue Line":"R2","Green Line":"R3" };
-  const color = LINE_COLORS[name]||"var(--muted)";
-  const code  = LINE_CODES[name]||"?";
+  const badgeColor = color || LINE_COLORS[name] || DEFAULT_ROUTE_COLOR;
+  const badgeCode  = code || LINE_CODES[name] || "?";
   return (
     <span style={{ display:"inline-flex", alignItems:"center", gap:4,
-      background:color, color:"white",
+      background:badgeColor, color:"white",
       fontFamily:"var(--font-mono)", fontSize:small?7:9, fontWeight:700, letterSpacing:2,
-      padding:small?"2px 7px":"3px 10px", borderRadius:"4px" }}>{code}</span>
+      padding:small?"2px 7px":"3px 10px", borderRadius:"4px" }}>{badgeCode}</span>
   );
 };
 
@@ -160,6 +162,7 @@ const normalizeRoute = (route, fallbackIndex = 0) => ({
   id: route.id ?? Date.now() + fallbackIndex,
   name: route.name || "Unnamed Route",
   code: route.code || makeRouteCode(route.name, fallbackIndex),
+  color: route.color || LINE_COLORS[route.name] || DEFAULT_ROUTE_COLOR,
   fare: Number(route.fare ?? route.route_fare ?? 0),
   km: Number(route.distance_km ?? route.km ?? 0),
   stops: Array.isArray(route.stops) ? route.stops.length : Number(route.stops ?? 0),
@@ -279,10 +282,10 @@ export function AdminHubClone({ onNavigate, toast }) {
 export function RouteManagerClone({ onNavigate, toast }) {
   const [filter, setFilter] = useState("ALL");
   const [routes, setRoutes] = useState([
-    { id: 1, name: "Red Line", code: "R1", fare: 350, km: 12.5, stops: 18, buses: 6, active: true },
-    { id: 2, name: "Blue Line", code: "R2", fare: 420, km: 18.0, stops: 24, buses: 8, active: true },
-    { id: 3, name: "Green Line", code: "R3", fare: 280, km: 8.5, stops: 12, buses: 4, active: false },
-    { id: 4, name: "Route Alpha", code: "Rα", fare: 500, km: 22.0, stops: 30, buses: 10, active: true },
+    { id: 1, name: "Red Line", code: "R1", color: "#B02020", fare: 350, km: 12.5, stops: 18, buses: 6, active: true },
+    { id: 2, name: "Blue Line", code: "R2", color: "#1A4A8A", fare: 420, km: 18.0, stops: 24, buses: 8, active: true },
+    { id: 3, name: "Green Line", code: "R3", color: "#1E6641", fare: 280, km: 8.5, stops: 12, buses: 4, active: false },
+    { id: 4, name: "Route Alpha", code: "Rα", color: "#B02020", fare: 500, km: 22.0, stops: 30, buses: 10, active: true },
   ]);
   const [showCreateRoute, setShowCreateRoute] = useState(false);
   const [savingRoute, setSavingRoute] = useState(false);
@@ -294,6 +297,7 @@ export function RouteManagerClone({ onNavigate, toast }) {
     distance_km: "",
     duration_min: "",
     fare: "",
+    color: DEFAULT_ROUTE_COLOR,
     is_active: true,
   });
   const [routeErrors, setRouteErrors] = useState({});
@@ -312,6 +316,7 @@ export function RouteManagerClone({ onNavigate, toast }) {
       distance_km: "",
       duration_min: "",
       fare: "",
+      color: DEFAULT_ROUTE_COLOR,
       is_active: true,
     });
     setRouteErrors({});
@@ -331,6 +336,7 @@ export function RouteManagerClone({ onNavigate, toast }) {
     if (!Number.isFinite(distance) || distance <= 0) errors.distance_km = "Distance must be greater than zero.";
     if (!Number.isFinite(duration) || duration <= 0) errors.duration_min = "Duration must be greater than zero.";
     if (!Number.isFinite(fare) || fare <= 0) errors.fare = "Fare must be greater than zero.";
+    if (!/^#[0-9A-Fa-f]{6}$/.test(routeForm.color || "")) errors.color = "Choose a valid hex color.";
 
     setRouteErrors(errors);
     return { ok: Object.keys(errors).length === 0, stopsList, distance, duration, fare };
@@ -350,6 +356,7 @@ export function RouteManagerClone({ onNavigate, toast }) {
         distance_km: validation.distance,
         duration_min: validation.duration,
         fare: validation.fare,
+        color: routeForm.color,
         is_active: routeForm.is_active,
       };
 
@@ -359,6 +366,7 @@ export function RouteManagerClone({ onNavigate, toast }) {
         stops: created.stops || validation.stopsList,
         distance_km: created.distance_km ?? validation.distance,
         fare: created.fare ?? validation.fare,
+        color: created.color || routeForm.color,
         buses: created.buses ?? 0,
       }, routes.length);
 
@@ -426,7 +434,7 @@ export function RouteManagerClone({ onNavigate, toast }) {
         
         {visible.map((r, i) => (
           <div key={r.id} style={{ display:"grid", gridTemplateColumns:"120px 1.5fr 1fr 1fr 1fr 1fr 100px", gap:16, padding:"18px 24px", alignItems:"center", borderBottom:i<visible.length-1?"1px solid var(--rule)":"none", background:!r.active?"repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(26,18,8,.02) 8px, rgba(26,18,8,.02) 9px)":i%2===0?"transparent":"var(--cream)", transition:"background .2s, transform .2s" }} onMouseEnter={e=>e.currentTarget.style.transform="translateX(4px)"} onMouseLeave={e=>e.currentTarget.style.transform="translateX(0)"}>
-            <div><LineBadge name={r.name} /></div>
+            <div><LineBadge name={r.name} color={r.color} code={r.code} /></div>
             <div style={{ fontFamily:"var(--font-sans)", fontSize:16, fontWeight:600, color:"var(--ink)" }}>{r.name}</div>
             <div style={{ fontFamily:"var(--font-display)", fontSize:20, color:"var(--ink)", letterSpacing:1 }}>₹{r.fare}</div>
             <div style={{ fontFamily:"var(--font-mono)", fontSize:11, color:"var(--muted)" }}>{r.km} km</div>
@@ -464,6 +472,26 @@ export function RouteManagerClone({ onNavigate, toast }) {
                   <Field label="Duration (min)" type="number" value={routeForm.duration_min} onChange={e => updateRouteField("duration_min", e.target.value)} placeholder="42" error={routeErrors.duration_min} required />
                   <Field label="Fare" type="number" value={routeForm.fare} onChange={e => updateRouteField("fare", e.target.value)} placeholder="450" error={routeErrors.fare} required />
                 </div>
+                <div style={{ marginBottom:18 }}>
+                  <div style={{ fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:2,color:"var(--ink-mid)",textTransform:"uppercase",marginBottom:8,fontWeight:700 }}>
+                    Route Color<span style={{ color:"var(--red)",marginLeft:4 }}>*</span>
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"56px 1fr", gap:10, alignItems:"center" }}>
+                    <input
+                      type="color"
+                      value={routeForm.color}
+                      onChange={e => updateRouteField("color", e.target.value.toUpperCase())}
+                      style={{ width:56, height:44, border:"1.5px solid var(--rule)", borderRadius:8, background:"var(--cream)", cursor:"pointer" }}
+                    />
+                    <Field
+                      value={routeForm.color}
+                      onChange={e => updateRouteField("color", e.target.value.toUpperCase())}
+                      placeholder="#1A4A8A"
+                      error={routeErrors.color}
+                      style={{ marginBottom:0 }}
+                    />
+                  </div>
+                </div>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px", background:"var(--parchment)", border:"1.5px solid var(--rule)", borderRadius:12, marginBottom:20 }}>
                   <div>
                     <div style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)", marginBottom:4 }}>START ACTIVE</div>
@@ -481,6 +509,7 @@ export function RouteManagerClone({ onNavigate, toast }) {
                 <Tag color="var(--amber-text)">Preview</Tag>
                 <div style={{ fontFamily:"var(--font-display)", fontSize:28, letterSpacing:1, color:"var(--ink)", marginBottom:12 }}>{routeForm.name || "NEW ROUTE"}</div>
                 <div style={{ display:"grid", gap:10 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>LINE</span><LineBadge name={routeForm.name || "NEW ROUTE"} color={routeForm.color} code={makeRouteCode(routeForm.name, routes.length)} /></div>
                   <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>SOURCE</span><span style={{ fontFamily:"var(--font-sans)", fontSize:13, color:"var(--ink)" }}>{routeForm.source || "—"}</span></div>
                   <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>DESTINATION</span><span style={{ fontFamily:"var(--font-sans)", fontSize:13, color:"var(--ink)" }}>{routeForm.destination || "—"}</span></div>
                   <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:2, color:"var(--muted)" }}>DISTANCE</span><span style={{ fontFamily:"var(--font-sans)", fontSize:13, color:"var(--ink)" }}>{routeForm.distance_km || "0"} km</span></div>
@@ -870,17 +899,69 @@ export function AnnouncementSenderClone({ onNavigate, toast }) {
 
 export function AdminApplicationsClone({ onNavigate, toast }) {
   const [filter, setFilter] = useState("ALL");
-  const [apps, setApps] = useState([
-    { id: "REQ-9921", passenger: "Aryan Sharma", ptype: "student", route: "Red Line", type: "Monthly", date: "16 Mar 2024", amt: 350, status: "PENDING" },
-    { id: "REQ-9922", passenger: "Priya Patel", ptype: "student", route: "Blue Line", type: "Quarterly", date: "16 Mar 2024", amt: 1000, status: "PENDING" },
-    { id: "REQ-9920", passenger: "Rajesh Kumar", ptype: "general", route: "Green Line", type: "Monthly", date: "15 Mar 2024", amt: 600, status: "APPROVED" },
-    { id: "REQ-9919", passenger: "Sneha Iyer", ptype: "corporate", route: "Red Line", type: "Annual", date: "15 Mar 2024", amt: 6500, status: "REJECTED" },
-    { id: "REQ-9918", passenger: "Amit Singh", ptype: "senior", route: "Blue Line", type: "Monthly", date: "14 Mar 2024", amt: 300, status: "APPROVED" },
-  ]);
-  
-  const handleAction = (id, status) => {
-    setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
-    toast.success(`Application ${id} ${status.toLowerCase()}`);
+  const [apps, setApps] = useState([]);
+  const [loadingApps, setLoadingApps] = useState(true);
+
+  const mapApp = useCallback((app) => {
+    const duration = (app.duration_type || "monthly").replace(/_/g, " ");
+    const dateSource = app.applied_at || app.created_at || app.reviewed_at;
+    return {
+      id: app.id,
+      passenger: app.student_name || app.student_email || `User ${app.student}`,
+      ptype: app.metadata?.passenger_type || "general",
+      route: app.route_name || "Unknown Route",
+      type: duration.charAt(0).toUpperCase() + duration.slice(1),
+      date: dateSource ? new Date(dateSource).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—",
+      amt: Number(app.route_fare || 0),
+      status: (app.status || "pending").toUpperCase(),
+    };
+  }, []);
+
+  const fetchApplications = useCallback(async (silent = false) => {
+    if (!silent) setLoadingApps(true);
+    try {
+      const data = await PassService.getApplications();
+      setApps((data || []).map(mapApp));
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Failed to fetch applications.");
+    } finally {
+      if (!silent) setLoadingApps(false);
+    }
+  }, [mapApp, toast]);
+
+  useEffect(() => {
+    fetchApplications(false);
+    const unsubscribe = PassService.subscribePassSync(() => fetchApplications(true));
+    const timer = setInterval(() => fetchApplications(true), 5000);
+    return () => {
+      unsubscribe();
+      clearInterval(timer);
+    };
+  }, [fetchApplications]);
+
+  const handleAction = async (id, status) => {
+    try {
+      if (status === "APPROVED") {
+        await PassService.approveApplication(id);
+      } else {
+        await PassService.rejectApplication(id, "Rejected by admin");
+      }
+      setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+      toast.success(`Application ${id} ${status.toLowerCase()}`);
+      fetchApplications(true);
+    } catch (err) {
+      const data = err?.response?.data;
+      const msg = data?.error || data?.detail || data?.message || "Action failed.";
+
+      if ((err?.response?.status || 0) >= 500) {
+        toast.error("Server error while processing request. Retrying data sync...");
+      } else {
+        toast.error(msg);
+      }
+
+      // Always force a refresh after failed action to avoid stale status in admin table.
+      fetchApplications(true);
+    }
   };
 
   const exportLogs = () => {
@@ -912,6 +993,9 @@ export function AdminApplicationsClone({ onNavigate, toast }) {
                {f}
              </button>
            ))}
+        </div>
+        <div style={{ fontFamily:"var(--font-mono)", fontSize:10, letterSpacing:1, color:"var(--muted)" }}>
+          {loadingApps ? "SYNCING…" : `${apps.length} TOTAL`}
         </div>
       </div>
 

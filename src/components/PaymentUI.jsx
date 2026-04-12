@@ -2,77 +2,44 @@ import React, { useState, useEffect } from 'react';
 import { Shield, CheckCircle, XCircle, Clock, RefreshCw, Download, FileText, ChevronRight } from 'lucide-react';
 import { useRazorpay } from '../hooks/useRazorpay';
 import api, { TokenService } from '../services/api';
-
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;700&family=Instrument+Sans:wght@400;500;600&display=swap');
-
-.pay-btn-primary {
-  background: var(--ink, #1A1208);
-  color: var(--amber-on-ink, #F0A830);
-  border: none;
-  font-family: var(--font-display, 'Bebas Neue', sans-serif);
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.pay-btn-primary:hover:not(:disabled) {
-  background: var(--ink-mid, #3D2410);
-  transform: translateY(-1px);
-}
-.pay-btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.pay-btn-danger {
-  background: var(--red, #B02020);
-  color: var(--cream-on-ink, #F6F0E4);
-}
-.pay-btn-danger:hover:not(:disabled) {
-  background: #8A1818;
-}
-`;
+import PaymentService from '../services/paymentService';
 
 export const PaymentSummaryCard = ({ title, amountText, planText, features = [] }) => (
   <div style={{
-    background: 'var(--cream, #F6F0E4)',
-    border: '2px solid var(--ink, #1A1208)',
+    background: 'var(--cream)',
+    border: '2px solid var(--ink)',
     padding: '32px',
     position: 'relative',
-    boxShadow: '4px 4px 0 var(--ink, #1A1208)'
+    boxShadow: '4px 4px 0 var(--ink)'
   }}>
-    <style>{CSS}</style>
     <div style={{ marginBottom: '24px' }}>
-      <div style={{ fontFamily: 'var(--font-mono, "JetBrains Mono")', fontSize: '10px', letterSpacing: '2px', color: 'var(--muted, #6B5535)', marginBottom: '8px' }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '2px', color: 'var(--muted)', marginBottom: '8px' }}>
         SECURE CHECKOUT
       </div>
-      <div style={{ fontFamily: 'var(--font-serif, "DM Serif Display")', fontSize: '28px', color: 'var(--ink, #1A1208)' }}>
+      <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--ink)' }}>
         {title}
       </div>
-      {planText && <div style={{ fontFamily: 'var(--font-sans, "Instrument Sans")', fontSize: '14px', fontStyle: 'italic', color: 'var(--muted, #6B5535)' }}>{planText}</div>}
+      {planText && <div style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', fontStyle: 'italic', color: 'var(--muted)' }}>{planText}</div>}
     </div>
 
-    <div style={{ borderTop: '1px dashed var(--ink, #1A1208)', borderBottom: '1px dashed var(--ink, #1A1208)', padding: '20px 0', margin: '20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <div style={{ fontFamily: 'var(--font-display, "Bebas Neue")', fontSize: '20px', color: 'var(--ink, #1A1208)' }}>TOTAL PAYABLE</div>
-      <div style={{ fontFamily: 'var(--font-display, "Bebas Neue")', fontSize: '42px', color: 'var(--amber-text, #8B520A)', lineHeight: 1 }}>{amountText}</div>
+    <div style={{ borderTop: '1px dashed var(--ink)', borderBottom: '1px dashed var(--ink)', padding: '20px 0', margin: '20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', color: 'var(--ink)' }}>TOTAL PAYABLE</div>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: '42px', color: 'var(--amber-text)', lineHeight: 1 }}>{amountText}</div>
     </div>
 
     {features.length > 0 && (
       <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {features.map((f, i) => (
-          <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-sans, "Instrument Sans")', fontSize: '13px', color: 'var(--ink, #1A1208)' }}>
-            <CheckCircle size={14} color="var(--green, #1E6641)" /> {f}
+          <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--ink)' }}>
+            <CheckCircle size={14} color="var(--green)" /> {f}
           </li>
         ))}
       </ul>
     )}
 
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: 'var(--parchment, #EDE4CC)', border: '1px solid var(--rule, #D4C4A0)' }}>
-      <Shield size={16} color="var(--green, #1E6641)" />
-      <span style={{ fontFamily: 'var(--font-mono, "JetBrains Mono")', fontSize: '10px', letterSpacing: '1px', color: 'var(--ink, #1A1208)' }}>100% SECURED BY RAZORPAY API</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: 'var(--parchment)', border: '1px solid var(--rule)' }}>
+      <Shield size={16} color="var(--green)" />
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '1px', color: 'var(--ink)' }}>100% SECURED BY RAZORPAY API</span>
     </div>
   </div>
 );
@@ -139,7 +106,14 @@ export const PaymentButton = ({
         amount: orderAmount,
         currency: currency,
         name: "BusPassPro",
-        description: purpose === "PASS_PURCHASE" ? "New Pass Application" : purpose === "PASS_RENEWAL" ? "Pass Extension" : "Wallet Top-up",
+        description:
+          purpose === "PASS_PURCHASE"
+            ? "New Pass Application"
+            : purpose === "PASS_RENEWAL"
+              ? "Pass Extension"
+              : purpose === "TAXI_BOOKING"
+                ? "Taxi Ride Booking"
+                : "Wallet Top-up",
         order_id: order_id,
         prefill: {
           name: full_name || "Passenger",
@@ -198,7 +172,6 @@ export const PaymentButton = ({
 
   return (
     <>
-      <style>{CSS}</style>
       <button 
         className="pay-btn-primary"
         style={{ width: full ? '100%' : 'auto', fontSize: fs[size], padding: pad[size] }}
@@ -219,7 +192,6 @@ export const PaymentStatusModal = ({ status, message, onClose, onAction, actionT
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(26,18,8,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
-      <style>{CSS}</style>
       <div style={{ 
         background: status === 'FAILED' ? '#FDEAEA' : 'var(--surface, #FDFAF3)', 
         border: `3px solid ${status === 'FAILED' ? 'var(--red, #B02020)' : 'var(--ink, #1A1208)'}`,
@@ -274,7 +246,6 @@ export const PaymentStatusModal = ({ status, message, onClose, onAction, actionT
 
 export const PaymentHistoryTable = ({ payments = [] }) => (
   <div style={{ width: '100%', overflowX: 'auto', border: '2px solid var(--ink, #1A1208)', background: 'var(--cream, #F6F0E4)' }}>
-    <style>{CSS}</style>
     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
       <thead>
         <tr style={{ background: 'var(--ink, #1A1208)', color: 'var(--cream-on-ink, #F6F0E4)' }}>

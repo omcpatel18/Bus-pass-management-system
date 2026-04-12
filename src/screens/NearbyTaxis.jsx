@@ -29,6 +29,9 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import api from "../services/api";
+import PassService from "../services/passService";
+import { PaymentButton } from "../components/PaymentUI";
 
 // ── Fonts + CSS tokens (identical to DesignSystem.jsx) ────────────────
 const G = `
@@ -299,9 +302,9 @@ function StopSearch({ value, onChange, placeholder, exclude = [], label, labelCo
 }
 
 // ── Fare calculator ───────────────────────────────────────────────────
-function calcFare(type, from, to) {
-  const i1 = CAMPUS_STOPS.indexOf(from);
-  const i2 = CAMPUS_STOPS.indexOf(to);
+function calcFare(type, from, to, stops) {
+  const i1 = stops.indexOf(from);
+  const i2 = stops.indexOf(to);
   const idxDiff = Math.abs(i1 - i2);
   const km = idxDiff <= 0 ? 2 : idxDiff * 2.2 + 1.5;
   const fare = Math.round(type.base + km * type.rate);
@@ -351,8 +354,8 @@ function CarIcon({ size = 28, color = "#1A1208" }) {
 //  PHASE 1 — SEARCH
 //  Pickup, destination, ride type, schedule
 // ═══════════════════════════════════════════════════════════════════════
-function SearchPhase({ onConfirm }) {
-  const [pickup, setPickup] = useState("College Gate");
+function SearchPhase({ onConfirm, stops }) {
+  const [pickup, setPickup] = useState(stops[0] || "College Gate");
   const [dest, setDest] = useState("");
   const [rideType, setRideType] = useState("economy");
   const [schedMode, setSchedMode] = useState("now"); // "now" | "later"
@@ -361,7 +364,7 @@ function SearchPhase({ onConfirm }) {
 
   const sel = RIDE_TYPES.find(r => r.id === rideType);
   const canCalc = pickup && dest && pickup !== dest;
-  const calc = canCalc ? calcFare(sel, pickup, dest) : null;
+  const calc = canCalc ? calcFare(sel, pickup, dest, stops) : null;
 
   const handleBook = () => {
     if (!dest) { setDestErr("Please enter a destination."); return; }
@@ -386,6 +389,7 @@ function SearchPhase({ onConfirm }) {
               exclude={dest ? [dest] : []}
               label="◉ PICKUP"
               labelColor="var(--green)"
+              stopList={stops}
             />
           </div>
 
@@ -406,6 +410,7 @@ function SearchPhase({ onConfirm }) {
               exclude={pickup ? [pickup] : []}
               label="◉ DESTINATION"
               labelColor="var(--red)"
+              stopList={stops}
             />
           </div>
         </div>
@@ -426,7 +431,7 @@ function SearchPhase({ onConfirm }) {
         <Tag>Choose Ride Type</Tag>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
           {RIDE_TYPES.map(r => {
-            const f = canCalc ? calcFare(r, pickup, dest) : null;
+            const f = canCalc ? calcFare(r, pickup, dest, stops) : null;
             const active = rideType === r.id;
             return (
               <div key={r.id} onClick={() => setRideType(r.id)} style={{ border: `2px solid ${active ? "var(--ink)" : "var(--rule)"}`, padding: "16px 18px", cursor: "pointer", background: active ? "var(--ink)" : r.bg, transition: "all .18s", position: "relative" }}>
@@ -558,15 +563,83 @@ function SearchPhase({ onConfirm }) {
 //  Full fare breakdown + payment method selection
 // ═══════════════════════════════════════════════════════════════════════
 function ConfirmPhase({ booking, onBack, onConfirm }) {
+  const toast = useToast();
   const [payment, setPayment] = useState("upi");
   const [confirming, setConfirming] = useState(false);
-  const { pickup, dest, calc, sel, schedMode, schedTime } = booking;
+  const [preparedBooking, setPreparedBooking] = useState(null);
+  const { pickup, dest, calc, sel, schedMode, schedTime, stops = [] } = booking;
+
+  // Mock coordinates mapping for campus stops
+  const getCoords = (stop) => {
+    const idx = stops.indexOf(stop);
+    if (idx < 0) return { lat: 23.0225, lng: 72.5714 }; // Default
+    // Generate some deterministic mock coords around a center
+    return {
+      lat: 23.0225 + (idx % 5) * 0.01,
+      lng: 72.5714 + Math.floor(idx / 5) * 0.01
+    };
+  };
+
+  const createBookingRequest = async () => {
+    setConfirming(true);
+    try {
+      const pickupCoords = getCoords(pickup);
+      const destCoords = getCoords(dest);
+      
+      const payload = {
+        pickup_lat: pickupCoords.lat,
+        pickup_lng: pickupCoords.lng,
+        dropoff_lat: destCoords.lat,
+        dropoff_lng: destCoords.lng,
+        pickup_name: pickup,
+        dropoff_name: dest,
+        fare_estimate: calc.fare
+      };
+
+      const { data } = await api.post('/taxis/bookings/', payload);
+
+      const bookingData = {
+        ...booking, 
+        payment, 
+        otp: String(Math.floor(1000 + Math.random() * 9000)), 
+        txnId: `TXN-${data.id}`,
+        bookingId: data.id
+      };
+
+      setPreparedBooking(bookingData);
+      return bookingData;
+    } catch (err) {
+      console.error("Booking failed", err);
+      toast.error("Failed to book ride. Please try again.");
+      return null;
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   const confirm = async () => {
-    setConfirming(true);
-    await new Promise(r => setTimeout(r, 1200));
-    setConfirming(false);
-    onConfirm({ ...booking, payment, otp: String(Math.floor(1000 + Math.random() * 9000)), txnId: `TXN-${Date.now().toString().slice(-4)}` });
+    const booked = preparedBooking || await createBookingRequest();
+    if (!booked) return;
+
+    if (payment === "cash") {
+      onConfirm(booked);
+      toast.success("Ride booked on cash payment. Driver is on the way.");
+      return;
+    }
+
+    toast.info("Booking created. Complete Razorpay payment to assign driver.");
+  };
+
+  const backWithCleanup = async () => {
+    // If booking was created but user goes back before starting trip, cancel it to avoid stale requests.
+    if (preparedBooking?.bookingId && payment !== "cash") {
+      try {
+        await api.post(`/taxis/bookings/${preparedBooking.bookingId}/cancel/`);
+      } catch {
+        // Best effort cleanup only.
+      }
+    }
+    onBack();
   };
 
   return (
@@ -633,11 +706,48 @@ function ConfirmPhase({ booking, onBack, onConfirm }) {
       </div>
 
       <div style={{ display: "flex", gap: 10 }}>
-        <Btn variant="secondary" size="md" onClick={onBack}>← EDIT</Btn>
+        <Btn variant="secondary" size="md" onClick={backWithCleanup}>← EDIT</Btn>
         <Btn variant="primary" full size="lg" onClick={confirm} disabled={confirming}>
-          {confirming ? <><Spinner size={18} /> FINDING DRIVER…</> : `CONFIRM & ${schedMode === "later" ? "SCHEDULE" : "BOOK"} →`}
+          {confirming
+            ? <><Spinner size={18} /> CREATING BOOKING…</>
+            : payment === "cash"
+              ? `CONFIRM CASH ${schedMode === "later" ? "SCHEDULE" : "BOOKING"} →`
+              : preparedBooking
+                ? "PROCEED TO PAYMENT ↓"
+                : `CONFIRM ${schedMode === "later" ? "SCHEDULE" : "BOOKING"} →`
+          }
         </Btn>
       </div>
+
+      {preparedBooking && payment !== "cash" && (
+        <div style={{ marginTop: 16, padding: "14px 16px", border: "1.5px solid var(--amber)", background: "var(--warn-bg)" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 3, color: "var(--amber-text)", marginBottom: 6 }}>
+            PAYMENT REQUIRED BEFORE DRIVER ASSIGNMENT
+          </div>
+          <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--ink)", marginBottom: 12 }}>
+            Complete Razorpay payment to move from booking review to driver assigned status.
+          </div>
+          <PaymentButton
+            amount={calc.fare}
+            purpose="TAXI_BOOKING"
+            metadata={{
+              taxi_booking_id: preparedBooking.bookingId,
+              pickup,
+              destination: dest,
+              ride_type: sel.id,
+              payment_method: payment,
+            }}
+            btnText="PAY & ASSIGN DRIVER →"
+            full
+            size="lg"
+            onSuccess={() => {
+              toast.success("Payment successful. Driver assignment started.");
+              onConfirm(preparedBooking);
+            }}
+            onFailure={(msg) => toast.error(msg || "Payment failed. Please try again.")}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -889,7 +999,7 @@ function CompletedPhase({ booking, driver, onNewRide, toast }) {
 // ═══════════════════════════════════════════════════════════════════════
 //  TAB: MY RIDES
 // ═══════════════════════════════════════════════════════════════════════
-function MyRides({ onRebook }) {
+function MyRides({ onRebook, rides }) {
   const [expandedId, setExpandedId] = useState(null);
   const TYPE_MAP = Object.fromEntries(RIDE_TYPES.map(r => [r.id, r]));
 
@@ -903,7 +1013,7 @@ function MyRides({ onRebook }) {
         <div style={{ textAlign: "right" }}>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 3, color: "var(--muted)" }}>TOTAL SPENT</div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 28, letterSpacing: 1, color: "var(--ink)" }}>
-            ₹{MOCK_HISTORY.filter(r => r.status === "COMPLETED").reduce((s, r) => s + r.fare, 0).toLocaleString()}
+            ₹{rides.filter(r => r.status === "COMPLETED").reduce((s, r) => s + r.fare, 0).toLocaleString()}
           </div>
         </div>
       </div>
@@ -911,9 +1021,9 @@ function MyRides({ onRebook }) {
       {/* Summary strip */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", borderTop: "3px solid var(--ink)", borderBottom: "1px solid var(--rule)", marginBottom: 24 }}>
         {[
-          [MOCK_HISTORY.filter(r => r.status === "COMPLETED").length, "COMPLETED", "var(--green)"],
-          [MOCK_HISTORY.filter(r => r.status === "CANCELLED").length, "CANCELLED", "var(--red)"],
-          [(MOCK_HISTORY.reduce((s, r) => s + r.km, 0)).toFixed(1) + " KM", "TOTAL DISTANCE", "var(--ink)"],
+          [rides.filter(r => r.status === "COMPLETED").length, "COMPLETED", "var(--green)"],
+          [rides.filter(r => r.status === "CANCELLED").length, "CANCELLED", "var(--red)"],
+          [(rides.reduce((s, r) => s + r.km, 0)).toFixed(1) + " KM", "TOTAL DISTANCE", "var(--ink)"],
         ].map(([v, l, c], i) => (
           <div key={l} style={{ padding: "16px 20px", textAlign: "center", borderRight: i < 2 ? "1px solid var(--rule)" : "none" }}>
             <div style={{ fontFamily: "var(--font-display)", fontSize: 32, letterSpacing: 1, color: c, lineHeight: 1 }}>{v}</div>
@@ -924,7 +1034,7 @@ function MyRides({ onRebook }) {
 
       {/* Ride list */}
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {MOCK_HISTORY.map((ride, i) => {
+        {rides.map((ride, i) => {
           const type = TYPE_MAP[ride.type] || RIDE_TYPES[0];
           const expanded = expandedId === ride.id;
           return (
@@ -1099,6 +1209,8 @@ const TABS = [
 
 export default function TaxiBooking() {
   const [tab, setTab] = useState("book");
+  const [stops, setStops] = useState(CAMPUS_STOPS);
+  const [rides, setRides] = useState([]);
 
   // Booking flow phases: "search" | "confirm" | "tracking" | "completed"
   const [phase, setPhase] = useState("search");
@@ -1107,6 +1219,52 @@ export default function TaxiBooking() {
 
   const toast = useToast();
 
+  const loadData = useCallback(async () => {
+    try {
+      const routes = await PassService.getRoutes();
+      const routeStops = new Set();
+      routes.forEach(r => {
+         if (typeof r.stops === 'string') {
+             r.stops.split(',').forEach(s => routeStops.add(s.trim()));
+         } else if (Array.isArray(r.stops)) {
+             r.stops.forEach(s => routeStops.add(s));
+         }
+      });
+      if (routeStops.size > 0) {
+         setStops(Array.from(routeStops));
+      }
+
+      const { data } = await api.get('/taxis/bookings/');
+      const bks = data.results || data || [];
+      const formatted = bks.map(b => ({
+         id: "TXN-" + b.id,
+         date: new Date(b.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+         time: new Date(b.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false }),
+         from: b.pickup_name,
+         to: b.dropoff_name,
+        type: b.taxi_details?.vehicle_type || "economy",
+        fare: Number.isFinite(Number(b.effective_fare))
+          ? Math.round(Number(b.effective_fare))
+          : Number.isFinite(Number(b.fare_estimate))
+            ? Math.round(Number(b.fare_estimate))
+            : 0,
+         km: 5.0, // mock distance
+         status: b.status.toUpperCase(),
+        rating: b.taxi_details?.rating || 0,
+        driver: b.taxi_details?.driver_name || "—",
+        vehicle: b.taxi_details?.vehicle_number || "—"
+      }));
+      setRides(formatted.length > 0 ? formatted : MOCK_HISTORY);
+    } catch (err) {
+      console.error("Failed to load taxi data", err);
+      setRides(MOCK_HISTORY); // fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
   const handleConfirm = (bookingData) => {
     setBooking(bookingData);
     setPhase("confirm");
@@ -1114,6 +1272,7 @@ export default function TaxiBooking() {
   const handleBooked = (confirmedData) => {
     setBooking(confirmedData);
     setPhase("tracking");
+    loadData(); // Refresh history in background
     toast.success("Ride booked! Driver is on the way.");
   };
   const handleComplete = (driverData) => {
@@ -1181,13 +1340,13 @@ export default function TaxiBooking() {
       {/* Tab content */}
       {tab === "book" && (
         <>
-          {phase === "search" && <SearchPhase onConfirm={handleConfirm} />}
+          {phase === "search" && <SearchPhase onConfirm={handleConfirm} stops={stops} />}
           {phase === "confirm" && <ConfirmPhase booking={booking} onBack={() => setPhase("search")} onConfirm={handleBooked} />}
           {phase === "tracking" && <TrackingPhase booking={booking} onComplete={handleComplete} onCancel={handleCancel} />}
           {phase === "completed" && <CompletedPhase booking={booking} driver={driver} onNewRide={handleNewRide} toast={toast} />}
         </>
       )}
-      {tab === "rides" && <MyRides onRebook={handleRebook} />}
+      {tab === "rides" && <MyRides onRebook={handleRebook} rides={rides} />}
       {tab === "nearby" && <NearbyView />}
 
       <toast.Toaster />

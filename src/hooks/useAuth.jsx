@@ -10,6 +10,21 @@ import { useState, useEffect, useCallback, createContext, useContext } from "rea
 import AuthService from "../services/authService";
 import { TokenService } from "../services/api";
 
+// ── Shared Error Parser ───────────────────────────────────────────────────
+export const parseError = (err, fallback = "Action failed. Please try again.") => {
+  if (!err.response?.data) return err.message || fallback;
+  const data = err.response.data;
+
+  if (typeof data === "string") return data;
+  if (data.non_field_errors) return data.non_field_errors[0];
+  if (data.detail) return data.detail;
+
+  // Handle field-level errors: { "email": ["already exists"], "password": ["too short"] }
+  return Object.entries(data)
+    .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : value}`)
+    .join(" | ");
+};
+
 // ── Context ───────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 
@@ -34,9 +49,7 @@ export function AuthProvider({ children }) {
       setUser(data.user);
       return data.user;
     } catch (err) {
-      const msg = err.response?.data?.non_field_errors?.[0]
-                || err.response?.data?.detail
-                || "Login failed. Please check your credentials.";
+      const msg = parseError(err, "Login failed. Please check your credentials.");
       setError(msg);
       throw err;
     } finally {
@@ -51,9 +64,7 @@ export function AuthProvider({ children }) {
       setUser(data.user);
       return data.user;
     } catch (err) {
-      const msg = err.response?.data
-        ? Object.values(err.response.data).flat().join(" ")
-        : "Registration failed.";
+      const msg = parseError(err, "Registration failed.");
       setError(msg);
       throw err;
     } finally {

@@ -47,6 +47,18 @@ const PaymentService = {
     });
     return data;
   },
+
+  /**
+   * Step 4: Mark payment as failed on the backend
+   */
+  markFailed: async (razorpay_order_id, reason, failure_payload = {}) => {
+    const { data } = await api.post("/payments/mark-failed/", {
+      razorpay_order_id,
+      reason,
+      failure_payload,
+    });
+    return data;
+  },
 };
 
 /** Internal: launch Razorpay modal */

@@ -7,6 +7,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Navigation, Mail, Phone, Shield, Bell, LogOut, Download, Clock, CreditCard, History } from "lucide-react";
+import api from "../services/api";
+import PassService from "../services/passService";
 
 // ─── Google Fonts ──────────────────────────────────────────────────
 const FONTS = `
@@ -237,24 +239,30 @@ function CountdownRing({ daysLeft, totalDays }) {
 // ─── Sections ──────────────────────────────────────────────────────
 
 function IdentityHeader({ user, pass }) {
+  const profile = user?.student_profile || {};
+  const userName = profile.full_name || user?.email || "Traveler";
+  const initials = profile.full_name 
+    ? profile.full_name.split(" ").map(n => n[0]).join("").toUpperCase()
+    : user?.email?.[0].toUpperCase();
+
   return (
     <div style={{
       background: "var(--ink)", padding: "48px 44px",
       display: "flex", alignItems: "center", gap: 32,
       animation: "fadeUp .4s ease both", position: "relative", overflow: "hidden"
     }}>
-      <div style={{ position: "absolute", right: -20, top: -20, fontFamily: "var(--font-display)", fontSize: 180, color: "rgba(255,255,255,.03)", userSelect: "none" }}>{user.avatar_initials}</div>
+      <div style={{ position: "absolute", right: -20, top: -20, fontFamily: "var(--font-display)", fontSize: 180, color: "rgba(255,255,255,.03)", userSelect: "none" }}>{initials}</div>
       <div style={{ position: "relative", zIndex: 2 }}>
         <div style={{ width: 96, height: 96, borderRadius: "50%", background: "var(--surface)", border: "2px solid var(--amber)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 32px rgba(0,0,0,.4)" }}>
-          <span style={{ fontFamily: "var(--font-display)", fontSize: 36, color: "var(--ink)" }}>{user.avatar_initials}</span>
+          <span style={{ fontFamily: "var(--font-display)", fontSize: 36, color: "var(--ink)" }}>{initials}</span>
         </div>
         <div style={{ position: "absolute", bottom: 6, right: 6, width: 16, height: 16, borderRadius: "50%", background: "#52B788", border: "3px solid var(--ink)", animation: "pulseDot 2s infinite" }} />
       </div>
       <div style={{ flex: 1, zIndex: 2 }}>
         <Tag color="var(--muted-on-ink)">OFFICIAL TRAVELER CREDENTIAL — METROPOLIS TRANSIT</Tag>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: 56, color: "var(--cream-on-ink)", lineHeight: 0.9, marginBottom: 16 }}>{user.name.toUpperCase()}</div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: 56, color: "var(--cream-on-ink)", lineHeight: 0.9, marginBottom: 16 }}>{userName.toUpperCase()}</div>
         <div style={{ display: "flex", gap: 32 }}>
-          {[ [user.id, "PASSENGER ID"], [user.department, "CATEGORY"], [user.year, "FARE TYPE"] ].map(([v, l]) => (
+          {[ [profile.student_id || "N/A", "PASSENGER ID"], [profile.department || "General", "CATEGORY"], ["Adult", "FARE TYPE"] ].map(([v, l]) => (
             <div key={l}>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 3, color: "var(--muted-on-ink)" }}>{l}</div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--amber-on-ink)", fontWeight: 700 }}>{v}</div>
@@ -312,10 +320,12 @@ function ActivePassCard({ pass, user }) {
 }
 
 function StatsStrip({ pass, payments }) {
-  const totalPaid = payments.filter(p => p.status === "PAID").reduce((s, p) => s + p.amount, 0);
+  const totalPaid = payments.filter(p => p.status === "PAID").reduce((s, p) => s + (p.amount/100), 0); // Convert from paise to rupees
+  const passCycles = payments.filter(p => ["PASS_PURCHASE", "PASS_RENEWAL"].includes(p.purpose)).length;
+  const daysLeft = pass?.days_left || 0;
   const stats = [
-    { n: pass.days_left, l: "DAYS REMAINING", c: pass.days_left > 14 ? "var(--green)" : "var(--red)" },
-    { n: payments.length, l: "PASS CYCLES", c: "var(--ink)" },
+    { n: daysLeft, l: "DAYS REMAINING", c: daysLeft > 14 ? "var(--green)" : "var(--red)" },
+    { n: passCycles, l: "PASS CYCLES", c: "var(--ink)" },
     { n: `₹${totalPaid}`, l: "TOTAL INVESTMENT", c: "var(--ink)" },
     { n: "TOP TIER", l: "LOYALTY RANK", c: "var(--amber-text)" }
   ];
@@ -332,14 +342,14 @@ function StatsStrip({ pass, payments }) {
 }
 
 function PersonalInfo({ user, toast }) {
+  const profile = user?.student_profile || {};
   const [form, setForm] = useState({ 
-    name: user.name, 
-    phone: user.phone,
-    address: user.address || "",
-    dob: user.dob || "",
-    emergencyContact: user.emergencyContact || "",
-    aadhar: user.aadhar || "",
-    bloodGroup: user.bloodGroup || ""
+    name: profile.full_name || "", 
+    phone: user?.phone || "",
+    address: profile.home_address || "",
+    dob: profile.date_of_birth || "",
+    department: profile.department || "General",
+    student_id: profile.student_id || ""
   });
   const [dirty, setDirty] = useState(false);
 
@@ -357,41 +367,47 @@ function PersonalInfo({ user, toast }) {
       
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 32px" }}>
         <InpField label="FULL NAME" value={form.name} onChange={e => updateField("name", e.target.value)} />
-        <InpField label="CONTACT EMAIL" value={user.email} readOnly />
+        <InpField label="CONTACT EMAIL" value={user?.email || ""} readOnly />
         <InpField label="PHONE NUMBER" value={form.phone} onChange={e => updateField("phone", e.target.value)} />
-        <InpField label="REGISTRY ID" value={user.id} readOnly />
-        <InpField label="DATE OF BIRTH" value={form.dob} onChange={e => updateField("dob", e.target.value)} placeholder="DD MMM YYYY" />
-        <InpField label="BLOOD GROUP" value={form.bloodGroup} onChange={e => updateField("bloodGroup", e.target.value)} placeholder="e.g. O+ Positive" />
+        <InpField label="REGISTRY ID" value={form.student_id} readOnly />
+        <InpField label="DATE OF BIRTH" value={form.dob} onChange={e => updateField("dob", e.target.value)} placeholder="YYYY-MM-DD" />
+        <InpField label="DEPARTMENT" value={form.department} onChange={e => updateField("department", e.target.value)} />
         
         <div style={{ gridColumn: "1 / -1" }}>
-          <InpField label="HOME ADDRESS (MANDATORY)" value={form.address} onChange={e => updateField("address", e.target.value)} multiline rows={3} placeholder="Full residential address" />
+          <InpField label="HOME ADDRESS" value={form.address} onChange={e => updateField("address", e.target.value)} multiline rows={3} placeholder="Full residential address" />
         </div>
-
-        <InpField label="EMERGENCY CONTACT" value={form.emergencyContact} onChange={e => updateField("emergencyContact", e.target.value)} placeholder="Name & Number" />
-        <InpField label="AADHAR / GOVT ID" value={form.aadhar} onChange={e => updateField("aadhar", e.target.value)} placeholder="XXXX XXXX XXXX" />
       </div>
     </div>
   );
 }
 
+
 function PassHistory({ history, currentPass }) {
-  const all = [{ ...currentPass, id: currentPass.pass_number, amount: currentPass.fare_total, from: currentPass.valid_from, until: currentPass.valid_until }, ...history];
+  const all = [...history].map((p, i) => {
+    // Attempting to format generic backend 'Payment' history
+    const date = new Date(p.created_at).toLocaleDateString("en-GB", {day:'2-digit', month: 'short', year:'numeric'});
+    return (
+      <div key={i} style={{ border: "1.5px solid var(--rule)", borderRadius: 12, padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", background: i===0?"var(--surface)":"transparent" }}>
+        <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 24 }}>{p.purpose.replace("_", " ")}</div>
+          <div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 8 }}>{p.id}</div>
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: 13 }}>{date}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 20 }}>₹{p.amount / 100}</div>
+          <Pill s={p.status} />
+        </div>
+      </div>
+    );
+  });
+  
   return (
     <div style={{ animation: "fadeUp .4s ease" }}>
       <Tag>Historical Archive</Tag><div style={{ fontFamily: "var(--font-serif)", fontSize: 32, marginBottom: 24 }}>Transit Ledger</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {all.map((p, i) => (
-          <div key={i} style={{ border: "1.5px solid var(--rule)", borderRadius: 12, padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", background: i===0?"var(--surface)":"transparent" }}>
-            <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 24 }}>{p.route?.toUpperCase()}</div>
-              <div><div style={{ fontFamily: "var(--font-mono)", fontSize: 8 }}>{p.id}</div><div style={{ fontFamily: "var(--font-sans)", fontSize: 13 }}>{p.from} – {p.until}</div></div>
-            </div>
-            <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 20 }}>₹{p.amount}</div>
-              <Pill s={p.status} />
-            </div>
-          </div>
-        ))}
+        {all.length > 0 ? all : <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--muted)" }}>No transaction history found.</div>}
       </div>
     </div>
   );
@@ -489,28 +505,53 @@ function AccountActions({ onLogout, toast, user }) {
 
 const TABS = [ { id: "pass", l: "MY PASS" }, { id: "info", l: "PROFILE" }, { id: "history", l: "HISTORY" }, { id: "prefs", l: "PREFS" }, { id: "security", l: "SECURITY" } ];
 
-const MOCK_USER = { 
-  id: "PID-24-001", 
-  name: "Aryan Sharma", 
-  email: "aryan@transit.net", 
-  phone: "+91 98765 43210", 
-  address: "Flat 402, Heritage Residency, Opposite Central Park, Metropolis East, 400101",
-  dob: "15 May 2002",
-  emergencyContact: "+91 99988 77766 (Mother)",
-  aadhar: "4455 6677 8899",
-  bloodGroup: "O+ Positive",
-  department: "General", 
-  year: "Adult", 
-  avatar_initials: "AS" 
-};
-const MOCK_PASS = { pass_number: "BP-00123", route: "Red Line Express", source: "Station A", destination: "Station B", type: "QUARTERLY", valid_from: "01 JAN", valid_until: "01 APR", days_left: 28, total_days: 90, fare_total: 1200, status: "ACTIVE", qr_seed: 42 };
-
-export default function PassengerProfile({ onNavigate, user = MOCK_USER, pass = MOCK_PASS, onLogout }) {
+export default function PassengerProfile({ onNavigate, user, onLogout }) {
   const [tab, setTab] = useState("pass");
   const [loading, setLoading] = useState(true);
+  const [passData, setPassData] = useState(null);
+  const [paymentHistory, setPaymentHistory] = useState([]);
   const toast = useLocalToast();
 
-  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+  const calculateDaysLeft = (validUntil) => {
+    const end = new Date(validUntil);
+    const now = new Date();
+    const diff = end - now;
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  };
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const passes = await PassService.getMyPasses();
+        const p = passes.find(x => x.status === 'active' || x.status === 'approved') || passes[0];
+        
+        let formattedPass = null;
+        if (p) {
+          formattedPass = {
+            pass_number: p.pass_number,
+            route: p.route_name.slice(0, 10).toUpperCase(),
+            type: p.duration_type.toUpperCase(),
+            valid_from: p.valid_from,
+            valid_until: p.valid_until,
+            days_left: calculateDaysLeft(p.valid_until),
+            total_days: p.duration_type === 'quarterly' ? 90 : p.duration_type === 'monthly' ? 30 : 7,
+            fare_total: p.route_fare || 0,
+            status: p.status.toUpperCase(),
+            qr_seed: p.pass_number
+          };
+        }
+        setPassData(formattedPass);
+
+        const histResp = await api.get('/payments/history/');
+        setPaymentHistory(histResp.data.results || histResp.data || []);
+      } catch (err) {
+        console.error("Failed to fetch passenger profile data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--cream)" }}>
@@ -519,31 +560,37 @@ export default function PassengerProfile({ onNavigate, user = MOCK_USER, pass = 
         <div style={{ padding: 44 }}><Skeleton h={120} mb={32} /><Skeleton h={400} /></div>
       ) : (
         <>
-          <IdentityHeader user={user} pass={pass} />
-          <StatsStrip pass={pass} payments={[]} />
+          <IdentityHeader user={user} pass={passData || {status: "NONE", days_left: 0}} />
+          <StatsStrip pass={passData} payments={paymentHistory} />
           <div style={{ display: "flex", padding: "0 44px", borderBottom: "1.5px solid var(--rule)", background: "var(--cream)", position: "sticky", top: 0, zIndex: 10 }}>
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} style={{ background: "none", border: "none", padding: "20px 24px", fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: 2, color: tab === t.id ? "var(--ink)" : "var(--muted)", borderBottom: `2.5px solid ${tab === t.id ? "var(--amber)" : "transparent"}`, cursor: "pointer" }}>{t.l}</button>
             ))}
           </div>
           <div style={{ padding: "48px 44px", maxWidth: 1200 }}>
-            {tab === "pass" && (
+            {tab === "pass" && passData && (
               <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 56, alignItems: "start" }}>
-                <ActivePassCard pass={pass} user={user} />
+                <ActivePassCard pass={passData} user={user?.student_profile || user} />
                 <div style={{ animation: "fadeUp .4s ease .1s both", background: "var(--surface)", padding: 32, borderRadius: 16, border: "1px solid var(--rule)" }}>
                   <Tag>Usage Analytics</Tag><div style={{ fontFamily: "var(--font-serif)", fontSize: 24, marginBottom: 24 }}>Time Allocation</div>
-                  <div style={{ display: "flex", gap: 24, alignItems: "center" }}><CountdownRing daysLeft={pass.days_left} totalDays={pass.total_days} /><div><div style={{ fontFamily: "var(--font-display)", fontSize: 28 }}>{pass.days_left} DAYS ACTIVE</div><div style={{ fontSize: 13, color: "var(--muted)" }}>Expires on {pass.valid_until}</div></div></div>
+                  <div style={{ display: "flex", gap: 24, alignItems: "center" }}><CountdownRing daysLeft={passData.days_left} totalDays={passData.total_days} /><div><div style={{ fontFamily: "var(--font-display)", fontSize: 28 }}>{passData.days_left} DAYS ACTIVE</div><div style={{ fontSize: 13, color: "var(--muted)" }}>Expires on {passData.valid_until}</div></div></div>
                   <Btn variant="primary" full style={{ marginTop: 24 }} onClick={() => onNavigate("renew")}>RENEW PASS →</Btn>
                 </div>
               </div>
             )}
+            {tab === "pass" && !passData && (
+              <div style={{ padding: 40, textAlign: "center", border: "1px dashed var(--rule)", borderRadius: 16 }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 32, color: "var(--muted)", marginBottom: 16 }}>NO ACTIVE PASS FOUND</div>
+                <Btn variant="primary" onClick={() => onNavigate("apply")}>APPLY FOR DIGITAL PASS</Btn>
+              </div>
+            )}
             {tab === "info" && <PersonalInfo user={user} toast={toast} />}
-            {tab === "history" && <PassHistory history={[]} currentPass={pass} />}
+            {tab === "history" && <PassHistory history={paymentHistory} />}
             {tab === "prefs" && <Preferences toast={toast} />}
             {tab === "security" && <AccountActions onLogout={onLogout} toast={toast} user={user} />}
           </div>
           <div style={{ padding: 44, borderTop: "3px double var(--ink)", background: "var(--parchment)", display: "flex", justifyContent: "space-between" }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 8 }}>v2.44 · {user.id}</div><div style={{ fontFamily: "var(--font-mono)", fontSize: 8 }}>SESSION 2024–2025</div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 8 }}>v2.44 · {user?.student_profile?.student_id || "NOT_LOGGED_IN"}</div><div style={{ fontFamily: "var(--font-mono)", fontSize: 8 }}>SESSION 2024–2025</div>
           </div>
           <toast.Toaster />
         </>

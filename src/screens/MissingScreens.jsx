@@ -35,6 +35,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { User, GraduationCap, Leaf, Accessibility, Briefcase, Eye, EyeOff } from "lucide-react";
+import PassService from "../services/passService";
+import { PaymentButton, PaymentStatusModal } from "../components/PaymentUI";
 
 // ══════════════════════════════════════════════════════════════════════
 //  DESIGN TOKENS  (identical to DesignSystem.jsx)
@@ -836,11 +838,112 @@ const MOCK_ROUTES = [
 ];
 
 export function RenewalFlow({ onNavigate, currentPass, onDone }) {
-  const PASS=currentPass||{ pass_number:"BPP·2024·001234",route:"Red Line",boarding_stop:"Library Square",fare:380,type:"R1",color:"#B02020", name:"Aryan Sharma", validity:"01 APR 2024" };
   const [duration,setDuration]=useState("quarterly");
+  const [loading,setLoading]=useState(true);
+  const [passes,setPasses]=useState([]);
+  const [routes,setRoutes]=useState([]);
+  const [selectedPassNumber,setSelectedPassNumber]=useState("");
+  const [selectedRouteId,setSelectedRouteId]=useState("");
   const [done,setDone]=useState(false);
-  const [paying,setPaying]=useState(false);
+  const [paymentStatus,setPaymentStatus]=useState(null);
   const toast=useToast();
+
+  const normalize = (v) => String(v || "").trim().toLowerCase();
+  const toAmount = (v, fallback = 0) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  };
+
+  useEffect(() => {
+    let active = true;
+
+    const pickRoute = (pass, routeList) => {
+      if (!pass || !routeList.length) return null;
+      const byId = pass.route_id
+        ? routeList.find((r) => String(r.id) === String(pass.route_id))
+        : null;
+      if (byId) return byId;
+      return routeList.find((r) => normalize(r.name) === normalize(pass.route_name));
+    };
+
+    (async () => {
+      try {
+        const [passList, routeList] = await Promise.all([
+          PassService.getMyPasses(),
+          PassService.getRoutes(),
+        ]);
+        if (!active) return;
+
+        setPasses(passList || []);
+        setRoutes(routeList || []);
+
+        const seedPass = (passList || []).find((p) => p.pass_number === currentPass?.pass_number) || (passList || [])[0] || null;
+        if (seedPass) {
+          setSelectedPassNumber(seedPass.pass_number);
+          const seedRoute = pickRoute(seedPass, routeList || []);
+          if (seedRoute) {
+            setSelectedRouteId(String(seedRoute.id));
+          } else if ((routeList || []).length) {
+            setSelectedRouteId(String(routeList[0].id));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load renewal data:", error);
+        toast.error("Unable to load passes/routes for renewal.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [currentPass?.pass_number]);
+
+  useEffect(() => {
+    if (!selectedPassNumber || !passes.length || !routes.length) return;
+    const selectedPass = passes.find((p) => p.pass_number === selectedPassNumber);
+    if (!selectedPass) return;
+
+    const matched = selectedPass.route_id
+      ? routes.find((r) => String(r.id) === String(selectedPass.route_id))
+      : routes.find((r) => normalize(r.name) === normalize(selectedPass.route_name));
+    if (matched) setSelectedRouteId(String(matched.id));
+  }, [selectedPassNumber, passes, routes]);
+
+  const selectedPass = passes.find((p) => p.pass_number === selectedPassNumber) || null;
+  const selectedRoute = routes.find((r) => String(r.id) === String(selectedRouteId)) || null;
+
+  const defaultPass = currentPass || {
+    id: null,
+    pass_number: "BPP·2024·001234",
+    route_name: "Red Line",
+    boarding_stop: "Library Square",
+    route_fare: 380,
+    duration_type: "monthly",
+    student_name: "Passenger",
+    valid_until: "01 APR 2024",
+  };
+
+  const effectivePass = selectedPass || defaultPass;
+  const effectiveRouteName = selectedRoute?.name || effectivePass.route_name || "Route";
+  const effectiveFare = toAmount(selectedRoute?.fare, toAmount(effectivePass.route_fare, 380));
+  const effectiveColor = selectedRoute?.color || LINE_COLORS[effectiveRouteName] || "#B02020";
+  const effectiveCode = (selectedRoute?.code || LINE_CODES[effectiveRouteName] || effectiveRouteName.slice(0, 2) || "RT").toUpperCase();
+  const isLineChanged = !!selectedRoute && normalize(selectedRoute.name) !== normalize(effectivePass.route_name);
+
+  const PASS = {
+    id: effectivePass.id,
+    pass_number: effectivePass.pass_number,
+    route: effectiveRouteName,
+    boarding_stop: selectedRoute?.source || effectivePass.boarding_stop || "Boarding Stop",
+    fare: effectiveFare,
+    type: (effectivePass.duration_type || "monthly").toUpperCase(),
+    color: effectiveColor,
+    code: effectiveCode,
+    name: effectivePass.student_name || "Passenger",
+    validity: effectivePass.valid_until || "—",
+  };
 
   const DURS=[
     {id:"daily",    label:"DAILY",    days:1,  mo:0.08, disc:0,  desc:"24 hours"},
@@ -852,9 +955,35 @@ export function RenewalFlow({ onNavigate, currentPass, onDone }) {
   const sel=DURS.find(d=>d.id===duration)||DURS[2];
   const total=Math.round(PASS.fare*sel.mo*(1-sel.disc/100));
 
-  const pay=async()=>{
-    setPaying(true); await new Promise(r=>setTimeout(r,1500)); setPaying(false); setDone(true);
-  };
+  if(loading) {
+    return (
+      <>
+        <Page style={{ display:"flex",alignItems:"center",justifyContent:"center" }}>
+          <div style={{ display:"flex",alignItems:"center",gap:10,color:"var(--muted)",fontFamily:"var(--font-mono)",fontSize:11,letterSpacing:2 }}>
+            <Spinner size={16}/> LOADING RENEWAL...
+          </div>
+        </Page>
+        <toast.Toaster/>
+      </>
+    );
+  }
+
+  if (!selectedPass && passes.length === 0) {
+    return (
+      <>
+        <Page style={{ display:"flex",alignItems:"center",justifyContent:"center" }}>
+          <div style={{ textAlign:"center", maxWidth:520 }}>
+            <div style={{ fontFamily:"var(--font-display)",fontSize:52,color:"var(--ink)",letterSpacing:1,lineHeight:1 }}>NO PASS FOUND</div>
+            <div style={{ fontFamily:"var(--font-serif)",fontSize:16,color:"var(--muted)",fontStyle:"italic",margin:"10px 0 24px" }}>
+              You need an existing pass before you can renew it.
+            </div>
+            <Btn variant="primary" size="lg" onClick={() => onNavigate("apply")}>APPLY NEW PASS →</Btn>
+          </div>
+        </Page>
+        <toast.Toaster/>
+      </>
+    );
+  }
 
   if(done) return (
     <>
@@ -867,7 +996,7 @@ export function RenewalFlow({ onNavigate, currentPass, onDone }) {
             letterSpacing:1,lineHeight:1 }}>RENEWED!</div>
           <div style={{ fontFamily:"var(--font-serif)",fontSize:16,color:"var(--muted)",
             fontStyle:"italic",margin:"12px 0 28px" }}>
-            Pass renewed for {sel.label.toLowerCase()} · {sel.desc}.
+            Pass renewed for {sel.label.toLowerCase()} · {sel.desc}{isLineChanged ? ` · switched to ${PASS.route}` : ""}.
           </div>
           <Btn variant="primary" size="lg" onClick={() => onNavigate("dashboard")}>VIEW NEW PASS →</Btn>
         </div>
@@ -883,6 +1012,42 @@ export function RenewalFlow({ onNavigate, currentPass, onDone }) {
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr 340px", gap:36, alignItems:"start" }}>
           <div>
+            <Tag>SELECT PASS TO RENEW</Tag>
+            <div style={{ marginBottom:16 }}>
+              <select
+                value={selectedPassNumber}
+                onChange={(e)=>setSelectedPassNumber(e.target.value)}
+                style={{
+                  width:"100%", padding:"14px 16px", border:"2px solid var(--rule)", borderRadius:"10px",
+                  fontFamily:"var(--font-sans)", fontSize:14, color:"var(--ink)", background:"var(--surface)"
+                }}
+              >
+                {passes.map((p)=>(
+                  <option key={p.pass_number} value={p.pass_number}>
+                    {p.route_name} ({p.pass_number})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Tag>SELECT RENEWAL LINE</Tag>
+            <div style={{ marginBottom:20 }}>
+              <select
+                value={selectedRouteId}
+                onChange={(e)=>setSelectedRouteId(e.target.value)}
+                style={{
+                  width:"100%", padding:"14px 16px", border:"2px solid var(--rule)", borderRadius:"10px",
+                  fontFamily:"var(--font-sans)", fontSize:14, color:"var(--ink)", background:"var(--surface)"
+                }}
+              >
+                {routes.map((r)=>(
+                  <option key={r.id} value={String(r.id)}>
+                    {r.name} ({r.source} {"->"} {r.destination})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Duration selection */}
             <Tag>SELECT RENEWAL DURATION</Tag>
             <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:32 }}>
@@ -928,6 +1093,7 @@ export function RenewalFlow({ onNavigate, currentPass, onDone }) {
               padding:"20px 24px",marginBottom:20 }}>
               {[["Route",PASS.route],["Duration",`${sel.label} (${sel.desc})`],
                 ["Base Fare",`₹${PASS.fare} × ${sel.mo}`],
+                isLineChanged&&["Line Change","Yes"],
                 sel.disc>0&&["Discount",`${sel.disc}% off`]].filter(Boolean).map(([k,v])=>(
                 <div key={k} style={{ display:"flex",justifyContent:"space-between",
                   padding:"10px 0",borderBottom:"1px solid var(--rule)" }}>
@@ -945,9 +1111,53 @@ export function RenewalFlow({ onNavigate, currentPass, onDone }) {
               </div>
             </div>
 
-            <Btn variant="primary" size="lg" full onClick={pay} disabled={paying}>
-              {paying?<><Spinner size={18}/> PROCESSING PAYMENT…</>:`PAY ₹${total.toLocaleString()} & RENEW →`}
-            </Btn>
+            <div className="renew-legacy-actions">
+              <PaymentButton
+                amount={total}
+                purpose="PASS_RENEWAL"
+                metadata={{
+                  pass_id: PASS.id,
+                  days: sel.days,
+                  route_id: selectedRoute?.id,
+                  boarding_stop: selectedRoute?.source,
+                }}
+                btnText={`PAY ₹${total.toLocaleString()} & RENEW →`}
+                full
+                size="lg"
+                disabled={!PASS.id || !selectedRoute}
+                onSuccess={() => {
+                  setPaymentStatus("SUCCESS");
+                  setDone(true);
+                  toast.success("Renewal completed successfully.");
+                  if (onDone) onDone();
+                }}
+                onFailure={(msg) => {
+                  setPaymentStatus("FAILED");
+                  toast.error(msg || "Payment failed. Please try again.");
+                }}
+              />
+              <style>{`
+                .renew-legacy-actions .pay-btn-primary {
+                  background: var(--ink);
+                  color: var(--amber-on-ink);
+                  border: none;
+                  font-family: var(--font-display);
+                  letter-spacing: 2px;
+                  font-size: 17px !important;
+                  padding: 16px 40px !important;
+                  transition: background .18s ease, transform .18s ease;
+                  box-shadow: 0 4px 14px rgba(26,18,8,.18);
+                }
+                .renew-legacy-actions .pay-btn-primary:hover:not(:disabled) {
+                  background: var(--ink-mid);
+                  transform: translateY(-1px);
+                }
+                .renew-legacy-actions .pay-btn-primary:disabled {
+                  opacity: .45;
+                  cursor: not-allowed;
+                }
+              `}</style>
+            </div>
           </div>
 
           <div style={{ position:"sticky", top:24 }}>
@@ -984,13 +1194,16 @@ export function RenewalFlow({ onNavigate, currentPass, onDone }) {
                    </div>
                  </div>
                  <div style={{ textAlign:"center", padding:"12px 0", borderTop:"2px solid var(--rule)", borderBottom:"2px solid var(--rule)", marginTop:20 }}>
-                   <div style={{ fontFamily:"var(--font-display)",fontSize:24, letterSpacing:4, color:"var(--ink)" }}>{PASS.type}</div>
+                   <div style={{ fontFamily:"var(--font-display)",fontSize:24, letterSpacing:4, color:"var(--ink)" }}>{PASS.code}</div>
                  </div>
               </div>
             </div>
           </div>
         </div>
       </Page>
+      {paymentStatus === "FAILED" && (
+        <PaymentStatusModal status="FAILED" onClose={() => setPaymentStatus(null)} />
+      )}
       <toast.Toaster/>
     </>
   );
