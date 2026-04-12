@@ -1,0 +1,636 @@
+{
+  "project": "BusPassPro",
+  "title": "BusPassPro Project Documentation",
+  "purpose": "College submission documentation covering the use case diagram, class diagram methods, and data dictionary.",
+  "sections": {
+    "use_case_diagram": {
+      "actors": [
+        "Student",
+        "Admin",
+        "Authorized Staff",
+        "System"
+      ],
+      "use_cases": {
+        "student": [
+          "Register / Login",
+          "View Routes",
+          "Apply for Bus Pass",
+          "Upload Documents",
+          "Make Payment",
+          "Track Application Status",
+          "Download Digital Pass",
+          "View QR Code",
+          "Book Taxi",
+          "View Nearby Taxis"
+        ],
+        "admin": [
+          "Review Applications",
+          "Approve / Reject Pass",
+          "Manage Routes",
+          "Manage Buses",
+          "Send Notifications",
+          "Generate Reports"
+        ],
+        "authorized_staff": [
+          "Scan QR Pass",
+          "Validate Pass",
+          "Record Boarding",
+          "Track Bus / Taxi Location"
+        ],
+        "system": [
+          "Process Payment",
+          "Issue Pass and QR",
+          "Dispatch Notifications",
+          "Store Live Tracking Data"
+        ]
+      },
+      "summary": [
+        "Student workflows focus on registration, pass application, payment, and pass usage.",
+        "Admin workflows focus on review, approval, route management, bus management, and reporting.",
+        "Authorized staff workflows focus on QR validation and boarding verification.",
+        "System workflows cover payment processing, QR generation, notifications, and tracking updates."
+      ]
+    },
+    "class_diagram": {
+      "entities": [
+        {
+          "name": "UserManager",
+          "attributes": [],
+          "methods": [
+            {
+              "name": "create_user",
+              "signature": "create_user(email, password, extra_fields)",
+              "purpose": "Creates a normal account and hashes the password."
+            },
+            {
+              "name": "create_superuser",
+              "signature": "create_superuser(email, password, extra_fields)",
+              "purpose": "Creates an admin account with staff and superuser access."
+            }
+          ]
+        },
+        {
+          "name": "User",
+          "attributes": [
+            "id",
+            "email",
+            "phone",
+            "role",
+            "is_active",
+            "is_staff",
+            "is_verified",
+            "created_at",
+            "updated_at"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable representation of the user."
+            }
+          ]
+        },
+        {
+          "name": "StudentProfile",
+          "attributes": [
+            "student_id",
+            "full_name",
+            "gender",
+            "date_of_birth",
+            "department",
+            "year_of_study",
+            "college_name",
+            "home_address",
+            "profile_photo",
+            "aadhar_number",
+            "emergency_contact"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns the student profile display name."
+            }
+          ]
+        },
+        {
+          "name": "OTPVerification",
+          "attributes": [
+            "otp",
+            "otp_type",
+            "is_used",
+            "created_at",
+            "expires_at"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable OTP label."
+            }
+          ]
+        },
+        {
+          "name": "Route",
+          "attributes": [
+            "name",
+            "source",
+            "destination",
+            "stops",
+            "distance_km",
+            "duration_min",
+            "fare",
+            "is_active"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable route description."
+            }
+          ]
+        },
+        {
+          "name": "PassApplication",
+          "attributes": [
+            "id",
+            "student",
+            "route",
+            "duration_type",
+            "boarding_stop",
+            "status",
+            "applied_at",
+            "reviewed_at",
+            "reviewed_by",
+            "rejection_note",
+            "documents"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns the application summary."
+            }
+          ]
+        },
+        {
+          "name": "BusPass",
+          "attributes": [
+            "id",
+            "application",
+            "pass_number",
+            "valid_from",
+            "valid_until",
+            "status",
+            "qr_code",
+            "qr_token",
+            "issued_at",
+            "last_scanned"
+          ],
+          "methods": [
+            {
+              "name": "generate_qr_token",
+              "signature": "generate_qr_token()",
+              "purpose": "Builds a tamper-resistant signed QR payload."
+            },
+            {
+              "name": "generate_qr_image",
+              "signature": "generate_qr_image()",
+              "purpose": "Renders and stores the QR code image."
+            },
+            {
+              "name": "save",
+              "signature": "save(*args, **kwargs)",
+              "purpose": "Auto-generates QR data before saving the pass."
+            },
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable pass summary."
+            }
+          ]
+        },
+        {
+          "name": "PassScanLog",
+          "attributes": [
+            "bus_pass",
+            "scanned_at",
+            "result",
+            "bus_number",
+            "location"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable scan log summary."
+            }
+          ]
+        },
+        {
+          "name": "Payment",
+          "attributes": [
+            "id",
+            "user",
+            "razorpay_order_id",
+            "razorpay_payment_id",
+            "razorpay_signature",
+            "amount",
+            "currency",
+            "purpose",
+            "status",
+            "metadata",
+            "created_at",
+            "updated_at"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable payment summary."
+            }
+          ]
+        },
+        {
+          "name": "Refund",
+          "attributes": [
+            "id",
+            "payment",
+            "razorpay_refund_id",
+            "amount",
+            "reason",
+            "status",
+            "initiated_by",
+            "created_at"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable refund summary."
+            }
+          ]
+        },
+        {
+          "name": "Bus",
+          "attributes": [
+            "bus_number",
+            "route",
+            "capacity",
+            "driver_name",
+            "driver_phone",
+            "is_active"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable bus label."
+            }
+          ]
+        },
+        {
+          "name": "BusLocation",
+          "attributes": [
+            "bus",
+            "latitude",
+            "longitude",
+            "speed_kmh",
+            "stop_name",
+            "timestamp"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable tracking label."
+            }
+          ]
+        },
+        {
+          "name": "BusSchedule",
+          "attributes": [
+            "bus",
+            "stop_name",
+            "arrival_time",
+            "stop_order",
+            "is_active"
+          ],
+          "methods": []
+        },
+        {
+          "name": "Taxi",
+          "attributes": [
+            "driver_name",
+            "driver_phone",
+            "vehicle_type",
+            "vehicle_number",
+            "rating",
+            "total_trips",
+            "is_active",
+            "created_at",
+            "updated_at"
+          ],
+          "methods": [
+            {
+              "name": "availability_status",
+              "signature": "availability_status()",
+              "purpose": "Returns a live availability summary for the taxi."
+            },
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable taxi label."
+            }
+          ]
+        },
+        {
+          "name": "TaxiLocation",
+          "attributes": [
+            "taxi",
+            "latitude",
+            "longitude",
+            "speed_kmh",
+            "stop_name",
+            "is_available",
+            "timestamp"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable taxi tracking label."
+            }
+          ]
+        },
+        {
+          "name": "TaxiBooking",
+          "attributes": [
+            "student",
+            "taxi",
+            "pickup_lat",
+            "pickup_lng",
+            "dropoff_lat",
+            "dropoff_lng",
+            "pickup_name",
+            "dropoff_name",
+            "status",
+            "fare_estimate",
+            "created_at",
+            "updated_at"
+          ],
+          "methods": [
+            {
+              "name": "__str__",
+              "signature": "__str__()",
+              "purpose": "Returns a readable booking label."
+            }
+          ]
+        },
+        {
+          "name": "Notification",
+          "attributes": [
+            "user",
+            "title",
+            "message",
+            "notif_type",
+            "is_read",
+            "created_at"
+          ],
+          "methods": []
+        }
+      ],
+      "key_methods": [
+        {
+          "class": "UserManager",
+          "method": "create_user",
+          "purpose": "Creates a normal account and hashes the password."
+        },
+        {
+          "class": "UserManager",
+          "method": "create_superuser",
+          "purpose": "Creates an admin account with staff and superuser access."
+        },
+        {
+          "class": "BusPass",
+          "method": "generate_qr_token",
+          "purpose": "Builds a tamper-resistant QR payload using a signed token."
+        },
+        {
+          "class": "BusPass",
+          "method": "generate_qr_image",
+          "purpose": "Renders and stores the QR code image."
+        },
+        {
+          "class": "BusPass",
+          "method": "save",
+          "purpose": "Auto-generates QR data before saving the pass."
+        },
+        {
+          "class": "PassApplicationViewSet",
+          "method": "approve",
+          "purpose": "Approves an application and issues a bus pass."
+        },
+        {
+          "class": "PassApplicationViewSet",
+          "method": "reject",
+          "purpose": "Rejects an application with a reason note."
+        },
+        {
+          "class": "BusPassViewSet",
+          "method": "qr",
+          "purpose": "Returns the QR image URL for a valid pass."
+        },
+        {
+          "class": "QRScanView",
+          "method": "post",
+          "purpose": "Verifies QR data and logs the scan result."
+        },
+        {
+          "class": "Taxi",
+          "method": "availability_status",
+          "purpose": "Returns a live availability summary for the taxi."
+        }
+      ]
+    },
+    "data_dictionary": {
+      "user_module": {
+        "User": [
+          {"field": "id", "type": "UUID", "notes": "Primary key", "description": "Unique identifier for the user."},
+          {"field": "email", "type": "Email", "notes": "Unique, required", "description": "Login and communication email."},
+          {"field": "phone", "type": "CharField(15)", "notes": "Optional", "description": "Contact number."},
+          {"field": "role", "type": "CharField(20)", "notes": "Choices: student, admin", "description": "Access level for the account."},
+          {"field": "is_active", "type": "Boolean", "notes": "Default true", "description": "Indicates whether the account is enabled."},
+          {"field": "is_staff", "type": "Boolean", "notes": "Default false", "description": "Allows access to admin panel functions."},
+          {"field": "is_verified", "type": "Boolean", "notes": "Default false", "description": "Marks whether the account is verified."},
+          {"field": "created_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Time when the account was created."},
+          {"field": "updated_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Time when the account was last updated."}
+        ],
+        "StudentProfile": [
+          {"field": "user", "type": "OneToOneField(User)", "notes": "Required", "description": "Links the profile to the user account."},
+          {"field": "student_id", "type": "CharField(20)", "notes": "Unique, required", "description": "College student identification number."},
+          {"field": "full_name", "type": "CharField(100)", "notes": "Required", "description": "Student name."},
+          {"field": "gender", "type": "CharField(1)", "notes": "Choices: M, F, O", "description": "Gender selection."},
+          {"field": "date_of_birth", "type": "DateField", "notes": "Required", "description": "Date of birth."},
+          {"field": "department", "type": "CharField(100)", "notes": "Required", "description": "Academic department."},
+          {"field": "year_of_study", "type": "IntegerField", "notes": "Required", "description": "Current year of study."},
+          {"field": "college_name", "type": "CharField(200)", "notes": "Required", "description": "College name."},
+          {"field": "home_address", "type": "TextField", "notes": "Required", "description": "Residential address."},
+          {"field": "profile_photo", "type": "ImageField", "notes": "Optional", "description": "Profile image."},
+          {"field": "aadhar_number", "type": "CharField(12)", "notes": "Optional", "description": "Identity number."},
+          {"field": "emergency_contact", "type": "CharField(15)", "notes": "Optional", "description": "Emergency phone number."}
+        ],
+        "OTPVerification": [
+          {"field": "user", "type": "ForeignKey(User)", "notes": "Required", "description": "User who receives the OTP."},
+          {"field": "otp", "type": "CharField(6)", "notes": "Required", "description": "One-time password."},
+          {"field": "otp_type", "type": "CharField(10)", "notes": "Choices: email, phone", "description": "OTP delivery channel."},
+          {"field": "is_used", "type": "Boolean", "notes": "Default false", "description": "Indicates whether the OTP has been used."},
+          {"field": "created_at", "type": "DateTime", "notes": "Auto timestamp", "description": "OTP creation time."},
+          {"field": "expires_at", "type": "DateTime", "notes": "Required", "description": "Time after which the OTP becomes invalid."}
+        ]
+      },
+      "pass_management_module": {
+        "Route": [
+          {"field": "name", "type": "CharField(200)", "notes": "Required", "description": "Route name."},
+          {"field": "source", "type": "CharField(100)", "notes": "Required", "description": "Starting stop."},
+          {"field": "destination", "type": "CharField(100)", "notes": "Required", "description": "Ending stop."},
+          {"field": "stops", "type": "JSONField", "notes": "Default empty list", "description": "Intermediate stops in order."},
+          {"field": "distance_km", "type": "FloatField", "notes": "Must be greater than 0", "description": "Route length in kilometres."},
+          {"field": "duration_min", "type": "IntegerField", "notes": "Must be greater than 0", "description": "Estimated travel duration."},
+          {"field": "fare", "type": "DecimalField(8,2)", "notes": "Must be greater than 0", "description": "Route fare."},
+          {"field": "is_active", "type": "Boolean", "notes": "Default true", "description": "Controls whether the route is available for selection."}
+        ],
+        "PassApplication": [
+          {"field": "id", "type": "UUID", "notes": "Primary key", "description": "Unique application ID."},
+          {"field": "student", "type": "ForeignKey(User)", "notes": "Required", "description": "Student who submitted the application."},
+          {"field": "route", "type": "ForeignKey(Route)", "notes": "Required", "description": "Selected route."},
+          {"field": "duration_type", "type": "CharField(20)", "notes": "Choices: monthly, quarterly, annual", "description": "Validity duration chosen by the student."},
+          {"field": "boarding_stop", "type": "CharField(100)", "notes": "Required", "description": "Boarding point selected by the student."},
+          {"field": "status", "type": "CharField(20)", "notes": "Choices: pending, approved, rejected", "description": "Current application state."},
+          {"field": "applied_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Submission time."},
+          {"field": "reviewed_at", "type": "DateTime", "notes": "Optional", "description": "Time of admin review."},
+          {"field": "reviewed_by", "type": "ForeignKey(User)", "notes": "Optional", "description": "Admin who processed the application."},
+          {"field": "rejection_note", "type": "TextField", "notes": "Optional", "description": "Reason for rejection."},
+          {"field": "documents", "type": "JSONField", "notes": "Default empty dict", "description": "Uploaded document references."}
+        ],
+        "BusPass": [
+          {"field": "id", "type": "UUID", "notes": "Primary key", "description": "Unique bus pass ID."},
+          {"field": "application", "type": "OneToOneField(PassApplication)", "notes": "Required", "description": "Application from which the pass is issued."},
+          {"field": "pass_number", "type": "CharField(20)", "notes": "Unique, required", "description": "Human-readable pass number."},
+          {"field": "valid_from", "type": "DateField", "notes": "Required", "description": "Pass start date."},
+          {"field": "valid_until", "type": "DateField", "notes": "Required", "description": "Pass end date."},
+          {"field": "status", "type": "CharField(20)", "notes": "Choices: active, expired, revoked", "description": "Current pass state."},
+          {"field": "qr_code", "type": "ImageField", "notes": "Optional", "description": "Stored QR image file."},
+          {"field": "qr_token", "type": "CharField(256)", "notes": "Optional", "description": "Signed QR payload used for validation."},
+          {"field": "issued_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Pass issue time."},
+          {"field": "last_scanned", "type": "DateTime", "notes": "Optional", "description": "Last scan time."}
+        ],
+        "PassScanLog": [
+          {"field": "bus_pass", "type": "ForeignKey(BusPass)", "notes": "Required", "description": "Pass that was scanned."},
+          {"field": "scanned_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Scan time."},
+          {"field": "result", "type": "CharField(20)", "notes": "Choices: valid, invalid, expired", "description": "Outcome of the scan."},
+          {"field": "bus_number", "type": "CharField(20)", "notes": "Optional", "description": "Bus identifier entered at scan time."},
+          {"field": "location", "type": "CharField(100)", "notes": "Optional", "description": "Scan location."}
+        ]
+      },
+      "payment_module": {
+        "Payment": [
+          {"field": "id", "type": "UUID", "notes": "Primary key", "description": "Unique payment ID."},
+          {"field": "user", "type": "ForeignKey(User)", "notes": "Required", "description": "User who made the payment."},
+          {"field": "razorpay_order_id", "type": "CharField(100)", "notes": "Unique, required", "description": "Razorpay order reference."},
+          {"field": "razorpay_payment_id", "type": "CharField(100)", "notes": "Optional", "description": "Razorpay payment reference."},
+          {"field": "razorpay_signature", "type": "CharField(256)", "notes": "Optional", "description": "Razorpay verification signature."},
+          {"field": "amount", "type": "IntegerField", "notes": "Must be greater than 0", "description": "Amount stored in paise."},
+          {"field": "currency", "type": "CharField(5)", "notes": "Default INR", "description": "Payment currency."},
+          {"field": "purpose", "type": "CharField(20)", "notes": "Choices: PASS_PURCHASE, PASS_RENEWAL, WALLET_TOPUP", "description": "Payment purpose."},
+          {"field": "status", "type": "CharField(20)", "notes": "Choices: CREATED, PAID, FAILED, REFUNDED", "description": "Payment lifecycle state."},
+          {"field": "metadata", "type": "JSONField", "notes": "Default empty dict", "description": "Extra payment details."},
+          {"field": "created_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Payment creation time."},
+          {"field": "updated_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Payment update time."}
+        ],
+        "Refund": [
+          {"field": "id", "type": "UUID", "notes": "Primary key", "description": "Unique refund ID."},
+          {"field": "payment", "type": "ForeignKey(Payment)", "notes": "Required", "description": "Payment being refunded."},
+          {"field": "razorpay_refund_id", "type": "CharField(100)", "notes": "Optional", "description": "Razorpay refund reference."},
+          {"field": "amount", "type": "IntegerField", "notes": "Must be greater than 0", "description": "Refund amount in paise."},
+          {"field": "reason", "type": "TextField", "notes": "Required", "description": "Reason for the refund."},
+          {"field": "status", "type": "CharField(20)", "notes": "Choices: PENDING, PROCESSED, FAILED", "description": "Refund state."},
+          {"field": "initiated_by", "type": "ForeignKey(User)", "notes": "Optional", "description": "Admin or staff who initiated the refund."},
+          {"field": "created_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Refund creation time."}
+        ]
+      },
+      "bus_module": {
+        "Bus": [
+          {"field": "bus_number", "type": "CharField(20)", "notes": "Unique, required", "description": "Unique bus registration number."},
+          {"field": "route", "type": "ForeignKey(Route)", "notes": "Optional, set null on delete", "description": "Route assigned to the bus."},
+          {"field": "capacity", "type": "IntegerField", "notes": "Must be greater than 0", "description": "Maximum passenger capacity."},
+          {"field": "driver_name", "type": "CharField(100)", "notes": "Required", "description": "Driver name."},
+          {"field": "driver_phone", "type": "CharField(15)", "notes": "Required", "description": "Driver phone number."},
+          {"field": "is_active", "type": "Boolean", "notes": "Default true", "description": "Whether the bus is active."}
+        ],
+        "BusLocation": [
+          {"field": "bus", "type": "ForeignKey(Bus)", "notes": "Required", "description": "Bus being tracked."},
+          {"field": "latitude", "type": "FloatField", "notes": "Must be between -90 and 90", "description": "Current latitude."},
+          {"field": "longitude", "type": "FloatField", "notes": "Must be between -180 and 180", "description": "Current longitude."},
+          {"field": "speed_kmh", "type": "FloatField", "notes": "Must be non-negative", "description": "Current speed in km/h."},
+          {"field": "stop_name", "type": "CharField(100)", "notes": "Optional", "description": "Nearby stop or landmark."},
+          {"field": "timestamp", "type": "DateTime", "notes": "Auto timestamp", "description": "Tracking time."}
+        ],
+        "BusSchedule": [
+          {"field": "bus", "type": "ForeignKey(Bus)", "notes": "Required", "description": "Bus for the schedule entry."},
+          {"field": "stop_name", "type": "CharField(100)", "notes": "Required", "description": "Stop name."},
+          {"field": "arrival_time", "type": "TimeField", "notes": "Required", "description": "Scheduled arrival time."},
+          {"field": "stop_order", "type": "IntegerField", "notes": "Must be non-negative", "description": "Stop sequence order."},
+          {"field": "is_active", "type": "Boolean", "notes": "Default true", "description": "Whether the schedule is active."}
+        ]
+      },
+      "taxi_module": {
+        "Taxi": [
+          {"field": "driver_name", "type": "CharField(100)", "notes": "Required", "description": "Taxi driver name."},
+          {"field": "driver_phone", "type": "CharField(15)", "notes": "Unique, required", "description": "Driver contact number."},
+          {"field": "vehicle_type", "type": "CharField(20)", "notes": "Choices: sedan, suv, auto", "description": "Taxi vehicle category."},
+          {"field": "vehicle_number", "type": "CharField(20)", "notes": "Unique, required", "description": "Vehicle registration number."},
+          {"field": "rating", "type": "FloatField", "notes": "Range 0 to 5", "description": "Driver or vehicle rating."},
+          {"field": "total_trips", "type": "IntegerField", "notes": "Must be non-negative", "description": "Completed trip count."},
+          {"field": "is_active", "type": "Boolean", "notes": "Default true", "description": "Whether the taxi is available in the system."},
+          {"field": "created_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Record creation time."},
+          {"field": "updated_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Last record update time."}
+        ],
+        "TaxiLocation": [
+          {"field": "taxi", "type": "ForeignKey(Taxi)", "notes": "Required", "description": "Taxi being tracked."},
+          {"field": "latitude", "type": "FloatField", "notes": "Must be between -90 and 90", "description": "Taxi latitude."},
+          {"field": "longitude", "type": "FloatField", "notes": "Must be between -180 and 180", "description": "Taxi longitude."},
+          {"field": "speed_kmh", "type": "FloatField", "notes": "Must be non-negative", "description": "Current speed."},
+          {"field": "stop_name", "type": "CharField(100)", "notes": "Optional", "description": "Nearby stop or location label."},
+          {"field": "is_available", "type": "Boolean", "notes": "Default true", "description": "Availability at the current location record."},
+          {"field": "timestamp", "type": "DateTime", "notes": "Auto timestamp", "description": "Tracking time."}
+        ],
+        "TaxiBooking": [
+          {"field": "student", "type": "ForeignKey(User)", "notes": "Required", "description": "Student who requested the taxi."},
+          {"field": "taxi", "type": "ForeignKey(Taxi)", "notes": "Optional, set null on delete", "description": "Assigned taxi."},
+          {"field": "pickup_lat", "type": "FloatField", "notes": "Must be between -90 and 90", "description": "Pickup latitude."},
+          {"field": "pickup_lng", "type": "FloatField", "notes": "Must be between -180 and 180", "description": "Pickup longitude."},
+          {"field": "dropoff_lat", "type": "FloatField", "notes": "Optional, range validated if present", "description": "Drop-off latitude."},
+          {"field": "dropoff_lng", "type": "FloatField", "notes": "Optional, range validated if present", "description": "Drop-off longitude."},
+          {"field": "pickup_name", "type": "CharField(150)", "notes": "Required", "description": "Pickup location name."},
+          {"field": "dropoff_name", "type": "CharField(150)", "notes": "Optional", "description": "Drop-off location name."},
+          {"field": "status", "type": "CharField(20)", "notes": "Choices: requested, accepted, arrived, ongoing, completed, cancelled", "description": "Booking state."},
+          {"field": "fare_estimate", "type": "FloatField", "notes": "Optional, non-negative if present", "description": "Estimated fare."},
+          {"field": "created_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Booking creation time."},
+          {"field": "updated_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Booking update time."}
+        ]
+      },
+      "notification_module": {
+        "Notification": [
+          {"field": "user", "type": "ForeignKey(User)", "notes": "Required", "description": "Recipient of the notification."},
+          {"field": "title", "type": "CharField(200)", "notes": "Required", "description": "Notification title."},
+          {"field": "message", "type": "TextField", "notes": "Required", "description": "Notification content."},
+          {"field": "notif_type", "type": "CharField(10)", "notes": "Choices: email, sms", "description": "Delivery channel."},
+          {"field": "is_read", "type": "Boolean", "notes": "Default false", "description": "Read status."},
+          {"field": "created_at", "type": "DateTime", "notes": "Auto timestamp", "description": "Notification creation time."}
+        ]
+      }
+    },
+    "short_submission_summary": "BusPassPro is a city transit pass management system that supports student registration, route management, bus pass applications, online payments, QR-based validation, live bus and taxi tracking, and admin notifications. The use case diagram shows how students, admins, and authorized staff interact with the system. The class diagram captures the core entities and their methods, while the data dictionary defines every major field used by the application."
+  }
+}

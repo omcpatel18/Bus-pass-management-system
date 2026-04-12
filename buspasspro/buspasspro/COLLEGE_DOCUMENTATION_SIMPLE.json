@@ -1,0 +1,161 @@
+﻿{
+  "usecases": [
+    {
+      "actor": "Student",
+      "usecases": [
+        "Apply for Pass",
+        "Make Payment",
+        "View QR Pass",
+        "Book Ticket",
+        "Book Taxi",
+        "Live Track Bus",
+        "View Notifications"
+      ]
+    },
+    {
+      "actor": "Admin",
+      "usecases": [
+        "Approve/Reject Pass",
+        "Manage Routes",
+        "Manage Buses",
+        "Broadcast Alerts"
+      ]
+    },
+    {
+      "actor": "Staff",
+      "usecases": [
+        "Scan QR Code",
+        "Track Bus"
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "name": "User",
+      "attributes": [
+        "+ email: str",
+        "+ role: str"
+      ],
+      "relationships": [
+        { "type": "composition", "to": "StudentProfile" },
+        { "type": "association", "to": "PassApplication" }
+      ]
+    },
+    {
+      "name": "StudentProfile",
+      "attributes": [
+        "+ student_id: str",
+        "+ college_name: str"
+      ]
+    },
+    {
+      "name": "PassApplication",
+      "attributes": [
+        "+ status: str",
+        "+ duration_type: str"
+      ],
+      "relationships": [
+        { "type": "composition", "to": "BusPass" },
+        { "type": "association", "to": "Route" }
+      ]
+    },
+    {
+      "name": "BusPass",
+      "attributes": [
+        "+ pass_number: str",
+        "+ valid_until: date",
+        "+ qr_code: Image"
+      ]
+    },
+    {
+      "name": "Route",
+      "attributes": [
+        "+ source: str",
+        "+ destination: str",
+        "+ distance_km: float"
+      ]
+    },
+    {
+      "name": "Bus",
+      "attributes": [
+        "+ bus_number: str",
+        "+ driver_name: str",
+        "+ is_active: bool"
+      ]
+    },
+    {
+      "name": "Taxi",
+      "attributes": [
+        "+ driver_name: str",
+        "+ vehicle_number: str",
+        "+ rating: float",
+        "+ is_available: bool"
+      ]
+    },
+    {
+      "name": "Booking",
+      "attributes": [
+        "+ type: str",
+        "+ status: str",
+        "+ amount: float",
+        "+ created_at: datetime"
+      ]
+    },
+    {
+      "name": "Notification",
+      "attributes": [
+        "+ title: str",
+        "+ message: str",
+        "+ is_read: bool"
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "name": "users",
+      "columns": [
+        { "field": "email", "type": "VARCHAR", "description": "Login identifier" },
+        { "field": "role", "type": "VARCHAR", "description": "User role" }
+      ]
+    },
+    {
+      "name": "student_profiles",
+      "columns": [
+        { "field": "student_id", "type": "VARCHAR", "description": "College ID" },
+        { "field": "college_name", "type": "VARCHAR", "description": "Institution name" }
+      ]
+    },
+    {
+      "name": "pass_management",
+      "columns": [
+        { "field": "status", "type": "VARCHAR", "description": "Application state" },
+        { "field": "pass_number", "type": "VARCHAR", "description": "Unique pass ID" },
+        { "field": "valid_until", "type": "DATE", "description": "Expiry date" }
+      ]
+    },
+    {
+      "name": "routes",
+      "columns": [
+        { "field": "source", "type": "VARCHAR", "description": "Start location" },
+        { "field": "destination", "type": "VARCHAR", "description": "End location" },
+        { "field": "fare", "type": "DECIMAL", "description": "Base route fare" }
+      ]
+    },
+    {
+      "name": "buses",
+      "columns": [
+        { "field": "bus_num", "type": "VARCHAR", "description": "Plate number" },
+        { "field": "driver", "type": "VARCHAR", "description": "Driver name" }
+      ]
+    },
+    {
+      "name": "bookings",
+      "columns": [
+        { "field": "type", "type": "VARCHAR", "description": "TICKET or TAXI" },
+        { "field": "status", "type": "VARCHAR", "description": "Current status" },
+        { "field": "amount", "type": "DECIMAL", "description": "Fare paid" },
+        { "field": "timestamp", "type": "TIMESTAMP", "description": "Booking time" }
+      ]
+    }
+  ]
+}

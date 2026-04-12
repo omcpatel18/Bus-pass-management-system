@@ -1,0 +1,491 @@
+{
+  "usecases": [
+    {
+      "actor": "Passenger",
+      "usecases": [
+        "Register Account",
+        "Login",
+        "View Dashboard",
+        "View Routes",
+        "Apply for Bus Pass",
+        "Make Payment",
+        "Track Application Status",
+        "Download Digital Pass",
+        "View QR Code",
+        "Renew Pass",
+        "Book Ticket",
+        "Book Taxi",
+        "View Notifications",
+        "Update Profile"
+      ],
+      "includes": {
+        "Apply for Bus Pass": "Make Payment",
+        "Renew Pass": "Make Payment",
+        "Book Taxi": "View Routes"
+      },
+      "extends": {
+        "Apply for Bus Pass": "Apply Discount Code",
+        "View Dashboard": "View Notifications",
+        "View QR Code": "Download Digital Pass"
+      }
+    },
+    {
+      "actor": "Admin",
+      "usecases": [
+        "Login",
+        "Review Pass Applications",
+        "Approve Pass Application",
+        "Reject Pass Application",
+        "Manage Routes",
+        "Manage Passengers",
+        "View Analytics Dashboard",
+        "Send Announcements",
+        "Manage Buses",
+        "Process Refunds"
+      ],
+      "includes": {
+        "Approve Pass Application": "Issue Bus Pass",
+        "Reject Pass Application": "Send Rejection Notification"
+      },
+      "extends": {
+        "Review Pass Applications": "Generate Reports",
+        "Manage Passengers": "Deactivate User Account"
+      }
+    },
+    {
+      "actor": "Conductor",
+      "usecases": [
+        "Login",
+        "Scan QR Pass",
+        "Validate Pass",
+        "Record Boarding",
+        "View Trip Log",
+        "Manual Passenger Lookup"
+      ],
+      "includes": {
+        "Scan QR Pass": "Validate Pass",
+        "Validate Pass": "Record Boarding"
+      },
+      "extends": {
+        "Scan QR Pass": "Manual Passenger Lookup"
+      }
+    }
+  ],
+  "classes": [
+    {
+      "name": "User",
+      "attributes": [
+        "- id: UUID",
+        "- email: str",
+        "- phone: str",
+        "- role: str",
+        "- is_active: bool",
+        "- is_staff: bool",
+        "- is_verified: bool",
+        "- created_at: datetime",
+        "- updated_at: datetime"
+      ],
+      "methods": [
+        "+ __str__(): str",
+        "+ has_perm(perm: str): bool"
+      ],
+      "relationships": [
+        { "type": "composition", "to": "StudentProfile" },
+        { "type": "association", "to": "PassApplication" },
+        { "type": "association", "to": "Payment" },
+        { "type": "association", "to": "TaxiBooking" },
+        { "type": "association", "to": "Notification" }
+      ]
+    },
+    {
+      "name": "StudentProfile",
+      "attributes": [
+        "- user: User",
+        "- student_id: str",
+        "- full_name: str",
+        "- gender: str",
+        "- date_of_birth: date",
+        "- department: str",
+        "- college_name: str",
+        "- home_address: str",
+        "- profile_photo: ImageField",
+        "- aadhar_number: str"
+      ],
+      "methods": [
+        "+ __str__(): str"
+      ],
+      "relationships": [
+        { "type": "association", "to": "User" }
+      ]
+    },
+    {
+      "name": "Route",
+      "attributes": [
+        "- id: int",
+        "- name: str",
+        "- source: str",
+        "- destination: str",
+        "- stops: JSONField",
+        "- distance_km: float",
+        "- duration_min: int",
+        "- fare: Decimal",
+        "- is_active: bool"
+      ],
+      "methods": [
+        "+ __str__(): str"
+      ],
+      "relationships": [
+        { "type": "aggregation", "to": "Bus" },
+        { "type": "association", "to": "PassApplication" }
+      ]
+    },
+    {
+      "name": "PassApplication",
+      "attributes": [
+        "- id: UUID",
+        "- student: User",
+        "- route: Route",
+        "- duration_type: str",
+        "- boarding_stop: str",
+        "- status: str",
+        "- applied_at: datetime",
+        "- reviewed_at: datetime",
+        "- reviewed_by: User",
+        "- rejection_note: str"
+      ],
+      "methods": [
+        "+ __str__(): str",
+        "+ approve(admin: User): void",
+        "+ reject(admin: User, note: str): void"
+      ],
+      "relationships": [
+        { "type": "association", "to": "User" },
+        { "type": "association", "to": "Route" },
+        { "type": "composition", "to": "BusPass" }
+      ]
+    },
+    {
+      "name": "BusPass",
+      "attributes": [
+        "- id: UUID",
+        "- application: PassApplication",
+        "- pass_number: str",
+        "- valid_from: date",
+        "- valid_until: date",
+        "- status: str",
+        "- qr_code: ImageField",
+        "- qr_token: str",
+        "- issued_at: datetime"
+      ],
+      "methods": [
+        "+ generate_qr_token(): str",
+        "+ generate_qr_image(): void",
+        "+ is_valid(): bool"
+      ],
+      "relationships": [
+        { "type": "association", "to": "PassApplication" },
+        { "type": "composition", "to": "PassScanLog" }
+      ]
+    },
+    {
+      "name": "PassScanLog",
+      "attributes": [
+        "- id: int",
+        "- bus_pass: BusPass",
+        "- scanned_at: datetime",
+        "- result: str",
+        "- bus_number: str",
+        "- location: str"
+      ],
+      "methods": [
+        "+ __str__(): str"
+      ],
+      "relationships": [
+        { "type": "association", "to": "BusPass" }
+      ]
+    },
+    {
+      "name": "Payment",
+      "attributes": [
+        "- id: UUID",
+        "- user: User",
+        "- razorpay_order_id: str",
+        "- razorpay_payment_id: str",
+        "- amount: int",
+        "- currency: str",
+        "- purpose: str",
+        "- status: str",
+        "- created_at: datetime"
+      ],
+      "methods": [
+        "+ __str__(): str",
+        "+ verify_signature(): bool"
+      ],
+      "relationships": [
+        { "type": "association", "to": "User" },
+        { "type": "composition", "to": "Refund" }
+      ]
+    },
+    {
+      "name": "Refund",
+      "attributes": [
+        "- id: UUID",
+        "- payment: Payment",
+        "- razorpay_refund_id: str",
+        "- amount: int",
+        "- reason: str",
+        "- status: str",
+        "- initiated_by: User",
+        "- created_at: datetime"
+      ],
+      "methods": [
+        "+ __str__(): str"
+      ],
+      "relationships": [
+        { "type": "association", "to": "Payment" },
+        { "type": "association", "to": "User" }
+      ]
+    },
+    {
+      "name": "Bus",
+      "attributes": [
+        "- id: int",
+        "- bus_number: str",
+        "- route: Route",
+        "- capacity: int",
+        "- driver_name: str",
+        "- driver_phone: str",
+        "- is_active: bool"
+      ],
+      "methods": [
+        "+ __str__(): str"
+      ],
+      "relationships": [
+        { "type": "association", "to": "Route" }
+      ]
+    },
+    {
+      "name": "Taxi",
+      "attributes": [
+        "- id: int",
+        "- driver_name: str",
+        "- driver_phone: str",
+        "- vehicle_type: str",
+        "- vehicle_number: str",
+        "- rating: float",
+        "- is_active: bool",
+        "- created_at: datetime"
+      ],
+      "methods": [
+        "+ availability_status(): str",
+        "+ __str__(): str"
+      ],
+      "relationships": [
+        { "type": "association", "to": "TaxiBooking" }
+      ]
+    },
+    {
+      "name": "TaxiBooking",
+      "attributes": [
+        "- id: int",
+        "- passenger: User",
+        "- taxi: Taxi",
+        "- pickup_name: str",
+        "- dropoff_name: str",
+        "- status: str",
+        "- fare_estimate: float",
+        "- created_at: datetime"
+      ],
+      "methods": [
+        "+ __str__(): str",
+        "+ cancel(): void"
+      ],
+      "relationships": [
+        { "type": "association", "to": "User" },
+        { "type": "association", "to": "Taxi" }
+      ]
+    },
+    {
+      "name": "Notification",
+      "attributes": [
+        "- id: int",
+        "- user: User",
+        "- title: str",
+        "- message: str",
+        "- notif_type: str",
+        "- is_read: bool",
+        "- created_at: datetime"
+      ],
+      "methods": [
+        "+ __str__(): str",
+        "+ mark_read(): void"
+      ],
+      "relationships": [
+        { "type": "association", "to": "User" }
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "name": "users",
+      "columns": [
+        { "field": "id", "type": "UUID", "constraints": "PK, NOT NULL", "default": "uuid_generate_v4()", "description": "Unique user identifier." },
+        { "field": "email", "type": "VARCHAR(255)", "constraints": "NOT NULL, UNIQUE", "default": null, "description": "Login email address." },
+        { "field": "password", "type": "VARCHAR(128)", "constraints": "NOT NULL", "default": null, "description": "Hashed password." },
+        { "field": "phone", "type": "VARCHAR(15)", "constraints": "", "default": null, "description": "Contact phone number." },
+        { "field": "role", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": "'passenger'", "description": "Role: passenger, admin, or conductor." },
+        { "field": "is_active", "type": "BOOLEAN", "constraints": "NOT NULL", "default": "TRUE", "description": "Whether the account is enabled." },
+        { "field": "is_staff", "type": "BOOLEAN", "constraints": "NOT NULL", "default": "FALSE", "description": "Grants admin panel access." },
+        { "field": "is_verified", "type": "BOOLEAN", "constraints": "NOT NULL", "default": "FALSE", "description": "Account verification status." },
+        { "field": "created_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Account creation time." },
+        { "field": "updated_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Last update time." }
+      ]
+    },
+    {
+      "name": "student_profiles",
+      "columns": [
+        { "field": "id", "type": "INT", "constraints": "PK, NOT NULL", "default": "AUTO_INCREMENT", "description": "Profile ID." },
+        { "field": "user_id", "type": "UUID", "constraints": "FK, NOT NULL, UNIQUE", "default": null, "description": "References users table." },
+        { "field": "student_id", "type": "VARCHAR(20)", "constraints": "NOT NULL, UNIQUE", "default": null, "description": "Institution student ID." },
+        { "field": "full_name", "type": "VARCHAR(100)", "constraints": "NOT NULL", "default": null, "description": "Full name." },
+        { "field": "gender", "type": "CHAR(1)", "constraints": "NOT NULL", "default": null, "description": "Gender: M, F, or O." },
+        { "field": "date_of_birth", "type": "DATE", "constraints": "NOT NULL", "default": null, "description": "Date of birth." },
+        { "field": "department", "type": "VARCHAR(100)", "constraints": "NOT NULL", "default": null, "description": "Department or employer." },
+        { "field": "college_name", "type": "VARCHAR(200)", "constraints": "NOT NULL", "default": null, "description": "Institution name." },
+        { "field": "home_address", "type": "TEXT", "constraints": "NOT NULL", "default": null, "description": "Residential address." },
+        { "field": "aadhar_number", "type": "VARCHAR(12)", "constraints": "", "default": null, "description": "Aadhaar ID number." }
+      ]
+    },
+    {
+      "name": "routes",
+      "columns": [
+        { "field": "id", "type": "INT", "constraints": "PK, NOT NULL", "default": "AUTO_INCREMENT", "description": "Route ID." },
+        { "field": "name", "type": "VARCHAR(200)", "constraints": "NOT NULL", "default": null, "description": "Route display name." },
+        { "field": "source", "type": "VARCHAR(100)", "constraints": "NOT NULL", "default": null, "description": "Starting stop." },
+        { "field": "destination", "type": "VARCHAR(100)", "constraints": "NOT NULL", "default": null, "description": "Terminal stop." },
+        { "field": "stops", "type": "JSON", "constraints": "NOT NULL", "default": "'[]'", "description": "Ordered intermediate stops." },
+        { "field": "distance_km", "type": "FLOAT", "constraints": "NOT NULL", "default": null, "description": "Route distance in km." },
+        { "field": "duration_min", "type": "INT", "constraints": "NOT NULL", "default": null, "description": "Travel duration in minutes." },
+        { "field": "fare", "type": "DECIMAL(8,2)", "constraints": "NOT NULL", "default": null, "description": "Base fare in INR." },
+        { "field": "is_active", "type": "BOOLEAN", "constraints": "NOT NULL", "default": "TRUE", "description": "Route availability status." }
+      ]
+    },
+    {
+      "name": "pass_applications",
+      "columns": [
+        { "field": "id", "type": "UUID", "constraints": "PK, NOT NULL", "default": "uuid_generate_v4()", "description": "Application ID." },
+        { "field": "student_id", "type": "UUID", "constraints": "FK, NOT NULL", "default": null, "description": "Applicant user reference." },
+        { "field": "route_id", "type": "INT", "constraints": "FK, NOT NULL", "default": null, "description": "Selected route reference." },
+        { "field": "duration_type", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": null, "description": "Pass validity type." },
+        { "field": "boarding_stop", "type": "VARCHAR(100)", "constraints": "NOT NULL", "default": null, "description": "Selected boarding point." },
+        { "field": "status", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": "'pending'", "description": "State: pending, approved, rejected." },
+        { "field": "applied_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Submission time." },
+        { "field": "reviewed_at", "type": "TIMESTAMP", "constraints": "", "default": null, "description": "Admin review time." },
+        { "field": "reviewed_by_id", "type": "UUID", "constraints": "FK", "default": null, "description": "Reviewing admin reference." },
+        { "field": "rejection_note", "type": "TEXT", "constraints": "", "default": null, "description": "Rejection reason." }
+      ]
+    },
+    {
+      "name": "bus_passes",
+      "columns": [
+        { "field": "id", "type": "UUID", "constraints": "PK, NOT NULL", "default": "uuid_generate_v4()", "description": "Pass ID." },
+        { "field": "application_id", "type": "UUID", "constraints": "FK, NOT NULL, UNIQUE", "default": null, "description": "Source application reference." },
+        { "field": "pass_number", "type": "VARCHAR(20)", "constraints": "NOT NULL, UNIQUE", "default": null, "description": "Human-readable pass number." },
+        { "field": "valid_from", "type": "DATE", "constraints": "NOT NULL", "default": null, "description": "Validity start date." },
+        { "field": "valid_until", "type": "DATE", "constraints": "NOT NULL", "default": null, "description": "Validity end date." },
+        { "field": "status", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": "'active'", "description": "State: active, expired, revoked." },
+        { "field": "qr_code", "type": "VARCHAR(255)", "constraints": "", "default": null, "description": "QR code image path." },
+        { "field": "qr_token", "type": "VARCHAR(256)", "constraints": "", "default": null, "description": "Signed QR validation token." },
+        { "field": "issued_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Issue timestamp." }
+      ]
+    },
+    {
+      "name": "pass_scan_logs",
+      "columns": [
+        { "field": "id", "type": "INT", "constraints": "PK, NOT NULL", "default": "AUTO_INCREMENT", "description": "Scan log ID." },
+        { "field": "bus_pass_id", "type": "UUID", "constraints": "FK, NOT NULL", "default": null, "description": "Scanned pass reference." },
+        { "field": "scanned_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Scan time." },
+        { "field": "result", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": null, "description": "Outcome: valid, invalid, expired." },
+        { "field": "bus_number", "type": "VARCHAR(20)", "constraints": "", "default": null, "description": "Bus identifier at scan." },
+        { "field": "location", "type": "VARCHAR(100)", "constraints": "", "default": null, "description": "Scan location." }
+      ]
+    },
+    {
+      "name": "payments",
+      "columns": [
+        { "field": "id", "type": "UUID", "constraints": "PK, NOT NULL", "default": "uuid_generate_v4()", "description": "Payment ID." },
+        { "field": "user_id", "type": "UUID", "constraints": "FK, NOT NULL", "default": null, "description": "Paying user reference." },
+        { "field": "razorpay_order_id", "type": "VARCHAR(100)", "constraints": "NOT NULL, UNIQUE", "default": null, "description": "Razorpay order ID." },
+        { "field": "razorpay_payment_id", "type": "VARCHAR(100)", "constraints": "", "default": null, "description": "Razorpay payment ID." },
+        { "field": "amount", "type": "INT", "constraints": "NOT NULL", "default": null, "description": "Amount in paise." },
+        { "field": "currency", "type": "VARCHAR(5)", "constraints": "NOT NULL", "default": "'INR'", "description": "Currency code." },
+        { "field": "purpose", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": null, "description": "Purpose: PASS_PURCHASE, RENEWAL, TOPUP." },
+        { "field": "status", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": "'CREATED'", "description": "State: CREATED, PAID, FAILED, REFUNDED." },
+        { "field": "created_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Creation time." }
+      ]
+    },
+    {
+      "name": "refunds",
+      "columns": [
+        { "field": "id", "type": "UUID", "constraints": "PK, NOT NULL", "default": "uuid_generate_v4()", "description": "Refund ID." },
+        { "field": "payment_id", "type": "UUID", "constraints": "FK, NOT NULL", "default": null, "description": "Original payment reference." },
+        { "field": "razorpay_refund_id", "type": "VARCHAR(100)", "constraints": "", "default": null, "description": "Razorpay refund ID." },
+        { "field": "amount", "type": "INT", "constraints": "NOT NULL", "default": null, "description": "Refund amount in paise." },
+        { "field": "reason", "type": "TEXT", "constraints": "NOT NULL", "default": null, "description": "Refund reason." },
+        { "field": "status", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": "'PENDING'", "description": "State: PENDING, PROCESSED, FAILED." },
+        { "field": "initiated_by_id", "type": "UUID", "constraints": "FK", "default": null, "description": "Initiating admin reference." },
+        { "field": "created_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Initiation time." }
+      ]
+    },
+    {
+      "name": "buses",
+      "columns": [
+        { "field": "id", "type": "INT", "constraints": "PK, NOT NULL", "default": "AUTO_INCREMENT", "description": "Bus record ID." },
+        { "field": "bus_number", "type": "VARCHAR(20)", "constraints": "NOT NULL, UNIQUE", "default": null, "description": "Vehicle registration number." },
+        { "field": "route_id", "type": "INT", "constraints": "FK", "default": null, "description": "Assigned route reference." },
+        { "field": "capacity", "type": "INT", "constraints": "NOT NULL", "default": null, "description": "Max passenger capacity." },
+        { "field": "driver_name", "type": "VARCHAR(100)", "constraints": "NOT NULL", "default": null, "description": "Assigned driver name." },
+        { "field": "driver_phone", "type": "VARCHAR(15)", "constraints": "NOT NULL", "default": null, "description": "Driver contact number." },
+        { "field": "is_active", "type": "BOOLEAN", "constraints": "NOT NULL", "default": "TRUE", "description": "Active service status." }
+      ]
+    },
+    {
+      "name": "taxis",
+      "columns": [
+        { "field": "id", "type": "INT", "constraints": "PK, NOT NULL", "default": "AUTO_INCREMENT", "description": "Taxi record ID." },
+        { "field": "driver_name", "type": "VARCHAR(100)", "constraints": "NOT NULL", "default": null, "description": "Driver name." },
+        { "field": "driver_phone", "type": "VARCHAR(15)", "constraints": "NOT NULL, UNIQUE", "default": null, "description": "Driver contact number." },
+        { "field": "vehicle_type", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": null, "description": "Type: sedan, suv, auto." },
+        { "field": "vehicle_number", "type": "VARCHAR(20)", "constraints": "NOT NULL, UNIQUE", "default": null, "description": "Vehicle registration." },
+        { "field": "rating", "type": "FLOAT", "constraints": "NOT NULL", "default": "0.0", "description": "Average rating (0–5)." },
+        { "field": "is_active", "type": "BOOLEAN", "constraints": "NOT NULL", "default": "TRUE", "description": "System availability." },
+        { "field": "created_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Creation time." }
+      ]
+    },
+    {
+      "name": "taxi_bookings",
+      "columns": [
+        { "field": "id", "type": "INT", "constraints": "PK, NOT NULL", "default": "AUTO_INCREMENT", "description": "Booking ID." },
+        { "field": "passenger_id", "type": "UUID", "constraints": "FK, NOT NULL", "default": null, "description": "Booking passenger reference." },
+        { "field": "taxi_id", "type": "INT", "constraints": "FK", "default": null, "description": "Assigned taxi reference." },
+        { "field": "pickup_name", "type": "VARCHAR(150)", "constraints": "NOT NULL", "default": null, "description": "Pickup location name." },
+        { "field": "dropoff_name", "type": "VARCHAR(150)", "constraints": "", "default": null, "description": "Drop-off location name." },
+        { "field": "status", "type": "VARCHAR(20)", "constraints": "NOT NULL", "default": "'requested'", "description": "State: requested to completed." },
+        { "field": "fare_estimate", "type": "FLOAT", "constraints": "", "default": null, "description": "Estimated fare in INR." },
+        { "field": "created_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Booking creation time." }
+      ]
+    },
+    {
+      "name": "notifications",
+      "columns": [
+        { "field": "id", "type": "INT", "constraints": "PK, NOT NULL", "default": "AUTO_INCREMENT", "description": "Notification ID." },
+        { "field": "user_id", "type": "UUID", "constraints": "FK, NOT NULL", "default": null, "description": "Recipient user reference." },
+        { "field": "title", "type": "VARCHAR(200)", "constraints": "NOT NULL", "default": null, "description": "Notification title." },
+        { "field": "message", "type": "TEXT", "constraints": "NOT NULL", "default": null, "description": "Notification body." },
+        { "field": "notif_type", "type": "VARCHAR(10)", "constraints": "NOT NULL", "default": null, "description": "Channel: email or sms." },
+        { "field": "is_read", "type": "BOOLEAN", "constraints": "NOT NULL", "default": "FALSE", "description": "Read status." },
+        { "field": "created_at", "type": "TIMESTAMP", "constraints": "NOT NULL", "default": "CURRENT_TIMESTAMP", "description": "Creation time." }
+      ]
+    }
+  ]
+}
