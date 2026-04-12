@@ -12,23 +12,23 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddConstraint(
             model_name='bus',
-            constraint=models.CheckConstraint(condition=models.Q(('capacity__gt', 0)), name='ck_bus_capacity_positive'),
+            constraint=models.CheckConstraint(check=models.Q(('capacity__gt', 0)), name='ck_bus_capacity_positive'),
         ),
         migrations.AddConstraint(
             model_name='buslocation',
-            constraint=models.CheckConstraint(condition=models.Q(('latitude__gte', -90), ('latitude__lte', 90)), name='ck_buslocation_lat_range'),
+            constraint=models.CheckConstraint(check=models.Q(('latitude__gte', -90), ('latitude__lte', 90)), name='ck_buslocation_lat_range'),
         ),
         migrations.AddConstraint(
             model_name='buslocation',
-            constraint=models.CheckConstraint(condition=models.Q(('longitude__gte', -180), ('longitude__lte', 180)), name='ck_buslocation_lng_range'),
+            constraint=models.CheckConstraint(check=models.Q(('longitude__gte', -180), ('longitude__lte', 180)), name='ck_buslocation_lng_range'),
         ),
         migrations.AddConstraint(
             model_name='buslocation',
-            constraint=models.CheckConstraint(condition=models.Q(('speed_kmh__gte', 0)), name='ck_buslocation_speed_non_negative'),
+            constraint=models.CheckConstraint(check=models.Q(('speed_kmh__gte', 0)), name='ck_buslocation_speed_non_negative'),
         ),
         migrations.AddConstraint(
             model_name='busschedule',
-            constraint=models.CheckConstraint(condition=models.Q(('stop_order__gte', 0)), name='ck_busschedule_stop_order_non_negative'),
+            constraint=models.CheckConstraint(check=models.Q(('stop_order__gte', 0)), name='ck_busschedule_stop_order_non_negative'),
         ),
         migrations.AddConstraint(
             model_name='busschedule',

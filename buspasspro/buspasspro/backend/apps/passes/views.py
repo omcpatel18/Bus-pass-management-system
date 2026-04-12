@@ -19,11 +19,17 @@ from .serializers import (
 
 class IsAdminUser(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == 'admin'
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+        return user.role == 'admin' or user.is_staff or user.is_superuser
 
 class IsConductorUser(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role in ('conductor', 'admin')
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+        return user.role in ('conductor', 'admin') or user.is_staff or user.is_superuser
 
 
 class RouteViewSet(viewsets.ModelViewSet):

@@ -19,11 +19,13 @@ class Payment(models.Model):
     PASS_RENEWAL  = 'PASS_RENEWAL'
     WALLET_TOPUP  = 'WALLET_TOPUP'
     TICKET        = 'TICKET'
+    TAXI_BOOKING  = 'TAXI_BOOKING'
     PURPOSE_CHOICES = [
         (PASS_PURCHASE, 'Pass Purchase'),
         (PASS_RENEWAL, 'Pass Renewal'),
         (WALLET_TOPUP, 'Wallet Topup'),
         (TICKET, 'Ticket'),
+        (TAXI_BOOKING, 'Taxi Booking'),
     ]
 
     id                  = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -41,7 +43,7 @@ class Payment(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(condition=Q(amount__gt=0),
+            models.CheckConstraint(check=Q(amount__gt=0),
                 name='ck_payment_amount_positive',
             ),
             models.UniqueConstraint(
@@ -75,7 +77,7 @@ class Refund(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(condition=Q(amount__gt=0),
+            models.CheckConstraint(check=Q(amount__gt=0),
                 name='ck_refund_amount_positive',
             ),
         ]

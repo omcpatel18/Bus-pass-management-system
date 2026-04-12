@@ -25,10 +25,10 @@ class Taxi(models.Model):
     class Meta:
         ordering = ['-rating', '-total_trips']
         constraints = [
-            models.CheckConstraint(condition=Q(rating__gte=0, rating__lte=5),
+            models.CheckConstraint(check=Q(rating__gte=0, rating__lte=5),
                 name='ck_taxi_rating_range',
             ),
-            models.CheckConstraint(condition=Q(total_trips__gte=0),
+            models.CheckConstraint(check=Q(total_trips__gte=0),
                 name='ck_taxi_total_trips_non_negative',
             ),
         ]
@@ -57,13 +57,13 @@ class TaxiLocation(models.Model):
         ordering = ['-timestamp']
         get_latest_by = 'timestamp'
         constraints = [
-            models.CheckConstraint(condition=Q(latitude__gte=-90) & Q(latitude__lte=90),
+            models.CheckConstraint(check=Q(latitude__gte=-90) & Q(latitude__lte=90),
                 name='ck_taxilocation_lat_range',
             ),
-            models.CheckConstraint(condition=Q(longitude__gte=-180) & Q(longitude__lte=180),
+            models.CheckConstraint(check=Q(longitude__gte=-180) & Q(longitude__lte=180),
                 name='ck_taxilocation_lng_range',
             ),
-            models.CheckConstraint(condition=Q(speed_kmh__gte=0),
+            models.CheckConstraint(check=Q(speed_kmh__gte=0),
                 name='ck_taxilocation_speed_non_negative',
             ),
         ]
@@ -98,19 +98,19 @@ class TaxiBooking(models.Model):
     class Meta:
         ordering = ['-created_at']
         constraints = [
-            models.CheckConstraint(condition=Q(pickup_lat__gte=-90) & Q(pickup_lat__lte=90),
+            models.CheckConstraint(check=Q(pickup_lat__gte=-90) & Q(pickup_lat__lte=90),
                 name='ck_taxibooking_pickup_lat_range',
             ),
-            models.CheckConstraint(condition=Q(pickup_lng__gte=-180) & Q(pickup_lng__lte=180),
+            models.CheckConstraint(check=Q(pickup_lng__gte=-180) & Q(pickup_lng__lte=180),
                 name='ck_taxibooking_pickup_lng_range',
             ),
-            models.CheckConstraint(condition=(Q(dropoff_lat__isnull=True) | (Q(dropoff_lat__gte=-90) & Q(dropoff_lat__lte=90))),
+            models.CheckConstraint(check=(Q(dropoff_lat__isnull=True) | (Q(dropoff_lat__gte=-90) & Q(dropoff_lat__lte=90))),
                 name='ck_taxibooking_dropoff_lat_range',
             ),
-            models.CheckConstraint(condition=(Q(dropoff_lng__isnull=True) | (Q(dropoff_lng__gte=-180) & Q(dropoff_lng__lte=180))),
+            models.CheckConstraint(check=(Q(dropoff_lng__isnull=True) | (Q(dropoff_lng__gte=-180) & Q(dropoff_lng__lte=180))),
                 name='ck_taxibooking_dropoff_lng_range',
             ),
-            models.CheckConstraint(condition=(Q(fare_estimate__isnull=True) | Q(fare_estimate__gte=0)),
+            models.CheckConstraint(check=(Q(fare_estimate__isnull=True) | Q(fare_estimate__gte=0)),
                 name='ck_taxibooking_fare_non_negative',
             ),
         ]

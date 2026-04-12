@@ -9,7 +9,7 @@ import hashlib
 import razorpay
 
 from .models import Payment, Refund
-from apps.passes.models import BusPass, PassApplication
+from apps.passes.models import BusPass, PassApplication, Route
 
 def get_razorpay_client():
     return razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
@@ -75,6 +75,12 @@ class CreateOrderView(APIView):
             ).exists()
             if not owns_pass:
                 return Response({'error': 'Pass not found for renewal.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            route_id = metadata.get('route_id')
+            if route_id is not None:
+                route_exists = Route.objects.filter(id=route_id, is_active=True).exists()
+                if not route_exists:
+                    return Response({'error': 'Selected renewal route is invalid or inactive.'}, status=status.HTTP_400_BAD_REQUEST)
             
         # For this exercise, we will trust the logic from frontend if it's reasonably calculated, but in prod we force validation.
 
@@ -179,9 +185,30 @@ class VerifyPaymentView(APIView):
         elif payment.purpose == Payment.PASS_RENEWAL:
             pass_id = payment.metadata.get('pass_id')
             days_to_add = payment.metadata.get('days', 30)
+            route_id = payment.metadata.get('route_id')
+            boarding_stop = payment.metadata.get('boarding_stop')
             if pass_id:
                 try:
-                    bus_pass = BusPass.objects.get(id=pass_id)
+                    bus_pass = BusPass.objects.select_related('application__route').get(
+                        id=pass_id,
+                        application__student=request.user,
+                    )
+
+                    if route_id is not None:
+                        route = Route.objects.filter(id=route_id, is_active=True).first()
+                        if route and bus_pass.application.route_id != route.id:
+                            app = bus_pass.application
+                            app.route = route
+
+                            if boarding_stop:
+                                valid_stops = [route.source, *route.stops, route.destination]
+                                if boarding_stop in valid_stops:
+                                    app.boarding_stop = boarding_stop
+                            elif app.boarding_stop not in [route.source, *route.stops, route.destination]:
+                                app.boarding_stop = route.source
+
+                            app.save(update_fields=['route', 'boarding_stop'])
+
                     bus_pass.valid_until += timezone.timedelta(days=int(days_to_add))
                     bus_pass.status = BusPass.ACTIVE
                     bus_pass.save()
