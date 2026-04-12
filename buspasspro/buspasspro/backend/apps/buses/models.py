@@ -11,7 +11,7 @@ class Bus(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(condition=Q(capacity__gt=0),
+            models.CheckConstraint(check=Q(capacity__gt=0),
                 name='ck_bus_capacity_positive',
             ),
         ]
@@ -31,13 +31,13 @@ class BusLocation(models.Model):
         ordering = ['-timestamp']
         get_latest_by = 'timestamp'
         constraints = [
-            models.CheckConstraint(condition=Q(latitude__gte=-90) & Q(latitude__lte=90),
+            models.CheckConstraint(check=Q(latitude__gte=-90) & Q(latitude__lte=90),
                 name='ck_buslocation_lat_range',
             ),
-            models.CheckConstraint(condition=Q(longitude__gte=-180) & Q(longitude__lte=180),
+            models.CheckConstraint(check=Q(longitude__gte=-180) & Q(longitude__lte=180),
                 name='ck_buslocation_lng_range',
             ),
-            models.CheckConstraint(condition=Q(speed_kmh__gte=0),
+            models.CheckConstraint(check=Q(speed_kmh__gte=0),
                 name='ck_buslocation_speed_non_negative',
             ),
         ]
@@ -55,7 +55,7 @@ class BusSchedule(models.Model):
     class Meta:
         ordering = ['stop_order']
         constraints = [
-            models.CheckConstraint(condition=Q(stop_order__gte=0),
+            models.CheckConstraint(check=Q(stop_order__gte=0),
                 name='ck_busschedule_stop_order_non_negative',
             ),
             models.UniqueConstraint(

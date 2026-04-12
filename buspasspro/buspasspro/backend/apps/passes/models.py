@@ -7,6 +7,13 @@ import uuid, qrcode, json, hmac, hashlib
 from io import BytesIO
 from django.core.files import File
 from django.conf import settings
+from django.core.validators import RegexValidator
+
+
+HEX_COLOR_VALIDATOR = RegexValidator(
+    regex=r'^#[0-9A-Fa-f]{6}$',
+    message='Color must be a valid hex code like #1A4A8A.',
+)
 
 
 class Route(models.Model):
@@ -17,6 +24,7 @@ class Route(models.Model):
     distance_km  = models.FloatField()
     duration_min = models.IntegerField()
     fare         = models.DecimalField(max_digits=8, decimal_places=2)
+    color        = models.CharField(max_length=7, default='#1A4A8A', validators=[HEX_COLOR_VALIDATOR])
     is_active    = models.BooleanField(default=True)
 
     class Meta:
@@ -25,13 +33,13 @@ class Route(models.Model):
                 fields=['name', 'source', 'destination'],
                 name='uq_route_name_source_destination',
             ),
-            models.CheckConstraint(condition=Q(distance_km__gt=0),
+            models.CheckConstraint(check=Q(distance_km__gt=0),
                 name='ck_route_distance_positive',
             ),
-            models.CheckConstraint(condition=Q(duration_min__gt=0),
+            models.CheckConstraint(check=Q(duration_min__gt=0),
                 name='ck_route_duration_positive',
             ),
-            models.CheckConstraint(condition=Q(fare__gt=0),
+            models.CheckConstraint(check=Q(fare__gt=0),
                 name='ck_route_fare_positive',
             ),
         ]
@@ -95,7 +103,7 @@ class BusPass(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(condition=Q(valid_until__gte=F('valid_from')),
+            models.CheckConstraint(check=Q(valid_until__gte=F('valid_from')),
                 name='ck_buspass_valid_until_after_valid_from',
             ),
         ]

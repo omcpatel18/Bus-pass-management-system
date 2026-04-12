@@ -12,43 +12,43 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddConstraint(
             model_name='taxi',
-            constraint=models.CheckConstraint(condition=models.Q(('rating__gte', 0), ('rating__lte', 5)), name='ck_taxi_rating_range'),
+            constraint=models.CheckConstraint(check=models.Q(('rating__gte', 0), ('rating__lte', 5)), name='ck_taxi_rating_range'),
         ),
         migrations.AddConstraint(
             model_name='taxi',
-            constraint=models.CheckConstraint(condition=models.Q(('total_trips__gte', 0)), name='ck_taxi_total_trips_non_negative'),
+            constraint=models.CheckConstraint(check=models.Q(('total_trips__gte', 0)), name='ck_taxi_total_trips_non_negative'),
         ),
         migrations.AddConstraint(
             model_name='taxibooking',
-            constraint=models.CheckConstraint(condition=models.Q(('pickup_lat__gte', -90), ('pickup_lat__lte', 90)), name='ck_taxibooking_pickup_lat_range'),
+            constraint=models.CheckConstraint(check=models.Q(('pickup_lat__gte', -90), ('pickup_lat__lte', 90)), name='ck_taxibooking_pickup_lat_range'),
         ),
         migrations.AddConstraint(
             model_name='taxibooking',
-            constraint=models.CheckConstraint(condition=models.Q(('pickup_lng__gte', -180), ('pickup_lng__lte', 180)), name='ck_taxibooking_pickup_lng_range'),
+            constraint=models.CheckConstraint(check=models.Q(('pickup_lng__gte', -180), ('pickup_lng__lte', 180)), name='ck_taxibooking_pickup_lng_range'),
         ),
         migrations.AddConstraint(
             model_name='taxibooking',
-            constraint=models.CheckConstraint(condition=models.Q(('dropoff_lat__isnull', True), models.Q(('dropoff_lat__gte', -90), ('dropoff_lat__lte', 90)), _connector='OR'), name='ck_taxibooking_dropoff_lat_range'),
+            constraint=models.CheckConstraint(check=models.Q(('dropoff_lat__isnull', True), models.Q(('dropoff_lat__gte', -90), ('dropoff_lat__lte', 90)), _connector='OR'), name='ck_taxibooking_dropoff_lat_range'),
         ),
         migrations.AddConstraint(
             model_name='taxibooking',
-            constraint=models.CheckConstraint(condition=models.Q(('dropoff_lng__isnull', True), models.Q(('dropoff_lng__gte', -180), ('dropoff_lng__lte', 180)), _connector='OR'), name='ck_taxibooking_dropoff_lng_range'),
+            constraint=models.CheckConstraint(check=models.Q(('dropoff_lng__isnull', True), models.Q(('dropoff_lng__gte', -180), ('dropoff_lng__lte', 180)), _connector='OR'), name='ck_taxibooking_dropoff_lng_range'),
         ),
         migrations.AddConstraint(
             model_name='taxibooking',
-            constraint=models.CheckConstraint(condition=models.Q(('fare_estimate__isnull', True), ('fare_estimate__gte', 0), _connector='OR'), name='ck_taxibooking_fare_non_negative'),
+            constraint=models.CheckConstraint(check=models.Q(('fare_estimate__isnull', True), ('fare_estimate__gte', 0), _connector='OR'), name='ck_taxibooking_fare_non_negative'),
         ),
         migrations.AddConstraint(
             model_name='taxilocation',
-            constraint=models.CheckConstraint(condition=models.Q(('latitude__gte', -90), ('latitude__lte', 90)), name='ck_taxilocation_lat_range'),
+            constraint=models.CheckConstraint(check=models.Q(('latitude__gte', -90), ('latitude__lte', 90)), name='ck_taxilocation_lat_range'),
         ),
         migrations.AddConstraint(
             model_name='taxilocation',
-            constraint=models.CheckConstraint(condition=models.Q(('longitude__gte', -180), ('longitude__lte', 180)), name='ck_taxilocation_lng_range'),
+            constraint=models.CheckConstraint(check=models.Q(('longitude__gte', -180), ('longitude__lte', 180)), name='ck_taxilocation_lng_range'),
         ),
         migrations.AddConstraint(
             model_name='taxilocation',
-            constraint=models.CheckConstraint(condition=models.Q(('speed_kmh__gte', 0)), name='ck_taxilocation_speed_non_negative'),
+            constraint=models.CheckConstraint(check=models.Q(('speed_kmh__gte', 0)), name='ck_taxilocation_speed_non_negative'),
         ),
     ]
 
