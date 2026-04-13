@@ -13,6 +13,7 @@ from .serializers import (
     RegisterSerializer, LoginSerializer, UserSerializer,
     StudentProfileSerializer, ChangePasswordSerializer
 )
+from .dev_seed import ensure_demo_users
 
 
 def get_tokens_for_user(user):
@@ -44,6 +45,7 @@ class LoginView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
+        ensure_demo_users()
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']

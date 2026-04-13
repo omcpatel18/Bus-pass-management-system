@@ -15,6 +15,11 @@ try:
     DB_HOST    = config('DB_HOST', default='localhost')
     DB_PORT    = config('DB_PORT', default='5432')
     USE_SQLITE = config('USE_SQLITE', default=True, cast=bool)
+    ENABLE_DEMO_USERS = config('ENABLE_DEMO_USERS', default=DEBUG, cast=bool)
+    DEMO_ADMIN_EMAIL = config('DEMO_ADMIN_EMAIL', default='admin@admin.com')
+    DEMO_ADMIN_PASSWORD = config('DEMO_ADMIN_PASSWORD', default='12345678')
+    DEMO_STUDENT_EMAIL = config('DEMO_STUDENT_EMAIL', default='test@example.com')
+    DEMO_STUDENT_PASSWORD = config('DEMO_STUDENT_PASSWORD', default='12345678')
     REDIS_HOST = config('REDIS_HOST', default='127.0.0.1')
     REDIS_URL  = config('REDIS_URL', default='redis://127.0.0.1:6379/1')
     RAZORPAY_KEY_ID     = config('RAZORPAY_KEY_ID', default='')
@@ -37,6 +42,11 @@ except ImportError:
     DB_HOST     = 'localhost'
     DB_PORT     = '5432'
     USE_SQLITE  = True
+    ENABLE_DEMO_USERS = True
+    DEMO_ADMIN_EMAIL = 'admin@admin.com'
+    DEMO_ADMIN_PASSWORD = '12345678'
+    DEMO_STUDENT_EMAIL = 'test@example.com'
+    DEMO_STUDENT_PASSWORD = '12345678'
     REDIS_HOST  = '127.0.0.1'
     REDIS_URL   = 'redis://127.0.0.1:6379/1'
     RAZORPAY_KEY_ID = RAZORPAY_KEY_SECRET = QR_CODE_SECRET = ''

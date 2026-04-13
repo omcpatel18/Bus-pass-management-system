@@ -1,16 +1,26 @@
 Django==4.2.8
 djangorestframework==3.14.0
+djangorestframework-simplejwt==5.5.1
 daphne==4.0.0
 channels==4.0.0
 channels-redis==4.1.0
 django-cors-headers==4.3.1
+django-filter==24.1
+drf-spectacular==0.29.0
+django-redis==6.0.0
 python-decouple==3.8
 python-dateutil==2.8.2
 Pillow==11.0.0
+qrcode==8.2
 celery==5.3.4
 redis==5.0.1
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.9; platform_system != "Windows"
 gunicorn==21.2.0
 pytest==7.4.3
 pytest-django==4.7.0
 razorpay==1.4.2
+setuptools<81
+numpy==2.4.4
+networkx==3.6.1
+scikit-learn==1.8.0
+joblib==1.5.3
