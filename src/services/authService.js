@@ -17,7 +17,11 @@ const AuthService = {
 
   /** Login — returns { user, tokens } */
   login: async (email, password) => {
-    const { data } = await api.post("/auth/login/", { email, password });
+    const payload = {
+      email: (email || "").trim().toLowerCase(),
+      password: (password || "").trim(),
+    };
+    const { data } = await api.post("/auth/login/", payload);
     TokenService.setTokens(data.tokens.access, data.tokens.refresh);
     TokenService.setUser(data.user);
     return data;

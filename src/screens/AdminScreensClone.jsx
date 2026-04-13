@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import PassService from "../services/passService";
+import NotificationService from "../services/notificationService";
 
 // ══════════════════════════════════════════════════════════════════════
 //  DESIGN TOKENS (Standard Light Theme)
@@ -805,9 +806,16 @@ export function AnnouncementSenderClone({ onNavigate, toast }) {
     { title:"Service Disruption: R3", date:"05 Mar, 2:30 PM", type:"CRITICAL", body:"Power line failure at Sector 4." },
   ]);
 
-  const dispatch = () => {
+  const dispatch = async () => {
     setSubmitting(true);
-    setTimeout(() => {
+    try {
+      await NotificationService.broadcast({
+        title: form.title,
+        message: form.body,
+        audience,
+        notif_type: "email",
+      });
+
       const now = new Date();
       const timestamp = now.toLocaleDateString("en-IN", { day:"2-digit", month:"short" }) + ", " + now.toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit" });
       const newEntry = {
@@ -817,10 +825,13 @@ export function AnnouncementSenderClone({ onNavigate, toast }) {
         body: form.body
       };
       setHistory(prev => [newEntry, ...prev]);
-      setSubmitting(false);
       setForm({ title:"", body:"", type:"INFO" });
-      toast.success("Broadcast Dispatched to " + audience);
-    }, 800);
+      toast.success("Broadcast sent to passengers.");
+    } catch (err) {
+      toast.error(err?.response?.data?.error || "Failed to send broadcast.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

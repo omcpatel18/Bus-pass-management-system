@@ -36,6 +36,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { User, GraduationCap, Leaf, Accessibility, Briefcase, Eye, EyeOff } from "lucide-react";
 import PassService from "../services/passService";
+import NotificationService from "../services/notificationService";
 import { PaymentButton, PaymentStatusModal } from "../components/PaymentUI";
 
 // ══════════════════════════════════════════════════════════════════════
@@ -703,29 +704,50 @@ export function ForgotPasswordScreen({ onDone, onBackToLogin }) {
 // ══════════════════════════════════════════════════════════════════════
 //  3. NOTIFICATIONS SCREEN
 // ══════════════════════════════════════════════════════════════════════
-const MOCK_NOTIFS = [
-  { id:1, role:"passenger", type:"success", title:"Pass Approved!",      body:"Your quarterly pass BPP·2024·001234 for Red Line has been approved. QR code is ready.",       time:"2 min ago",  read:false },
-  { id:2, role:"passenger", type:"warn",    title:"Pass Expiring Soon",  body:"Your current pass expires in 7 days. Apply for renewal to avoid disruption.",                  time:"1 hr ago",   read:false },
-  { id:3, role:"all",       type:"info",    title:"Blue Line Delay",     body:"Blue Line (R2) running 14 minutes late today due to Ring Road congestion.",                   time:"3 hrs ago",  read:true  },
-  { id:4, role:"all",       type:"info",    title:"New Stop Added",      body:"Tech Hub Gate 2 has been added to Red Line from 01 March 2024.",                               time:"Yesterday",  read:true  },
-  { id:5, role:"passenger", type:"success", title:"Payment Confirmed",   body:"₹1,215 received for pass BPP·2024·001234. Receipt sent to your email.",                       time:"2 days ago", read:true  },
-  { id:6, role:"all",       type:"info",    title:"Holiday Notice",      body:"No bus service on 26 Jan (Republic Day). Regular service resumes 27 Jan.",                    time:"1 week ago", read:true  },
-];
-
-export function NotificationsScreen({ auth }) {
-  const [notifs,setNotifs]=useState(MOCK_NOTIFS);
+export function NotificationsScreen({ auth, notifs = [], setNotifs = () => {}, refreshNotifications, toast }) {
   const [filter,setFilter]=useState("ALL");
+
+  useEffect(() => {
+    if (refreshNotifications) refreshNotifications(true);
+  }, [refreshNotifications]);
   
   // Role-based filtering logic
   const roleFiltered = notifs.filter(n => 
-    n.role === "all" || n.role === auth?.role
+    !n.role || n.role === "all" || n.role === auth?.role
   );
   
   const unread=roleFiltered.filter(n=>!n.read).length;
 
-  const markRead=id=>setNotifs(n=>n.map(x=>x.id===id?{...x,read:true}:x));
-  const markAll=()=>setNotifs(n=>n.map(x=>({...x,read:true})));
-  const del=id=>setNotifs(n=>n.filter(x=>x.id!==id));
+  const markRead = async (id) => {
+    setNotifs(n => n.map(x => x.id === id ? { ...x, read: true } : x));
+    try {
+      await NotificationService.markRead(id);
+    } catch (err) {
+      if (refreshNotifications) refreshNotifications(true);
+      if (toast) toast.error(err?.response?.data?.error || "Failed to mark notification as read.");
+    }
+  };
+
+  const markAll = async () => {
+    setNotifs(n => n.map(x => ({ ...x, read: true })));
+    try {
+      await NotificationService.markAllRead();
+    } catch (err) {
+      if (refreshNotifications) refreshNotifications(true);
+      if (toast) toast.error(err?.response?.data?.error || "Failed to mark all notifications as read.");
+    }
+  };
+
+  const del = async (id) => {
+    const previous = [...notifs];
+    setNotifs(n => n.filter(x => x.id !== id));
+    try {
+      await NotificationService.remove(id);
+    } catch (err) {
+      setNotifs(previous);
+      if (toast) toast.error(err?.response?.data?.error || "Failed to delete notification.");
+    }
+  };
 
   const TYPE_STYLE={
     success:{border:"var(--green)",  bg:"var(--success-bg)",icon:"✓",color:"var(--green)"},
@@ -802,7 +824,7 @@ export function NotificationsScreen({ auth }) {
                       color:"var(--muted)",flexShrink:0,marginLeft:16 }}>{n.time}</div>
                   </div>
                   <div style={{ fontFamily:"var(--font-sans)",fontSize:13,
-                    color:"var(--muted)",lineHeight:1.6 }}>{n.body}</div>
+                    color:"var(--muted)",lineHeight:1.6 }}>{n.body || n.message}</div>
                 </div>
                 {/* Actions */}
                 <div style={{ display:"flex",flexDirection:"column",

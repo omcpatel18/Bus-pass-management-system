@@ -43,6 +43,7 @@ import {
 } from "./screens/AdminScreensClone";
 import AdminHub from "./screens/AdminHub";
 import AuthService from "./services/authService";
+import NotificationService from "./services/notificationService";
 // import AdminPaymentDashboard from "./screens/AdminPaymentDashboard";
 
 // ══════════════════════════════════════════════════════════════════════
@@ -174,6 +175,37 @@ const INITIAL_NOTIFS = [
   { id: 5, role: "admin", type: "warn", title: "System Load Alert", body: "Server memory usage exceeded 85%. Automated optimization triggered.", time: "10 min ago", read: false },
   { id: 6, role: "admin", type: "info", title: "New Registrations", body: "14 new passenger applications received in the last hour.", time: "45 min ago", read: false },
 ];
+
+const toRelativeTime = (value) => {
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return "just now";
+  const diffSec = Math.max(0, Math.floor((Date.now() - dt.getTime()) / 1000));
+  if (diffSec < 60) return "just now";
+  const mins = Math.floor(diffSec / 60);
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day ago`;
+  return dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+};
+
+const inferNotificationType = (title = "", message = "") => {
+  const text = `${title} ${message}`.toLowerCase();
+  if (/approved|confirmed|success|ready|received/.test(text)) return "success";
+  if (/delay|warning|warn|critical|expired|expiring|disruption|alert/.test(text)) return "warn";
+  return "info";
+};
+
+const mapServerNotification = (n) => ({
+  id: n.id,
+  title: n.title,
+  body: n.message,
+  message: n.message,
+  time: toRelativeTime(n.created_at),
+  read: !!n.is_read,
+  type: inferNotificationType(n.title, n.message),
+});
 
 const MOCK_APPS = [
   { id: "A-001", passenger: "Priya Patel", pid: "STU-10018", ptype: "student", email: "priya@mail.com", route: "Red Line", stop: "Library Square", type: "Monthly", status: "PENDING", date: "01 Mar 2024", amt: 266, phone: "+91 98765 11111", reason: "Daily commute to university." },
@@ -431,7 +463,7 @@ function Ticker() {
 // ══════════════════════════════════════════════════════════════════════
 //  NOTIFICATION BELL
 // ══════════════════════════════════════════════════════════════════════
-function NotificationBell({ notifs, setNotifs, onOpenNotifications }) {
+function NotificationBell({ notifs, setNotifs, onOpenNotifications, onMarkRead, onMarkAllRead }) {
   const [open, setOpen] = useState(false);
   const [wiggle, setWiggle] = useState(false);
   const ref = useRef(null);
@@ -451,10 +483,10 @@ function NotificationBell({ notifs, setNotifs, onOpenNotifications }) {
         <div style={{ position: "absolute", top: "calc(100% + 10px)", right: 0, width: 340, background: "var(--surface)", border: "2px solid var(--ink)", borderRadius: "var(--r-sm)", boxShadow: "0 12px 40px rgba(26,18,8,.16)", zIndex: 500, animation: "slideDown .22s var(--ease-spring)", overflow: "hidden" }}>
           <div style={{ padding: "12px 16px", borderBottom: "2px solid var(--ink)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--parchment)" }}>
             <div style={{ fontFamily: "var(--font-display)", fontSize: 14, letterSpacing: 2, color: "var(--ink)" }}>NOTIFICATIONS {unread > 0 && <span style={{ color: "var(--red)" }}>· {unread}</span>}</div>
-            {unread > 0 && <button onClick={() => setNotifs(n => n.map(x => ({ ...x, read: true })))} style={{ background: "none", border: "none", fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 2, color: "var(--muted)", cursor: "pointer" }}>MARK ALL READ</button>}
+            {unread > 0 && <button onClick={() => onMarkAllRead ? onMarkAllRead() : setNotifs(n => n.map(x => ({ ...x, read: true })))} style={{ background: "none", border: "none", fontFamily: "var(--font-mono)", fontSize: 7, letterSpacing: 2, color: "var(--muted)", cursor: "pointer" }}>MARK ALL READ</button>}
           </div>
           {notifs.slice(0, 4).map(n => (
-            <div key={n.id} onClick={() => setNotifs(ns => ns.map(x => x.id === n.id ? { ...x, read: true } : x))}
+            <div key={n.id} onClick={() => onMarkRead ? onMarkRead(n.id) : setNotifs(ns => ns.map(x => x.id === n.id ? { ...x, read: true } : x))}
               style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--rule)", cursor: "pointer", background: n.read ? "transparent" : "var(--warn-bg)", transition: "background .15s" }}>
               <div style={{ width: 4, background: n.read ? "transparent" : TYPE_COLOR[n.type] || "var(--ink)", flexShrink: 0 }} />
               <div style={{ flex: 1, padding: "11px 14px" }}>
@@ -1730,8 +1762,49 @@ export default function App() {
   });
   const [authView, setAuthView] = useState("login");
   const [page, setPage] = useState("dashboard");
-  const [notifs, setNotifs] = useState(INITIAL_NOTIFS);
+  const [notifs, setNotifs] = useState([]);
   const toast = useToast();
+
+  const refreshNotifications = useCallback(async (silent = true) => {
+    if (!auth.loggedIn) {
+      setNotifs([]);
+      return;
+    }
+    try {
+      const data = await NotificationService.list();
+      setNotifs((data || []).map(mapServerNotification));
+    } catch (err) {
+      if (!silent) toast.error(err?.response?.data?.detail || "Failed to load notifications.");
+    }
+  }, [auth.loggedIn, toast]);
+
+  const markNotificationRead = useCallback(async (id) => {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    try {
+      await NotificationService.markRead(id);
+    } catch {
+      refreshNotifications(true);
+    }
+  }, [refreshNotifications]);
+
+  const markAllNotificationsRead = useCallback(async () => {
+    setNotifs(prev => prev.map(n => ({ ...n, read: true })));
+    try {
+      await NotificationService.markAllRead();
+    } catch {
+      refreshNotifications(true);
+    }
+  }, [refreshNotifications]);
+
+  useEffect(() => {
+    if (!auth.loggedIn) {
+      setNotifs([]);
+      return;
+    }
+    refreshNotifications(true);
+    const timer = setInterval(() => refreshNotifications(true), 20000);
+    return () => clearInterval(timer);
+  }, [auth.loggedIn, auth.user?.id, refreshNotifications]);
 
   const handleLogin = (role, userData) => {
     const uiRole = role === "student" ? "passenger" : role;
@@ -1753,6 +1826,9 @@ export default function App() {
 
   const renderPage = () => {
     if (auth.role === "admin" && page === "admin") return <AdminApplicationsClone onNavigate={setPage} toast={toast} />;
+    if (page === "notifications") {
+      return <div key={page} style={{ animation: "fadeUp .3s ease" }}><NotificationsScreen onNavigate={setPage} auth={auth} user={auth.user} toast={toast} onLogout={handleLogout} notifs={notifs} setNotifs={setNotifs} refreshNotifications={refreshNotifications} /></div>;
+    }
     const Screen = SCREENS[page];
     if (Screen) return <div key={page} style={{ animation: "fadeUp .3s ease" }}><Screen onNavigate={setPage} auth={auth} user={auth.user} toast={toast} onLogout={handleLogout} /></div>;
     return <NotFoundScreen onGoHome={() => setPage(DEFAULT_PAGE[auth.role] || "dashboard")} />;
@@ -1808,7 +1884,7 @@ export default function App() {
 
           {/* Right cluster */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-            <NotificationBell notifs={notifs} setNotifs={setNotifs} onOpenNotifications={() => setPage("notifications")} />
+            <NotificationBell notifs={notifs} setNotifs={setNotifs} onOpenNotifications={() => setPage("notifications")} onMarkRead={markNotificationRead} onMarkAllRead={markAllNotificationsRead} />
             <div style={{ width: 1, height: 28, background: "var(--rule)" }} />
             <div style={{ textAlign: "right", cursor: "pointer" }} onClick={() => setPage("profile")}>
               <div style={{ fontFamily: "var(--font-sans)", fontSize: 15, color: "var(--ink)", fontWeight: 500 }}>{ROLE_DISPLAY}</div>
