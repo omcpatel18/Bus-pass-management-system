@@ -45,7 +45,10 @@ class LoginView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        ensure_demo_users()
+        try:
+            ensure_demo_users()
+        except Exception as e:
+            print(f"Warning: Could not ensure demo users: {e}")
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']

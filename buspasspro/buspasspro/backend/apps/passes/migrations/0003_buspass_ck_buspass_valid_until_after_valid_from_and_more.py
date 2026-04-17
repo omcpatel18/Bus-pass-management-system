@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddConstraint(
             model_name='buspass',
-            constraint=models.CheckConstraint(check=models.Q(('valid_until__gte', models.F('valid_from'))), name='ck_buspass_valid_until_after_valid_from'),
+            constraint=models.CheckConstraint(condition=models.Q(('valid_until__gte', models.F('valid_from'))), name='ck_buspass_valid_until_after_valid_from'),
         ),
         migrations.AddConstraint(
             model_name='passapplication',
@@ -24,15 +24,15 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='route',
-            constraint=models.CheckConstraint(check=models.Q(('distance_km__gt', 0)), name='ck_route_distance_positive'),
+            constraint=models.CheckConstraint(condition=models.Q(('distance_km__gt', 0)), name='ck_route_distance_positive'),
         ),
         migrations.AddConstraint(
             model_name='route',
-            constraint=models.CheckConstraint(check=models.Q(('duration_min__gt', 0)), name='ck_route_duration_positive'),
+            constraint=models.CheckConstraint(condition=models.Q(('duration_min__gt', 0)), name='ck_route_duration_positive'),
         ),
         migrations.AddConstraint(
             model_name='route',
-            constraint=models.CheckConstraint(check=models.Q(('fare__gt', 0)), name='ck_route_fare_positive'),
+            constraint=models.CheckConstraint(condition=models.Q(('fare__gt', 0)), name='ck_route_fare_positive'),
         ),
     ]
 

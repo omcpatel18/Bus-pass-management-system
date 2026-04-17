@@ -14,14 +14,11 @@ try:
     DB_PASSWORD = config('DB_PASSWORD', default='postgres')
     DB_HOST    = config('DB_HOST', default='localhost')
     DB_PORT    = config('DB_PORT', default='5432')
-    USE_SQLITE = config('USE_SQLITE', default=True, cast=bool)
     ENABLE_DEMO_USERS = config('ENABLE_DEMO_USERS', default=DEBUG, cast=bool)
     DEMO_ADMIN_EMAIL = config('DEMO_ADMIN_EMAIL', default='admin@admin.com')
     DEMO_ADMIN_PASSWORD = config('DEMO_ADMIN_PASSWORD', default='12345678')
     DEMO_STUDENT_EMAIL = config('DEMO_STUDENT_EMAIL', default='test@example.com')
     DEMO_STUDENT_PASSWORD = config('DEMO_STUDENT_PASSWORD', default='12345678')
-    REDIS_HOST = config('REDIS_HOST', default='127.0.0.1')
-    REDIS_URL  = config('REDIS_URL', default='redis://127.0.0.1:6379/1')
     RAZORPAY_KEY_ID     = config('RAZORPAY_KEY_ID', default='')
     RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET', default='')
     QR_CODE_SECRET      = config('QR_CODE_SECRET', default='qr-secret')
@@ -41,14 +38,11 @@ except ImportError:
     DB_PASSWORD = 'postgres'
     DB_HOST     = 'localhost'
     DB_PORT     = '5432'
-    USE_SQLITE  = True
     ENABLE_DEMO_USERS = True
     DEMO_ADMIN_EMAIL = 'admin@admin.com'
     DEMO_ADMIN_PASSWORD = '12345678'
     DEMO_STUDENT_EMAIL = 'test@example.com'
     DEMO_STUDENT_PASSWORD = '12345678'
-    REDIS_HOST  = '127.0.0.1'
-    REDIS_URL   = 'redis://127.0.0.1:6379/1'
     RAZORPAY_KEY_ID = RAZORPAY_KEY_SECRET = QR_CODE_SECRET = ''
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = 'smtp.gmail.com'
@@ -111,37 +105,27 @@ TEMPLATES = [{
     ]},
 }]
 
-if USE_SQLITE:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': DB_NAME,
-            'USER': DB_USER,
-            'PASSWORD': DB_PASSWORD,
-            'HOST': DB_HOST,
-            'PORT': DB_PORT,
-        }
-    }
+}
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {'hosts': [(REDIS_HOST, 6379)]},
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_URL,
-        'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
     }
 }
 

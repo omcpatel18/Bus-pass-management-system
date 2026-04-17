@@ -43,7 +43,7 @@ class Payment(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(check=Q(amount__gt=0),
+            models.CheckConstraint(condition=Q(amount__gt=0),
                 name='ck_payment_amount_positive',
             ),
             models.UniqueConstraint(
@@ -77,7 +77,7 @@ class Refund(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(check=Q(amount__gt=0),
+            models.CheckConstraint(condition=Q(amount__gt=0),
                 name='ck_refund_amount_positive',
             ),
         ]

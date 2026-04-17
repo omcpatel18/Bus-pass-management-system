@@ -33,13 +33,13 @@ class Route(models.Model):
                 fields=['name', 'source', 'destination'],
                 name='uq_route_name_source_destination',
             ),
-            models.CheckConstraint(check=Q(distance_km__gt=0),
+            models.CheckConstraint(condition=Q(distance_km__gt=0),
                 name='ck_route_distance_positive',
             ),
-            models.CheckConstraint(check=Q(duration_min__gt=0),
+            models.CheckConstraint(condition=Q(duration_min__gt=0),
                 name='ck_route_duration_positive',
             ),
-            models.CheckConstraint(check=Q(fare__gt=0),
+            models.CheckConstraint(condition=Q(fare__gt=0),
                 name='ck_route_fare_positive',
             ),
         ]
@@ -103,7 +103,7 @@ class BusPass(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(check=Q(valid_until__gte=F('valid_from')),
+            models.CheckConstraint(condition=Q(valid_until__gte=F('valid_from')),
                 name='ck_buspass_valid_until_after_valid_from',
             ),
         ]

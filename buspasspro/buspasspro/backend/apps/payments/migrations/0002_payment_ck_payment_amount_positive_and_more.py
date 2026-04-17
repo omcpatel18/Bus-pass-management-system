@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddConstraint(
             model_name='payment',
-            constraint=models.CheckConstraint(check=models.Q(('amount__gt', 0)), name='ck_payment_amount_positive'),
+            constraint=models.CheckConstraint(condition=models.Q(('amount__gt', 0)), name='ck_payment_amount_positive'),
         ),
         migrations.AddConstraint(
             model_name='payment',
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='refund',
-            constraint=models.CheckConstraint(check=models.Q(('amount__gt', 0)), name='ck_refund_amount_positive'),
+            constraint=models.CheckConstraint(condition=models.Q(('amount__gt', 0)), name='ck_refund_amount_positive'),
         ),
     ]
 
