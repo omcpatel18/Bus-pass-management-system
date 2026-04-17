@@ -15,11 +15,16 @@ export const useRazorpay = () => {
       
       const script = document.createElement('script');
       script.src = RAZORPAY_SCRIPT;
+      script.async = true;
       script.onload = () => {
+        console.log('Razorpay SDK loaded successfully');
         setIsLoaded(true);
         resolve(true);
       };
-      script.onerror = () => resolve(false);
+      script.onerror = (e) => {
+        console.error('Razorpay SDK failed to load', e);
+        resolve(false);
+      };
       
       document.body.appendChild(script);
     });

@@ -67,13 +67,16 @@ export const PaymentButton = ({
     }
 
     setProcessing(true);
+    console.log('Initiating payment with payload:', { amount, purpose, metadata });
     try {
       const orderRes = await api.post('/payments/create-order/', { amount, purpose, metadata });
+      console.log('Order created:', orderRes.data);
       const { order_id, key_id, amount: orderAmount, currency } = orderRes.data;
       let isFinalized = false;
       let checkoutEventSeen = false;
 
       const failPayment = async (message, failurePayload = null) => {
+        console.error('Payment failure cleanup:', message, failurePayload);
         if (isFinalized) return;
         isFinalized = true;
         setProcessing(false);
@@ -84,14 +87,15 @@ export const PaymentButton = ({
             reason: message,
             failure_payload: failurePayload || {},
           });
-        } catch {
-          // Best effort only; user-facing error should still be shown.
+        } catch (e) {
+          console.error('Failed to mark payment as failed in DB', e);
         }
 
         if (onFailure) onFailure(message);
       };
 
       const succeedPayment = (data) => {
+        console.log('Payment success finalization:', data);
         if (isFinalized) return;
         isFinalized = true;
         setProcessing(false);
@@ -99,6 +103,7 @@ export const PaymentButton = ({
       };
 
       const profileRes = await api.get('/auth/profile/');
+      console.log('User profile fetched for prefill:', profileRes.data);
       const { full_name, email, phone_number } = profileRes.data || {};
 
       const options = {
@@ -123,6 +128,7 @@ export const PaymentButton = ({
         theme: { color: "#F59E0B" },
         modal: {
           ondismiss: () => {
+            console.log('Checkout modal dismissed');
             // Razorpay can emit dismiss around success/failure transitions.
             // Delay and only mark cancelled if no checkout event was seen.
             setTimeout(() => {
@@ -133,6 +139,7 @@ export const PaymentButton = ({
           }
         },
         onPaymentFailed: (response) => {
+          console.error('onPaymentFailed triggered:', response);
           checkoutEventSeen = true;
           const message = response?.error?.description
             || response?.error?.reason
@@ -141,6 +148,7 @@ export const PaymentButton = ({
           failPayment(message, response);
         },
         handler: async (response) => {
+          console.log('Success handler triggered:', response);
           checkoutEventSeen = true;
           try {
             const verifyRes = await api.post('/payments/verify-payment/', {
@@ -148,22 +156,25 @@ export const PaymentButton = ({
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature
             });
+            console.log('Verification success:', verifyRes.data);
             succeedPayment(verifyRes.data);
           } catch (err) {
-            const verifyMessage = err?.response?.data?.error || 'Signature verification failed.';
-            failPayment(verifyMessage, err?.response?.data || {});
+            console.error('Verification failed:', err);
+            failPayment('Verification failed: ' + (err.response?.data?.error || err.message));
           }
         }
       };
-
-      await openCheckout(options);
+      
+      console.log('Opening Razorpay checkout with options:', options);
+      const opened = await openCheckout(options);
+      console.log('openCheckout result:', opened);
+      if (!opened) {
+        setProcessing(false);
+      }
     } catch (err) {
+      console.error('Fatal error in handlePayment:', err);
       setProcessing(false);
-      console.error("Order creation failed", err);
-      const message = err?.response?.status === 401
-        ? 'Session expired or not logged in. Please login again.'
-        : err?.response?.data?.error || 'Failed to initialize payment gateway.';
-      if(onFailure) onFailure(message);
+      if (onFailure) onFailure(err.response?.data?.error || err.message);
     }
   };
 
